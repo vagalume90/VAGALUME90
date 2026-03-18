@@ -758,6 +758,112 @@
   }
 </style>
 </head>
+  <!-- VERSÃO PRO 1000% - Afiliados Vagalume90 (Netlify Forms + WhatsApp + Validação + UX Pro) -->
+<div id="btnFlutuanteAfiliado" onclick="abrirModalAfiliados()" 
+     style="position:fixed;bottom:20px;right:20px;z-index:9999;cursor:pointer;background:var(--glow);color:#000;padding:15px 30px;border-radius:50px;font-weight:bold;box-shadow:0 0 20px var(--glow);font-family:'Bebas Neue',sans-serif;transition:0.3s;animation:pulse 2s infinite;">
+  🚀 GANHE DINHEIRO (AFILIADOS)
+</div>
+
+<style>
+@keyframes pulse{0%{transform:scale(1);box-shadow:0 0 10px var(--glow)}50%{transform:scale(1.08);box-shadow:0 0 30px var(--glow)}100%{transform:scale(1);box-shadow:0 0 10px var(--glow)}}
+.modal-afiliado{display:none;position:fixed;z-index:10000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.92);align-items:center;justify-content:center}
+.modal-afiliado.active{display:flex}
+.card-form{background:#111;border:2px solid var(--glow);padding:30px;border-radius:16px;width:90%;max-width:460px;color:#fff;position:relative}
+.card-form input,.card-form select{width:100%;padding:12px;margin:8px 0;background:#222;border:1px solid #555;color:#fff;border-radius:8px;font-size:1rem}
+.error{color:#ff6b6b;font-size:0.85rem;margin-top:-4px;display:none}
+.success-message{display:none;background:#111;border:2px solid #0f0;padding:30px;border-radius:16px;text-align:center}
+button.submit-btn{width:100%;padding:16px;background:var(--glow);color:#000;border:none;font-weight:bold;cursor:pointer;border-radius:8px;margin-top:15px;transition:0.3s}
+button.submit-btn:disabled{background:#555;cursor:not-allowed}
+.close-btn{position:absolute;top:15px;right:15px;background:none;border:none;color:#aaa;font-size:24px;cursor:pointer}
+</style>
+
+<div id="modalAfiliados" class="modal-afiliado">
+  <div class="card-form">
+    <button onclick="fecharModalAfiliados()" class="close-btn">×</button>
+    <h2 style="color:var(--glow);text-align:center;margin:0 0 10px">VAGALUME90 - AFILIADOS</h2>
+    <p style="font-size:0.85rem;text-align:center;margin-bottom:20px">Preencha e comece a ganhar em Angola</p>
+
+    <form id="formInscricao" name="inscricao-afiliados" method="POST" data-netlify="true">
+      <input type="hidden" name="form-name" value="inscricao-afiliados">
+      <input type="hidden" name="bot-field"> <!-- honeypot anti-spam -->
+
+      <input type="text" id="nome" name="nome" placeholder="Nome Completo" required>
+      <span id="erroNome" class="error"></span>
+
+      <input type="tel" id="whatsapp" name="whatsapp" placeholder="WhatsApp (Ex: 923456789)" required>
+      <span id="erroZap" class="error"></span>
+
+      <select id="provincia" name="provincia" required>
+        <option value="">Selecione sua Província</option>
+        <option value="Luanda">Luanda</option>
+        <option value="Benguela">Benguela</option>
+        <option value="Huambo">Huambo</option>
+        <option value="Huila">Huíla</option>
+        <option value="Outra">Outra</option>
+      </select>
+
+      <select id="pagamento" name="pagamento" required>
+        <option value="">Método para receber comissões</option>
+        <option value="Afrimoney">Afrimoney 📱</option>
+        <option value="Unitel Money">Unitel Money 💸</option>
+        <option value="IBAN">IBAN Bancário 🏦</option>
+      </select>
+
+      <input type="text" id="dadosPagto" name="dados_pagamento" placeholder="Número Afrimoney / Unitel Money / IBAN" required>
+
+      <button type="submit" id="btnSubmit" class="submit-btn">FINALIZAR E ENTRAR NO GRUPO</button>
+    </form>
+
+    <div id="successMsg" class="success-message">
+      <h3 style="color:#0f0">✅ INSCRIÇÃO ENVIADA!</h3>
+      <p>WhatsApp aberto. Aguarde contato em segundos.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function abrirModalAfiliados(){document.getElementById('modalAfiliados').classList.add('active')}
+function fecharModalAfiliados(){document.getElementById('modalAfiliados').classList.remove('active');resetForm()}
+
+function resetForm(){
+  document.getElementById('formInscricao').reset()
+  document.getElementById('successMsg').style.display='none'
+  document.getElementById('btnSubmit').disabled=false
+  document.getElementById('btnSubmit').textContent='FINALIZAR E ENTRAR NO GRUPO'
+}
+
+async function enviarInscricao(e){
+  e.preventDefault()
+  const btn=document.getElementById('btnSubmit')
+  btn.disabled=true
+  btn.textContent='ENVIANDO...'
+
+  // Validação PRO
+  const nome=document.getElementById('nome').value.trim()
+  const zap=document.getElementById('whatsapp').value.trim()
+  if(nome.length<3){alert('Nome inválido');btn.disabled=false;btn.textContent='FINALIZAR E ENTRAR NO GRUPO';return}
+  if(!/^9\d{8}$/.test(zap)){alert('WhatsApp deve ter 9 dígitos (ex: 923456789)');btn.disabled=false;btn.textContent='FINALIZAR E ENTRAR NO GRUPO';return}
+
+  // Texto WhatsApp
+  const texto=`🏁 *NOVA INSCRIÇÃO AFILIADO VAGALUME90* 🏁\n\n👤 Nome: ${nome}\n📱 WhatsApp: ${zap}\n📍 Província: ${document.getElementById('provincia').value}\n💰 Método: ${document.getElementById('pagamento').value}\n💳 Dados: ${document.getElementById('dadosPagto').value}`
+
+  // Abre WhatsApp INSTANTÂNEO
+  window.open(`https://wa.me/244929894589?text=${encodeURIComponent(texto)}`,'_blank')
+
+  // Envia para Netlify Forms (dados salvos no dashboard)
+  const formData=new FormData(e.target)
+  await fetch('/',{method:'POST',body:formData})
+
+  // Sucesso
+  document.getElementById('formInscricao').style.display='none'
+  document.getElementById('successMsg').style.display='block'
+  setTimeout(()=>{fecharModalAfiliados();resetForm()},2800)
+}
+
+// Fechar com ESC e clique fora
+document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharModalAfiliados()})
+document.getElementById('modalAfiliados').addEventListener('click',e=>{if(e.target.id==='modalAfiliados')fecharModalAfiliados()})
+</script>
 <body>
 
 <!-- FIREFLIES -->
