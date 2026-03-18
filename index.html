@@ -832,16 +832,48 @@ function resetForm(){
   document.getElementById('btnSubmit').textContent='FINALIZAR E ENTRAR NO GRUPO'
 }
 
-async function enviarInscricao(e){
-  e.preventDefault()
-  const btn=document.getElementById('btnSubmit')
-  btn.disabled=true
-  btn.textContent='ENVIANDO...'
+async function enviarInscricao(e){async function enviarInscricao(e) {
+  e.preventDefault(); // Impede a página de recarregar e dar erro
+  
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  btn.textContent = 'A PROCESSAR...';
 
-  // Validação PRO
-  const nome=document.getElementById('nome').value.trim()
-  const zap=document.getElementById('whatsapp').value.trim()
-  if(nome.length<3){alert('Nome inválido');btn.disabled=false;btn.textContent='FINALIZAR E ENTRAR NO GRUPO';return}
+  const meuForm = e.target;
+  const dadosDoForm = new FormData(meuForm);
+
+  // PARTE 1: Enviar os dados para o teu painel do Netlify
+  try {
+    await fetch("/", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(dadosDoForm).toString(),
+    });
+
+    // PARTE 2: Preparar a mensagem do WhatsApp
+    const nome = document.getElementById('nome').value;
+    const zap = document.getElementById('whatsapp').value;
+    const prov = document.getElementById('provincia').value;
+    const met = document.getElementById('pagamento').value;
+    const dadosP = document.getElementById('dadosPagto').value;
+
+    const mensagemZap = `🏁 *NOVA INSCRIÇÃO AFILIADO* 🏁\n\n👤 Nome: ${nome}\n📱 WhatsApp: ${zap}\n📍 Província: ${prov}\n💰 Método: ${met}\n💳 Dados: ${dadosP}`;
+
+    // PARTE 3: Mostrar sucesso no site e DEPOIS abrir o WhatsApp
+    document.getElementById('formInscricao').style.display = 'none';
+    document.getElementById('successMsg').style.display = 'block';
+
+    // Aguarda 1 segundo para o navegador relaxar e abre o WhatsApp
+    setTimeout(() => {
+      window.open(`https://wa.me/244929894589?text=${encodeURIComponent(mensagemZap)}`, '_blank');
+    }, 1000);
+
+  } catch (error) {
+    alert("Erro de conexão. Tente novamente.");
+    btn.disabled = false;
+    btn.textContent = 'FINALIZAR E ENTRAR NO GRUPO';
+  }
+}}
   if(!/^9\d{8}$/.test(zap)){alert('WhatsApp deve ter 9 dígitos (ex: 923456789)');btn.disabled=false;btn.textContent='FINALIZAR E ENTRAR NO GRUPO';return}
 
   // Texto WhatsApp
