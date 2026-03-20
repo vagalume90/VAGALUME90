@@ -1538,40 +1538,87 @@
           <h2>Criar Conta</h2>
           <p>Preenche os dados abaixo para começar</p>
         </div>
-        <form onsubmit="submeterRegisto(event)">
-          <div class="form-row">
-            <div class="field"><label>Nome</label><input type="text" placeholder="Teu nome" required></div>
-            <div class="field"><label>Apelido</label><input type="text" placeholder="Teu apelido" required></div>
-          </div>
-          <div class="field"><label>Email</label><input type="email" placeholder="email@exemplo.com" required></div>
-          <div class="field"><label>WhatsApp / Telefone</label><input type="tel" placeholder="+244 9XX XXX XXX" required></div>
-          <div class="form-row">
-            <div class="field">
-              <label>Plataforma Principal</label>
-              <select required>
-                <option value="" disabled selected>Escolher...</option>
-                <option>Instagram</option><option>TikTok</option><option>YouTube</option>
-                <option>Facebook</option><option>Blog / Website</option><option>Telegram</option><option>Outro</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Seguidores Aprox.</label>
-              <select required>
-                <option value="" disabled selected>Escolher...</option>
-                <option>Menos de 1.000</option><option>1.000 – 10.000</option>
-                <option>10.000 – 50.000</option><option>50.000 – 200.000</option><option>Mais de 200.000</option>
-              </select>
-            </div>
-          </div>
-          <div class="field"><label>Link do teu perfil / canal</label><input type="url" placeholder="https://instagram.com/seuperfil"></div>
-          <div class="field"><label>Como pretendes divulgar? (opcional)</label><textarea placeholder="Conta-nos um pouco sobre a tua estratégia..."></textarea></div>
-          <div class="field"><label>Palavra-passe</label><input type="password" placeholder="Mínimo 8 caracteres" minlength="8" required></div>
-          <div class="checkbox-group">
-            <input type="checkbox" id="termos" required>
-            <label for="termos">Li e aceito os <a href="Vagalume90_Termos_e_Condicoes.docx" target="_blank" style="color:var(--glow);">Termos e Condições</a> do Programa de Afiliados da Vagalume90.</label>
-          </div>
-          <button type="submit" class="btn-submit">✦ Criar Conta de Afiliado</button>
-          <div class="login-hint">Já tens conta? <a href="#">Entrar aqui</a></div>
+        async function submeterRegisto(e) {
+  e.preventDefault();
+
+  // Capturar dados do formulário
+  const nome = document.querySelector('#modalRegisto input[placeholder="Teu nome"]').value;
+  const apelido = document.querySelector('#modalRegisto input[placeholder="Teu apelido"]').value;
+  const email = document.querySelector('#modalRegisto input[type="email"]').value;
+  const whatsapp = document.querySelector('#modalRegisto input[type="tel"]').value;
+  const selects = document.querySelectorAll('#modalRegisto select');
+  const plataforma = selects[0] ? selects[0].value : 'Não informado';
+  const seguidores = selects[1] ? selects[1].value : 'Não informado';
+  const linkPerfil = document.querySelector('#modalRegisto input[type="url"]').value;
+  const password = document.querySelector('#modalRegisto input[type="password"]').value;
+
+  // Gerar código único do afiliado
+  const codigo = 'VAG-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+  const link = `vagalume90.com/afiliado?ref=${codigo}`;
+
+  // ==============================================
+  // 1️⃣ ENVIAR PARA ANALYTICS (para métricas agregadas)
+  // ==============================================
+  try {
+    if (window.firebaseAnalytics && window.firebaseLogEvent) {
+      window.firebaseLogEvent(window.firebaseAnalytics, 'afiliado_registo', {
+        nome_completo: `${nome} ${apelido}`,
+        email: email,
+        whatsapp: whatsapp,
+        plataforma: plataforma,
+        seguidores: seguidores,
+        link_perfil: linkPerfil || 'Não informado',
+        timestamp: new Date().toISOString()
+      });
+      console.log('✅ Evento enviado ao Analytics');
+    }
+  } catch (err) {
+    console.log('Erro no Analytics:', err);
+  }
+
+  // ==============================================
+  // 2️⃣ SALVAR NO FIRESTORE (banco de dados real)
+  // ==============================================
+  try {
+    if (window.firebaseDb) {
+      const docRef = await addDoc(collection(window.firebaseDb, "afiliados"), {
+        nomeCompleto: `${nome} ${apelido}`,
+        nome: nome,
+        apelido: apelido,
+        email: email,
+        whatsapp: whatsapp,
+        plataforma: plataforma,
+        seguidores: seguidores,
+        linkPerfil: linkPerfil || 'Não informado',
+        codigoAfiliado: codigo,
+        linkConvite: link,
+        dataCadastro: new Date(),
+        status: 'pendente',  // pendente, ativo, bloqueado
+        comissoesPendentes: 0,
+        comissoesPagas: 0
+      });
+      console.log('✅ Afiliado salvo no Firestore com ID:', docRef.id);
+    } else {
+      console.log('⚠️ Firebase Firestore não disponível');
+    }
+  } catch (err) {
+    console.error('❌ Erro ao salvar no Firestore:', err);
+    alert('Erro ao salvar seus dados. Por favor, tente novamente ou contacte o suporte.');
+    return;
+  }
+
+  // ==============================================
+  // 3️⃣ ATUALIZAR INTERFACE DO USUÁRIO
+  // ==============================================
+  document.getElementById('codigoRef').textContent = codigo;
+  document.getElementById('linkConvite').textContent = link;
+  document.getElementById('btnWhatsapp').href = `https://wa.me/244929894589?text=Olá!%20Acabei%20de%20me%20registar%20como%20afiliado%20Vagalume90.%20O%20meu%20código%20é%20${codigo}`;
+
+  // Mostrar tela de sucesso
+  document.getElementById('formArea').style.display = 'none';
+  const s = document.getElementById('sucessoArea');
+  s.style.display = 'flex';
+}
         </form>
       </div>
 
@@ -1736,20 +1783,67 @@
   });
 
   // Submit registo
-  function submeterRegisto(e) {
-    e.preventDefault();
-    const codigo = 'VAG-' + Math.random().toString(36).substring(2,8).toUpperCase();
-    const link = `vagalume90.com/afiliado?ref=${codigo}`;
+ function submeterRegisto(e) {
+  e.preventDefault();
 
-    document.getElementById('codigoRef').textContent = codigo;
-    document.getElementById('linkConvite').textContent = link;
-    document.getElementById('btnWhatsapp').href =
-      `https://wa.me/244929894589?text=Olá!%20Acabei%20de%20me%20registar%20como%20afiliado%20Vagalume90.%20O%20meu%20código%20é%20${codigo}`;
-
-    document.getElementById('formArea').style.display = 'none';
-    const s = document.getElementById('sucessoArea');
-    s.style.display = 'flex';
+  // Capturar dados para Firebase
+  try {
+    const nome = document.querySelector('#modalRegisto input[placeholder="Teu nome"]').value;
+    const apelido = document.querySelector('#modalRegisto input[placeholder="Teu apelido"]').value;
+    const email = document.querySelector('#modalRegisto input[type="email"]').value;
+    const whatsapp = document.querySelector('#modalRegisto input[type="tel"]').value;
+    const selects = document.querySelectorAll('#modalRegisto select');
+    const plataforma = selects[0] ? selects[0].value : 'Não informado';
+    const seguidores = selects[1] ? selects[1].value : 'Não informado';
+    const linkPerfil = document.querySelector('#modalRegisto input[type="url"]').value;
+    
+    if (window.firebaseAnalytics && window.firebaseLogEvent) {
+      window.firebaseLogEvent(window.firebaseAnalytics, 'afiliado_registo', {
+        nome_completo: `${nome} ${apelido}`,
+        email: email,
+        whatsapp: whatsapp,
+        plataforma: plataforma,
+        seguidores: seguidores,
+        link_perfil: linkPerfil || 'Não informado',
+        timestamp: new Date().toISOString()
+      });
+      console.log('✅ Evento enviado ao Firebase');
+    } else {
+      console.log('⚠️ Firebase não disponível');
+    }
+  } catch(err) {
+    console.log('Erro ao capturar dados:', err);
   }
+
+  // Código original
+  const codigo = 'VAG-' + Math.random().toString(36).substring(2,8).toUpperCase();
+  const link = `vagalume90.com/afiliado?ref=${codigo}`;
+
+  document.getElementById('codigoRef').textContent = codigo;
+  document.getElementById('linkConvite').textContent = link;
+  document.getElementById('btnWhatsapp').href = `https://wa.me/244929894589?text=Olá!%20Acabei%20de%20me%20registar%20como%20afiliado%20Vagalume90.%20O%20meu%20código%20é%20${codigo}`;
+
+  document.getElementById('formArea').style.display = 'none';
+  const s = document.getElementById('sucessoArea');
+  s.style.display = 'flex';
+}
+  } catch(err) {
+    console.log('Erro:', err);
+  }
+
+  // Código original
+  const codigo = 'VAG-' + Math.random().toString(36).substring(2,8).toUpperCase();
+  const link = `vagalume90.com/afiliado?ref=${codigo}`;
+
+  document.getElementById('codigoRef').textContent = codigo;
+  document.getElementById('linkConvite').textContent = link;
+  document.getElementById('btnWhatsapp').href = `https://wa.me/244929894589?text=Olá!%20Acabei%20de%20me%20registar%20como%20afiliado%20Vagalume90.%20O%20meu%20código%20é%20${codigo}`;
+
+  document.getElementById('formArea').style.display = 'none';
+  const s = document.getElementById('sucessoArea');
+  s.style.display = 'flex';
+}
+    }
 
 
   // ── MODAL CASAIS ──────────────────────────────────────────
@@ -1804,6 +1898,42 @@
       setTimeout(() => btn.textContent = '📋 Copiar', 2000);
     });
   }
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA0Z7uaMVo2HsgKpKFbsEQve26xSxjmJr8",
+    authDomain: "vagalume90-79c87.firebaseapp.com",
+    projectId: "vagalume90-79c87",
+    storageBucket: "vagalume90-79c87.firebasestorage.app",
+    messagingSenderId: "933159656212",
+    appId: "1:933159656212:web:0cd1bb6ad11c3838490001",
+    measurementId: "G-28G5ZYE9L0"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);  // 👈 ADICIONADO: inicializa o banco de dados
+  
+  // EXPÕE AS FUNÇÕES GLOBALMENTE
+  window.firebaseAnalytics = analytics;
+  window.firebaseLogEvent = logEvent;
+  window.firebaseDb = db;  // 👈 ADICIONADO: expõe o banco de dados globalmente
+  
+  console.log("✅ Firebase Analytics e Firestore inicializados");
+</script> };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  
+  // EXPÕE AS FUNÇÕES GLOBALMENTE
+  window.firebaseAnalytics = analytics;
+  window.firebaseLogEvent = logEvent;
+  
+  console.log("✅ Firebase Analytics inicializado");
+</script>
 </script>
 </body>
 </html>
