@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Vagalume90 | Gestão de Afiliados</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #080b12;
+            color: #e8e2d4;
+            font-family: 'DM Sans', sans-serif;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 0.12em;
+            color: #f5c842;
+        }
+
+        .logo span {
+            color: #ff6b1a;
+        }
+
+        .stats {
+            display: flex;
+            gap: 1.5rem;
+            background: #0f1320;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(245,200,66,0.2);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: #f5c842;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #6b6b7a;
+            letter-spacing: 0.05em;
+        }
+
+        /* Barra de pesquisa */
+        .search-bar {
+            margin-bottom: 2rem;
+        }
+
+        .search-bar input {
+            width: 100%;
+            max-width: 400px;
+            background: #0f1320;
+            border: 1px solid rgba(245,200,66,0.2);
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            color: #e8e2d4;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-bar input:focus {
+            border-color: rgba(245,200,66,0.5);
+        }
+
+        .search-bar input::placeholder {
+            color: #6b6b7a;
+        }
+
+        /* Tabela */
+        .table-container {
+            overflow-x: auto;
+            background: #0f1320;
+            border-radius: 12px;
+            border: 1px solid rgba(245,200,66,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            background: rgba(245,200,66,0.05);
+            color: #f5c842;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(245,200,66,0.2);
+        }
+
+        td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid rgba(245,200,66,0.08);
+            color: #e8e2d4;
+        }
+
+        tr:hover {
+            background: rgba(245,200,66,0.05);
+        }
+
+        /* Badges de status */
+        .status {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .status-pendente {
+            background: rgba(255,107,26,0.15);
+            color: #ff6b1a;
+            border: 1px solid rgba(255,107,26,0.3);
+        }
+
+        .status-ativo {
+            background: rgba(37,211,102,0.15);
+            color: #25d366;
+            border: 1px solid rgba(37,211,102,0.3);
+        }
+
+        .status-bloqueado {
+            background: rgba(255,0,0,0.15);
+            color: #ff4444;
+            border: 1px solid rgba(255,0,0,0.3);
+        }
+
+        /* Botões */
+        .btn {
+            background: rgba(245,200,66,0.1);
+            border: 1px solid rgba(245,200,66,0.2);
+            border-radius: 6px;
+            padding: 0.4rem 0.8rem;
+            color: #f5c842;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: rgba(245,200,66,0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn-wa {
+            background: rgba(37,211,102,0.15);
+            border-color: rgba(37,211,102,0.3);
+            color: #25d366;
+        }
+
+        .btn-wa:hover {
+            background: rgba(37,211,102,0.25);
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #6b6b7a;
+        }
+
+        /* Mensagem sem resultados */
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #6b6b7a;
+        }
+
+        /* Rodapé */
+        .footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #6b6b7a;
+            border-top: 1px solid rgba(245,200,66,0.1);
+            padding-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">Vagalume<span>90</span></div>
+            <div class="stats" id="stats">
+                <div class="stat">
+                    <div class="stat-number" id="totalAfiliados">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="totalPendentes">0</div>
+                    <div class="stat-label">Pendentes</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="totalAtivos">0</div>
+                    <div class="stat-label">Ativos</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de pesquisa -->
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="🔍 Pesquisar por nome, email ou WhatsApp... (Ctrl+F para focar aqui)">
+        </div>
+
+        <!-- Tabela de afiliados -->
+        <div class="table-container">
+            <table id="tabelaAfiliados">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>WhatsApp</th>
+                        <th>Plataforma</th>
+                        <th>Código</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="listaAfiliados">
+                    <tr class="loading">
+                        <td colspan="8">📡 Carregando lista de afiliados...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>⚡ Dados em tempo real do Firestore | Última atualização: <span id="ultimaAtualizacao">-</span></p>
+            <p>🔒 Esta página é privada. Proteja o acesso com senha ou autenticação.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // Importar Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+        // Configuração do Firebase (mesma do seu site)
+        const firebaseConfig = {
+            apiKey: "AIzaSyA0Z7uaMVo2HsgKpKFbsEQve26xSxjmJr8",
+            authDomain: "vagalume90-79c87.firebaseapp.com",
+            projectId: "vagalume90-79c87",
+            storageBucket: "vagalume90-79c87.firebasestorage.app",
+            messagingSenderId: "933159656212",
+            appId: "1:933159656212:web:0cd1bb6ad11c3838490001",
+            measurementId: "G-28G5ZYE9L0"
+        };
+
+        // Inicializar
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Variáveis globais
+        let todosAfiliados = [];
+        let timeoutPesquisa;
+
+        // Elementos DOM
+        const searchInput = document.getElementById('searchInput');
+        const listaBody = document.getElementById('listaAfiliados');
+        const totalSpan = document.getElementById('totalAfiliados');
+        const totalPendentesSpan = document.getElementById('totalPendentes');
+        const totalAtivosSpan = document.getElementById('totalAtivos');
+        const ultimaAtualizacaoSpan = document.getElementById('ultimaAtualizacao');
+
+        // Função para formatar data
+        function formatarData(data) {
+            if (!data) return '-';
+            try {
+                const date = data.toDate ? data.toDate() : new Date(data);
+                return date.toLocaleDateString('pt-BR');
+            } catch {
+                return '-';
+            }
+        }
+
+        // Função para formatar WhatsApp (exibir apenas último dígitos por segurança)
+        function formatarWhatsapp(whatsapp) {
+            if (!whatsapp) return '-';
+            // Mostra apenas os últimos 4 dígitos por privacidade
+            if (whatsapp.length > 4) {
+                return `****${whatsapp.slice(-4)}`;
+            }
+            return whatsapp;
+        }
+
+        // Função para obter classe do status
+        function getStatusClass(status) {
+            switch(status) {
+                case 'ativo': return 'status-ativo';
+                case 'bloqueado': return 'status-bloqueado';
+                default: return 'status-pendente';
+            }
+        }
+
+        // Função para renderizar a tabela (com filtro)
+        function renderizarTabela(filtro = '') {
+            // Filtrar dados
+            const filtroLower = filtro.toLowerCase();
+            const dadosFiltrados = todosAfiliados.filter(afiliado => {
+                if (!filtro) return true;
+                return (
+                    (afiliado.nomeCompleto || '').toLowerCase().includes(filtroLower) ||
+                    (afiliado.email || '').toLowerCase().includes(filtroLower) ||
+                    (afiliado.whatsapp || '').toLowerCase().includes(filtroLower) ||
+                    (afiliado.codigoAfiliado || '').toLowerCase().includes(filtroLower)
+                );
+            });
+
+            // Atualizar estatísticas
+            const totalPendentes = todosAfiliados.filter(a => a.status !== 'ativo').length;
+            const totalAtivos = todosAfiliados.filter(a => a.status === 'ativo').length;
+            totalSpan.textContent = todosAfiliados.length;
+            totalPendentesSpan.textContent = totalPendentes;
+            totalAtivosSpan.textContent = totalAtivos;
+
+            // Renderizar linhas
+            if (dadosFiltrados.length === 0) {
+                listaBody.innerHTML = '<tr class="no-results"><td colspan="8">🔍 Nenhum afiliado encontrado</td></tr>';
+                return;
+            }
+
+            listaBody.innerHTML = dadosFiltrados.map(afiliado => `
+                <tr>
+                    <td><strong>${afiliado.nomeCompleto || afiliado.nome || '-'}</strong></td>
+                    <td>${afiliado.email || '-'}</td>
+                    <td>${formatarWhatsapp(afiliado.whatsapp)}</td>
+                    <td>${afiliado.plataforma || '-'}</td>
+                    <td><code style="color:#f5c842;">${afiliado.codigoAfiliado || '-'}</code></td>
+                    <td>${formatarData(afiliado.dataCadastro)}</td>
+                    <td><span class="status ${getStatusClass(afiliado.status)}">${afiliado.status || 'pendente'}</span></td>
+                    <td>
+                        <a href="https://wa.me/${afiliado.whatsapp?.replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-wa" style="text-decoration:none;">💬 WhatsApp</a>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Função para carregar dados do Firestore
+        async function carregarAfiliados() {
+            try {
+                listaBody.innerHTML = '<tr><td colspan="8">📡 Carregando lista de afiliados...</td></tr>';
+                
+                // Buscar todos os documentos da coleção "afiliados"
+                const q = query(collection(db, "afiliados"), orderBy("dataCadastro", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                // Converter para array
+                todosAfiliados = [];
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    todosAfiliados.push({
+                        id: doc.id,
+                        ...data
+                    });
+                });
+                
+                // Atualizar horário
+                ultimaAtualizacaoSpan.textContent = new Date().toLocaleTimeString('pt-BR');
+                
+                // Renderizar tabela
+                renderizarTabela(searchInput.value);
+                
+            } catch (error) {
+                console.error('Erro ao carregar afiliados:', error);
+                listaBody.innerHTML = `<tr><td colspan="8">❌ Erro ao carregar dados: ${error.message}</td></tr>`;
+            }
+        }
+
+        // Evento de pesquisa (com debounce para não travar)
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(timeoutPesquisa);
+            timeoutPesquisa = setTimeout(() => {
+                renderizarTabela(e.target.value);
+            }, 300);
+        });
+
+        // Carregar dados ao iniciar
+        carregarAfiliados();
+
+        // Recarregar a cada 30 segundos (opcional)
+        setInterval(() => {
+            carregarAfiliados();
+        }, 30000);
+        
+        // Dica: Ctrl+F foca na pesquisa
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+        });
+    </script>
+</body>
+</html>
