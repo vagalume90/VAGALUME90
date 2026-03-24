@@ -1,6 +1,55 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<head>
+<script type="module">
+  // Importamos as ferramentas que o seu site precisa para falar com o Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
+  
+  // *** ESTAS SÃO AS NOVAS LINHAS para o Firestore (Banco de Dados) e Storage (Armazenamento) ***
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js";
+
+  // TODO: Adicione os SDKs para os produtos Firebase que você deseja usar
+  // Mais informações: https://firebase.google.com/docs/web/setup#available-libraries
+
+  // As configurações do seu projeto Firebase (já estavam corretas)
+  const firebaseConfig = {
+    apiKey: "AIzaSyA0Z7uaMVo2HsgKpKFbsEQve26xSxjmJr8",
+    authDomain: "vagalume90-79c87.firebaseapp.com",
+    projectId: "vagalume90-79c87",
+    storageBucket: "vagalume90-79c87.firebasestorage.app", // Este já estava correto!
+    messagingSenderId: "933159656212",
+    appId: "1:933159656212:web:0cd1bb6ad11c3838490001",
+    measurementId: "G-28G5ZYE9L0"
+  };
+  // Inicializa o Firebase
+  const app = initializeApp(firebaseConfig);
+  
+  // Inicializa o Analytics (para coletar dados de visitas, cliques, etc.)
+  const analytics = getAnalytics(app); 
+  
+  // *** ESTAS SÃO AS NOVAS LINHAS que permitem ao seu JavaScript "falar" com o Banco de Dados e o Armazenamento ***
+  const db = getFirestore(app);     // 'db' é a "porta de entrada" para o Firestore
+  const storage = getStorage(app);  // 'storage' é a "porta de entrada" para o Storage
+
+  // Tornamos 'db', 'storage' e as funções comuns acessíveis globalmente
+  // Isso facilita o uso em outros scripts ou funções do seu HTML.
+  window.db = db;
+  window.storage = storage;
+  window.collection = collection;
+  window.addDoc = addDoc;
+  window.getDocs = getDocs;
+  window.ref = ref;
+  window.uploadBytes = uploadBytes;
+  window.getDownloadURL = getDownloadURL;
+  window.analytics = analytics; // Analytics também fica disponível globalmente
+</script>
+
+
+</script>
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vagalume90 — Divulgação & Afiliados em Angola</title>
@@ -759,10 +808,882 @@
 </head>
 <body>
 
-<!-- FIREFLIES --><script>
-  // ==============================================
-  // FIREFLIES
-  // ==============================================
+<!-- FIREFLIES -->
+<div class="fireflies" id="fireflies"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Vagalume<span>90</span></div>
+  <ul>
+    <li><a href="#quem-somos">Quem Somos</a></li>
+    <li><a href="#servicos">Serviços</a></li>
+    <li><a href="#loja">📚 Loja</a></li>
+    <li><a href="#cursos">🎓 Cursos</a></li>
+    <li><a href="#como-funciona">Como Funciona</a></li>
+    <li><a href="#afiliados">Afiliados</a></li>
+    <li><a href="#casais" style="color:#ff85a1;">💑 Casais</a></li>
+    <li><a href="#contato">Contato</a></li>
+    <li><a href="#" onclick="abrirRegisto(event)" style="color:var(--glow);border:1px solid rgba(245,200,66,0.35);padding:0.35rem 1rem;border-radius:100px;transition:background 0.2s;" onmouseover="this.style.background='rgba(245,200,66,0.1)'" onmouseout="this.style.background='transparent'">✦ Tornar-me Afiliado</a></li>
+  </ul>
+  <!-- Hamburger Button -->
+  <button class="nav-hamburger" id="navHamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE DRAWER -->
+<div class="nav-drawer" id="navDrawer">
+  <div class="nav-drawer-logo">Vagalume<span>90</span></div>
+  <ul>
+    <li><a href="#quem-somos" onclick="toggleMenu()">Quem Somos</a></li>
+    <li><a href="#servicos" onclick="toggleMenu()">Serviços</a></li>
+    <li><a href="#loja" onclick="toggleMenu()">📚 Loja</a></li>
+    <li><a href="#cursos" onclick="toggleMenu()">🎓 Cursos</a></li>
+    <li><a href="#como-funciona" onclick="toggleMenu()">Como Funciona</a></li>
+    <li><a href="#afiliados" onclick="toggleMenu()">Afiliados</a></li>
+    <li><a href="#casais" onclick="toggleMenu()" style="color:#ff85a1;">💑 Casais</a></li>
+    <li><a href="#contato" onclick="toggleMenu()">Contato</a></li>
+    <li><a href="#" onclick="toggleMenu();abrirRegisto(event);" class="nav-drawer-cta">✦ Tornar-me Afiliado</a></li>
+  </ul>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">✦ Divulgação & Afiliados</div>
+  <h1>O mundo acabou de<br><em>suspirar</em> profundamente</h1>
+  <p>O próximo sopro é nosso. A Vagalume90 é a sua pausa — e muda tudo.</p>
+  <div class="cta-group">
+    <a href="#contato" class="btn-primary">Começar agora</a>
+    <a href="#servicos" class="btn-ghost">Ver serviços</a>
+    <a href="#" onclick="abrirRegisto(event)" class="btn-ghost" style="border-color:rgba(245,200,66,0.4);color:var(--glow);">✦ Ser Afiliado</a>
+  </div>
+  <div class="scroll-hint">↓ Explore</div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num">500+</div>
+    <div class="stat-label">Afiliados Ativos</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">98%</div>
+    <div class="stat-label">Clientes Satisfeitos</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">3x</div>
+    <div class="stat-label">Retorno Médio</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">24h</div>
+    <div class="stat-label">Suporte</div>
+  </div>
+</div>
+
+<!-- QUEM SOMOS -->
+<section class="section" id="quem-somos">
+  <div class="section-label">Quem Somos</div>
+  <h2 class="section-title">Mais do que uma<br><em style="font-style:normal;color:var(--glow);text-shadow:0 0 30px rgba(245,200,66,0.4);">empresa</em></h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;">
+    <div>
+      <p style="font-size:1.05rem;color:var(--text);line-height:1.85;margin-bottom:1.5rem;">
+        A <strong style="color:var(--glow);">Vagalume90</strong> é uma empresa de <strong>divulgação digital e apoio a utilizadores de internet</strong> — fundada por <strong style="color:var(--glow);">Ernesto Cardoso</strong>, conhecido como <strong style="color:var(--accent);">O Hasta</strong>, com a missão de ajudar pessoas e marcas a brilhar no mundo online.
+      </p>
+      <p style="font-size:0.95rem;color:var(--muted);line-height:1.85;margin-bottom:1.5rem;">
+        Acreditamos que qualquer pessoa, independentemente do tamanho do seu negócio ou do número de seguidores, merece ter acesso a estratégias digitais eficazes. Por isso, apoiamos criadores, empreendedores e marcas desde o primeiro passo até ao crescimento sustentável.
+      </p>
+      <p style="font-size:0.95rem;color:var(--muted);line-height:1.85;">
+        Desde a divulgação nas redes sociais ao programa de afiliados, passando pela gestão de campanhas pagas e assessoria personalizada — estamos aqui para guiar, apoiar e fazer crescer quem confia em nós.
+      </p>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:2rem;">
+        <div style="background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.18);border-radius:10px;padding:1rem 1.5rem;text-align:center;flex:1;min-width:100px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--glow);line-height:1;">2020</div>
+          <div style="font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:0.2rem;">Fundada</div>
+        </div>
+        <div style="background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.18);border-radius:10px;padding:1rem 1.5rem;text-align:center;flex:1;min-width:100px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--glow);line-height:1;">Angola</div>
+          <div style="font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:0.2rem;">Sede</div>
+        </div>
+        <div style="background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.18);border-radius:10px;padding:1rem 1.5rem;text-align:center;flex:1;min-width:100px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--glow);line-height:1;">100%</div>
+          <div style="font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:0.2rem;">Digital</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1.2rem;">
+      <div style="background:var(--card);border:1px solid rgba(245,200,66,0.1);border-radius:12px;padding:1.5rem;display:flex;gap:1rem;align-items:flex-start;transition:border-color 0.3s;" onmouseover="this.style.borderColor='rgba(245,200,66,0.3)'" onmouseout="this.style.borderColor='rgba(245,200,66,0.1)'">
+        <div style="font-size:1.6rem;line-height:1;">🌍</div>
+        <div>
+          <strong style="display:block;font-size:0.95rem;margin-bottom:0.3rem;color:var(--text);">Missão</strong>
+          <span style="font-size:0.85rem;color:var(--muted);line-height:1.65;">Democratizar o acesso ao marketing digital, apoiando utilizadores de internet a transformar a sua presença online em resultados reais.</span>
+        </div>
+      </div>
+      <div style="background:var(--card);border:1px solid rgba(245,200,66,0.1);border-radius:12px;padding:1.5rem;display:flex;gap:1rem;align-items:flex-start;transition:border-color 0.3s;" onmouseover="this.style.borderColor='rgba(245,200,66,0.3)'" onmouseout="this.style.borderColor='rgba(245,200,66,0.1)'">
+        <div style="font-size:1.6rem;line-height:1;">✨</div>
+        <div>
+          <strong style="display:block;font-size:0.95rem;margin-bottom:0.3rem;color:var(--text);">Visão</strong>
+          <span style="font-size:0.85rem;color:var(--muted);line-height:1.65;">Ser a principal referência em divulgação digital e afiliados em Angola e em toda a comunidade lusófona.</span>
+        </div>
+      </div>
+      <div style="background:var(--card);border:1px solid rgba(245,200,66,0.1);border-radius:12px;padding:1.5rem;display:flex;gap:1rem;align-items:flex-start;transition:border-color 0.3s;" onmouseover="this.style.borderColor='rgba(245,200,66,0.3)'" onmouseout="this.style.borderColor='rgba(245,200,66,0.1)'">
+        <div style="font-size:1.6rem;line-height:1;">🤝</div>
+        <div>
+          <strong style="display:block;font-size:0.95rem;margin-bottom:0.3rem;color:var(--text);">Valores</strong>
+          <span style="font-size:0.85rem;color:var(--muted);line-height:1.65;">Transparência, resultados mensuráveis, apoio contínuo e crescimento conjunto com cada cliente e afiliado.</span>
+        </div>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(245,200,66,0.08),rgba(255,107,26,0.05));border:1px solid rgba(245,200,66,0.25);border-radius:12px;padding:1.5rem;display:flex;gap:1rem;align-items:center;">
+        <div style="width:48px;height:48px;border-radius:50%;background:rgba(245,200,66,0.15);border:2px solid rgba(245,200,66,0.4);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">👤</div>
+        <div>
+          <strong style="display:block;font-size:1rem;color:var(--glow);margin-bottom:0.1rem;">Ernesto Cardoso</strong>
+          <span style="font-size:0.78rem;color:var(--accent);font-weight:700;letter-spacing:0.05em;">O Hasta — Fundador & CEO</span>
+          <p style="font-size:0.8rem;color:var(--muted);line-height:1.6;margin-top:0.3rem;">Visionário do digital, criador da Vagalume90 e da conta <a href="https://instagram.com/Plebheu90" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:700;">@Plebheu90</a>. · <a href="/cdn-cgi/l/email-protection#472d22343422372b22252f223207202a262e2b6924282a" style="color:var(--glow);text-decoration:none;"><span class="__cf_email__" data-cfemail="0d67687e7e687d61686f6568784d6a606c6461236e6260">[email&#160;protected]</span></a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="section" id="servicos">
+  <div class="section-label">O que fazemos</div>
+  <h2 class="section-title">Serviços que<br>geram resultado</h2>
+  <p class="section-sub">Soluções completas de divulgação digital e afiliados para marcas que querem crescer de verdade.</p>
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">🔥</div>
+      <h3>Divulgação Digital</h3>
+      <p>Estratégias personalizadas de divulgação nas principais plataformas digitais para ampliar o alcance da sua marca com eficiência.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤝</div>
+      <h3>Programa de Afiliados</h3>
+      <p>Montamos e gerenciamos seu programa de afiliados do zero — recrutamento, acompanhamento e otimização de comissões.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Gestão de Performance</h3>
+      <p>Monitoramento em tempo real, relatórios detalhados e ajustes contínuos para maximizar o retorno sobre investimento.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌐</div>
+      <h3>Marketing de Conteúdo</h3>
+      <p>Criação e distribuição de conteúdo estratégico que atrai, engaja e converte sua audiência em clientes reais.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📣</div>
+      <h3>Campanhas Pagas</h3>
+      <p>Gestão de tráfego pago com foco em resultados: Meta Ads, Google Ads e outras plataformas integradas à sua estratégia.</p>
+    </div>
+    <div class="card" style="border-color:rgba(245,200,66,0.3);background:linear-gradient(135deg,rgba(245,200,66,0.06),rgba(255,107,26,0.04));">
+      <div class="card-icon">💡</div>
+      <h3>Assessoria Personalizada</h3>
+      <p>Assessoria individual para quem precisa de orientação especializada no digital — do planejamento à execução, do zero ao resultado.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ASSESSORIA HIGHLIGHT -->
+<section class="section" style="padding-top:0;">
+  <div style="background:linear-gradient(135deg,rgba(245,200,66,0.07),rgba(255,107,26,0.05));border:1px solid rgba(245,200,66,0.2);border-radius:16px;padding:3rem;display:flex;flex-wrap:wrap;gap:2rem;align-items:center;justify-content:space-between;">
+    <div style="flex:1;min-width:260px;">
+      <div class="section-label">Assessoria Exclusiva</div>
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,4vw,3.2rem);line-height:1.05;margin-bottom:1rem;">Precisa de ajuda<br>personalizada?</h2>
+      <p style="color:var(--muted);font-size:0.95rem;line-height:1.75;max-width:420px;">O CEO da Vagalume90, <strong style="color:var(--text);">@Plebheu90</strong>, oferece assessoria direta para empreendedores e criadores que querem crescer no digital. Estratégia, afiliados, divulgação — tudo pensado para o seu caso específico.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1rem;min-width:200px;">
+      <a href="https://wa.me/244929894589" target="_blank" class="btn-primary" style="text-align:center;">💬 Solicitar Assessoria</a>
+      <a href="https://instagram.com/Plebheu90" target="_blank" class="btn-ghost" style="text-align:center;">📸 Ver no Instagram</a>
+      <a href="https://youtube.com/@vagalume90" target="_blank" class="btn-ghost" style="text-align:center;border-color:rgba(255,0,0,0.4);color:#ff4444;">▶ YouTube: @vagalume90</a>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="como-funciona" style="padding-top:0;">
+  <div class="section-label">Processo</div>
+  <h2 class="section-title">Como funciona</h2>
+  <p class="section-sub" style="margin-bottom:3rem;">Simples, transparente e orientado a resultados.</p>
+  <div class="steps">
+    <div class="step">
+      <h4>Diagnóstico</h4>
+      <p>Analisamos seu negócio, público-alvo e objetivos para entender o que realmente vai funcionar para você.</p>
+    </div>
+    <div class="step">
+      <h4>Estratégia</h4>
+      <p>Desenvolvemos um plano personalizado de divulgação e afiliados com metas claras e mensuráveis.</p>
+    </div>
+    <div class="step">
+      <h4>Execução</h4>
+      <p>Nossa equipe implementa as ações, acompanha métricas e faz ajustes para maximizar os resultados.</p>
+    </div>
+    <div class="step">
+      <h4>Crescimento</h4>
+      <p>Com dados em mãos, escalamos o que funciona e seu negócio cresce de forma consistente e sustentável.</p>
+    </div>
+  </div>
+</section>
+
+<!-- AFILIADOS SECTION -->
+<section class="section" id="afiliados">
+  <div class="section-label">Programa de Afiliados</div>
+  <h2 class="section-title">Ganha connosco</h2>
+  <p class="section-sub">Junta-te à nossa rede de afiliados e começa a ganhar comissões promovendo a Vagalume90 — sem investimento inicial.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:3rem;">
+    <div class="card" style="border-color:rgba(245,200,66,0.2);">
+      <div class="card-icon">💰</div>
+      <h3>Comissões Atrativas</h3>
+      <p>Recebe uma percentagem por cada cliente ou lead que trouxeres através do teu link exclusivo de afiliado.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔗</div>
+      <h3>Link Exclusivo</h3>
+      <p>Após o registo, recebes um código e link único para partilhar nas tuas redes sociais, blog ou canal.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Acompanhamento Real</h3>
+      <p>Monitoriza os teus ganhos, cliques e conversões em tempo real através do nosso painel de afiliados.</p>
+    </div>
+    <div class="card" style="border-color:rgba(255,0,0,0.3);background:linear-gradient(135deg,rgba(255,0,0,0.06),rgba(255,107,26,0.04));grid-column:1/-1;">
+      <div style="display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;">
+        <div style="font-size:2.8rem;line-height:1;">▶</div>
+        <div style="flex:1;min-width:220px;">
+          <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#ff4444;margin-bottom:0.4rem;">🎁 Bónus Exclusivo para Afiliados</div>
+          <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:0.05em;color:var(--text);margin-bottom:0.5rem;">2 Vídeos Publicados no Nosso YouTube</h3>
+          <p style="font-size:0.9rem;color:var(--muted);line-height:1.7;">Ao tornares-te afiliado Vagalume90, ganhas a oportunidade de ter <strong style="color:var(--text);">dois vídeos teus publicados</strong> no canal <a href="https://youtube.com/@vagalume90" target="_blank" style="color:#ff4444;text-decoration:none;font-weight:700;">@vagalume90</a> — exposição real para a tua marca, negócio ou conteúdo perante a nossa audiência.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="background:linear-gradient(135deg,rgba(245,200,66,0.07),rgba(255,107,26,0.05));border:1px solid rgba(245,200,66,0.2);border-radius:16px;padding:3rem;text-align:center;">
+    <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;">Registo Gratuito</div>
+    <h3 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,4vw,3rem);margin-bottom:0.8rem;">Pronto para começar a brilhar?</h3>
+    <p style="color:var(--muted);font-size:0.95rem;line-height:1.7;max-width:480px;margin:0 auto 2rem;">O registo é gratuito e rápido. Preenche a ficha, recebe o teu código e começa a ganhar hoje mesmo.</p>
+    <a href="#" onclick="abrirRegisto(event)" class="btn-primary" style="font-size:1rem;padding:1rem 2.8rem;">✦ Criar Conta de Afiliado</a>
+  </div>
+</section>
+
+<!-- CURSOS -->
+<section class="section" id="cursos">
+  <div class="section-label">Formação Online</div>
+  <h2 class="section-title">Cursos <em style="font-style:normal;color:var(--glow);text-shadow:0 0 30px rgba(245,200,66,0.4);">Vagalume90</em></h2>
+  <p class="section-sub">Aprende com quem faz. Cursos práticos de marketing digital, afiliados e crescimento online — tudo por apenas 1.000 Kz.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:3rem;">
+
+    <!-- CURSO 1 — REAL -->
+    <div class="card" style="border-color:rgba(245,200,66,0.3);background:linear-gradient(135deg,rgba(245,200,66,0.06),rgba(255,107,26,0.04));display:flex;flex-direction:column;gap:1rem;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:1rem;right:1rem;background:var(--glow);color:#080b12;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;padding:0.25rem 0.7rem;border-radius:100px;text-transform:uppercase;">⭐ Destaque</div>
+      <div style="background:linear-gradient(135deg,rgba(245,200,66,0.15),rgba(255,107,26,0.1));border-radius:10px;height:140px;display:flex;align-items:center;justify-content:center;font-size:3rem;border:1px solid rgba(245,200,66,0.2);">🏆</div>
+      <div style="flex:1;">
+        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Desenvolvimento Pessoal</div>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;margin-bottom:0.5rem;color:var(--text);">Como Ser o Melhor da Sala em Pouco Tempo</h3>
+        <p style="font-size:0.82rem;color:var(--muted);line-height:1.65;margin-bottom:0.8rem;">Aprende técnicas práticas e comprovadas para te destacares rapidamente em qualquer ambiente — na escola, no trabalho ou nos negócios. Resultados visíveis em pouco tempo.</p>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">📹 Vídeos</span>
+          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">📄 PDF</span>
+          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">💬 Suporte</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(245,200,66,0.12);padding-top:1rem;">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--glow);line-height:1;">1.000 Kz</div>
+          <div style="font-size:0.7rem;color:var(--muted);">Acesso completo</div>
+        </div>
+        <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20curso%20'Como%20Ser%20o%20Melhor%20da%20Sala%20em%20Pouco%20Tempo'%20por%201.000%20Kz" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.65rem 1.2rem;border-radius:6px;text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 25px rgba(245,200,66,0.4)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">💬 Comprar</a>
+      </div>
+    </div>
+
+    <!-- CURSO 2 — REAL -->
+    <div class="card" style="border-color:rgba(255,107,26,0.25);display:flex;flex-direction:column;gap:1rem;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:1rem;right:1rem;background:rgba(255,107,26,0.15);color:var(--accent);font-size:0.68rem;font-weight:700;letter-spacing:0.1em;padding:0.25rem 0.7rem;border-radius:100px;text-transform:uppercase;border:1px solid rgba(255,107,26,0.3);">🔥 Popular</div>
+      <div style="background:linear-gradient(135deg,rgba(255,107,26,0.12),rgba(245,200,66,0.08));border-radius:10px;height:140px;display:flex;align-items:center;justify-content:center;font-size:3rem;border:1px solid rgba(255,107,26,0.15);">💫</div>
+      <div style="flex:1;">
+        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Sedução & Confiança</div>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;margin-bottom:0.5rem;color:var(--text);">Como Conquistar uma Garota Sem Dizer Nada</h3>
+        <p style="font-size:0.82rem;color:var(--muted);line-height:1.65;margin-bottom:0.8rem;">Aprende o poder da linguagem corporal, presença e atitude para atrair e conquistar sem precisar de grandes discursos. O silêncio certo diz mais do que mil palavras.</p>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">📹 Vídeos</span>
+          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">📄 PDF</span>
+          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">💬 Suporte</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,107,26,0.1);padding-top:1rem;">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--glow);line-height:1;">1.000 Kz</div>
+          <div style="font-size:0.7rem;color:var(--muted);">Acesso completo</div>
+        </div>
+        <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20curso%20'Como%20Conquistar%20uma%20Garota%20Sem%20Dizer%20Nada'%20por%201.000%20Kz" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.65rem 1.2rem;border-radius:6px;text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 25px rgba(245,200,66,0.4)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">💬 Comprar</a>
+      </div>
+    </div>
+
+    <!-- CURSO 3 — REAL -->
+    <div class="card" style="border-color:rgba(245,200,66,0.15);display:flex;flex-direction:column;gap:1rem;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:1rem;right:1rem;background:rgba(37,211,102,0.15);color:#25d366;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;padding:0.25rem 0.7rem;border-radius:100px;text-transform:uppercase;border:1px solid rgba(37,211,102,0.3);">📈 Trending</div>
+      <div style="background:linear-gradient(135deg,rgba(245,200,66,0.1),rgba(255,107,26,0.08));border-radius:10px;height:140px;display:flex;align-items:center;justify-content:center;font-size:3rem;border:1px solid rgba(245,200,66,0.1);">📱</div>
+      <div style="flex:1;">
+        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Redes Sociais</div>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;margin-bottom:0.5rem;color:var(--text);">Viralizando nas Redes Sociais em 3 Meses</h3>
+        <p style="font-size:0.82rem;color:var(--muted);line-height:1.65;margin-bottom:0.8rem;">Um plano passo a passo para explodir o teu crescimento no Instagram, TikTok e YouTube em apenas 3 meses — com estratégias reais que funcionam em Angola e no mundo.</p>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">📹 Vídeos</span>
+          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">📄 PDF</span>
+          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">💬 Suporte</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(245,200,66,0.08);padding-top:1rem;">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--glow);line-height:1;">1.000 Kz</div>
+          <div style="font-size:0.7rem;color:var(--muted);">Acesso completo</div>
+        </div>
+        <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20curso%20'Viralizando%20nas%20Redes%20Sociais%20em%203%20Meses'%20por%201.000%20Kz" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.65rem 1.2rem;border-radius:6px;text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 25px rgba(245,200,66,0.4)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">💬 Comprar</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Banner garantia -->
+  <div style="background:linear-gradient(135deg,rgba(245,200,66,0.07),rgba(255,107,26,0.04));border:1px solid rgba(245,200,66,0.18);border-radius:14px;padding:2rem 2.5rem;display:flex;flex-wrap:wrap;gap:2rem;align-items:center;justify-content:space-between;">
+    <div style="display:flex;gap:2rem;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:0.7rem;">
+        <span style="font-size:1.5rem;">✅</span>
+        <span style="font-size:0.85rem;color:var(--muted);">Acesso imediato após pagamento</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.7rem;">
+        <span style="font-size:1.5rem;">📲</span>
+        <span style="font-size:0.85rem;color:var(--muted);">Entregue pelo WhatsApp</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.7rem;">
+        <span style="font-size:1.5rem;">🔒</span>
+        <span style="font-size:0.85rem;color:var(--muted);">Pagamento seguro</span>
+      </div>
+    </div>
+    <a href="https://wa.me/244929894589?text=Olá!%20Quero%20saber%20mais%20sobre%20os%20cursos%20Vagalume90" target="_blank" class="btn-primary" style="white-space:nowrap;">💬 Tirar dúvidas</a>
+  </div>
+</section>
+
+<!-- LOJA DE LIVROS PDF -->
+<section class="section" id="loja">
+  <div class="section-label">Loja Digital</div>
+  <h2 class="section-title">Livros em <em style="font-style:normal;color:var(--glow);text-shadow:0 0 30px rgba(245,200,66,0.4);">PDF</em></h2>
+  <p class="section-sub">Conhecimento prático e acessível. Compra, recebe no WhatsApp e lê onde quiseres.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem;margin-bottom:3rem;">
+
+    <!-- LIVRO 1 — REAL -->
+    <div class="card" style="border-color:rgba(245,200,66,0.25);background:linear-gradient(135deg,rgba(245,200,66,0.05),rgba(255,107,26,0.03));display:flex;flex-direction:column;justify-content:space-between;gap:1.2rem;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:1rem;right:1rem;background:var(--glow);color:#080b12;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;padding:0.25rem 0.7rem;border-radius:100px;text-transform:uppercase;">⭐ Destaque</div>
+      <div style="background:linear-gradient(135deg,rgba(245,200,66,0.15),rgba(255,107,26,0.08));border-radius:8px;height:160px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;border:1px solid rgba(245,200,66,0.15);">📲</div>
+      <div>
+        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Livro Digital — Redes Sociais</div>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;margin-bottom:0.5rem;color:var(--text);">Viralizando nas Redes Sociais em 3 Meses</h3>
+        <p style="font-size:0.83rem;color:var(--muted);line-height:1.65;">O guia completo em PDF para explodir o teu crescimento no Instagram, TikTok e YouTube com estratégias práticas e resultados reais em apenas 3 meses.</p>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--glow);">1.000 Kz</span>
+        <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20livro%20'Viralizando%20nas%20Redes%20Sociais%20em%203%20Meses'%20por%201.000%20Kz" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.6rem 1.2rem;border-radius:6px;text-decoration:none;transition:transform 0.2s;display:flex;align-items:center;gap:0.4rem;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">💬 Comprar</a>
+      </div>
+    </div>
+
+    <!-- LIVRO 2 — Como Criar o Hábito de Leitura -->
+    <div class="card" style="border-color:rgba(245,200,66,0.15);display:flex;flex-direction:column;justify-content:space-between;gap:1.2rem;">
+      <div style="background:linear-gradient(135deg,rgba(255,107,26,0.1),rgba(245,200,66,0.08));border-radius:8px;height:160px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;border:1px solid rgba(255,107,26,0.1);">📖</div>
+      <div>
+        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Livro Digital — Desenvolvimento Pessoal</div>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;margin-bottom:0.5rem;color:var(--text);">Como Criar o Hábito de Leitura</h3>
+        <p style="font-size:0.83rem;color:var(--muted);line-height:1.65;">Transforma a leitura numa rotina diária e consistente. Este guia mostra-te como começar do zero, escolher os livros certos e manter a motivação — mesmo com uma agenda cheia.</p>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--glow);">1.500 Kz</span>
+        <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20livro%20'Como%20Criar%20o%20Hábito%20de%20Leitura'%20por%201.500%20Kz" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.6rem 1.2rem;border-radius:6px;text-decoration:none;transition:transform 0.2s;display:flex;align-items:center;gap:0.4rem;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">💬 Comprar</a>
+      </div>
+    </div>
+
+    <!-- LIVRO 3 — O Segredo da Mente Milionária -->
+    <div class="card" style="border-color:rgba(245,200,66,0.25);background:linear-gradient(135deg,rgba(245,200,66,0.04),rgba(255,107,26,0.02));display:flex;flex-direction:column;justify-content:space-between;gap:1.2rem;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:1rem;right:1rem;background:rgba(245,200,66,0.12);color:var(--glow);font-size:0.65rem;font-weight:700;letter-spacing:0.1em;padding:0.25rem 0.7rem;border-radius:100px;text-transform:uppercase;border:1px solid rgba(245,200,66,0.25);">💰 Mais Vendido</div>
+      <div style="background:linear-gradient(135deg,rgba(245,200,66,0.12),rgba(255,107,26,0.08));border-radius:8px;height:160px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;border:1px solid rgba(245,200,66,0.15);">🧠</div>
+      <div>
+        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Livro Digital — Finanças & Mentalidade</div>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;margin-bottom:0.5rem;color:var(--text);">O Segredo da Mente Milionária</h3>
+        <p style="font-size:0.83rem;color:var(--muted);line-height:1.65;">Descobre como os ricos pensam de forma diferente e reprograma a tua mente para atrair abundância. Princípios práticos de mentalidade, dinheiro e prosperidade para transformar a tua vida financeira.</p>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--glow);">2.000 Kz</span>
+        <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20livro%20'O%20Segredo%20da%20Mente%20Milionária'%20por%202.000%20Kz" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.6rem 1.2rem;border-radius:6px;text-decoration:none;transition:transform 0.2s;display:flex;align-items:center;gap:0.4rem;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">💬 Comprar</a>
+      </div>
+    </div>
+
+    <!-- LIVRO 4 — O Porquê de Continuar Pobre -->
+    <div class="card" style="border-color:rgba(255,107,26,0.25);background:linear-gradient(135deg,rgba(255,107,26,0.05),rgba(245,200,66,0.02));display:flex;flex-direction:column;justify-content:space-between;gap:1.2rem;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:1rem;right:1rem;background:rgba(255,107,26,0.12);color:var(--accent);font-size:0.65rem;font-weight:700;letter-spacing:0.1em;padding:0.25rem 0.7rem;border-radius:100px;text-transform:uppercase;border:1px solid rgba(255,107,26,0.25);">🔥 Premium</div>
+      <div style="background:linear-gradient(135deg,rgba(255,107,26,0.12),rgba(245,200,66,0.06));border-radius:8px;height:160px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;border:1px solid rgba(255,107,26,0.15);">💡</div>
+      <div>
+        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Livro Digital — Finanças Pessoais</div>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;margin-bottom:0.5rem;color:var(--text);">O Porquê de Continuar Pobre</h3>
+        <p style="font-size:0.83rem;color:var(--muted);line-height:1.65;">Uma análise directa e sem filtros dos comportamentos, crenças e hábitos que mantêm as pessoas presas na pobreza. Identifica os teus bloqueios financeiros e aprende a quebrá-los de uma vez por todas.</p>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--glow);">2.999 Kz</span>
+        <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20livro%20'O%20Porquê%20de%20Continuar%20Pobre'%20por%202.999%20Kz" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.6rem 1.2rem;border-radius:6px;text-decoration:none;transition:transform 0.2s;display:flex;align-items:center;gap:0.4rem;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">💬 Comprar</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Como funciona a compra -->
+  <div style="background:linear-gradient(135deg,rgba(245,200,66,0.06),rgba(255,107,26,0.04));border:1px solid rgba(245,200,66,0.15);border-radius:16px;padding:2.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2rem;text-align:center;">
+    <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);grid-column:1/-1;margin-bottom:-0.5rem;">Como funciona a compra</div>
+    <div>
+      <div style="font-size:2rem;margin-bottom:0.5rem;">👆</div>
+      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">1. Escolhe o livro</strong>
+      <span style="font-size:0.8rem;color:var(--muted);">Seleciona o livro que queres e clica em "Comprar".</span>
+    </div>
+    <div>
+      <div style="font-size:2rem;margin-bottom:0.5rem;">💬</div>
+      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">2. Contacta pelo WhatsApp</strong>
+      <span style="font-size:0.8rem;color:var(--muted);">Serás redirecionado para o WhatsApp para combinar o pagamento.</span>
+    </div>
+    <div>
+      <div style="font-size:2rem;margin-bottom:0.5rem;">💳</div>
+      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">3. Efetua o pagamento</strong>
+      <span style="font-size:0.8rem;color:var(--muted);">Pagamento via Multicaixa Express ou transferência bancária.</span>
+    </div>
+    <div>
+      <div style="font-size:2rem;margin-bottom:0.5rem;">📥</div>
+      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">4. Recebe o PDF</strong>
+      <span style="font-size:0.8rem;color:var(--muted);">Recebes o teu livro em PDF directamente no WhatsApp.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     ASSESSORIA & CONSELHOS PARA CASAIS
+═══════════════════════════════════════════════════════ -->
+<section class="section" id="casais" style="max-width:1100px;margin:0 auto;padding:7rem 2rem;">
+
+  <!-- Cabeçalho -->
+  <div style="display:flex;flex-direction:column;align-items:flex-start;margin-bottom:4rem;">
+    <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;color:#ff85a1;background:rgba(255,133,161,0.1);border:1px solid rgba(255,133,161,0.25);padding:0.35rem 1rem;border-radius:100px;margin-bottom:1rem;">💑 Assessoria para Casais</div>
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,5vw,4.5rem);line-height:1;margin-bottom:1rem;">O <em style="font-style:normal;color:#ff85a1;text-shadow:0 0 30px rgba(255,133,161,0.4);">amor</em> também<br>precisa de guia</h2>
+    <p style="color:var(--muted);font-size:1rem;line-height:1.75;max-width:520px;">Aconselhamento real e honesto para casais que querem crescer juntos. Seja qual for a fase do relacionamento — tens apoio aqui.</p>
+  </div>
+
+  <!-- Temas de Assessoria -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.2rem;margin-bottom:4rem;">
+
+    <!-- Como Conquistar -->
+    <div class="card" style="border-color:rgba(255,133,161,0.2);background:linear-gradient(135deg,rgba(255,133,161,0.05),rgba(255,107,26,0.02));transition:border-color 0.3s,transform 0.3s;" onmouseover="this.style.borderColor='rgba(255,133,161,0.45)';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='rgba(255,133,161,0.2)';this.style.transform='none'">
+      <div style="font-size:2.2rem;margin-bottom:1rem;">💘</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:0.05em;margin-bottom:0.6rem;color:var(--text);">Como Conquistar</h3>
+      <p style="font-size:0.87rem;color:var(--muted);line-height:1.7;">Estratégias reais para te aproximares da pessoa certa, criar atracção genuína e iniciar um relacionamento sólido desde o início.</p>
+      <div style="margin-top:1.2rem;font-size:0.72rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#ff85a1;">Gratuito via formulário</div>
+    </div>
+
+    <!-- Relacionamento à Distância -->
+    <div class="card" style="border-color:rgba(255,133,161,0.2);background:linear-gradient(135deg,rgba(255,133,161,0.05),rgba(255,107,26,0.02));transition:border-color 0.3s,transform 0.3s;" onmouseover="this.style.borderColor='rgba(255,133,161,0.45)';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='rgba(255,133,161,0.2)';this.style.transform='none'">
+      <div style="font-size:2.2rem;margin-bottom:1rem;">✈️</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:0.05em;margin-bottom:0.6rem;color:var(--text);">À Distância</h3>
+      <p style="font-size:0.87rem;color:var(--muted);line-height:1.7;">Como manter a chama acesa quando estão longe. Comunicação, confiança e presença emocional mesmo com quilómetros de por meio.</p>
+      <div style="margin-top:1.2rem;font-size:0.72rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#ff85a1;">Gratuito via formulário</div>
+    </div>
+
+    <!-- Traição e Confiança -->
+    <div class="card" style="border-color:rgba(255,133,161,0.2);background:linear-gradient(135deg,rgba(255,133,161,0.05),rgba(255,107,26,0.02));transition:border-color 0.3s,transform 0.3s;" onmouseover="this.style.borderColor='rgba(255,133,161,0.45)';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='rgba(255,133,161,0.2)';this.style.transform='none'">
+      <div style="font-size:2.2rem;margin-bottom:1rem;">🔒</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:0.05em;margin-bottom:0.6rem;color:var(--text);">Traição & Confiança</h3>
+      <p style="font-size:0.87rem;color:var(--muted);line-height:1.7;">Como lidar com a dor da traição, reconstruir a confiança ou tomar a decisão certa para o teu futuro. Sem julgamentos.</p>
+      <div style="margin-top:1.2rem;font-size:0.72rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--glow);">★ Sessão Premium — 2.000 Kz</div>
+    </div>
+
+    <!-- Intimidade e Conexão -->
+    <div class="card" style="border-color:rgba(255,133,161,0.2);background:linear-gradient(135deg,rgba(255,133,161,0.05),rgba(255,107,26,0.02));transition:border-color 0.3s,transform 0.3s;" onmouseover="this.style.borderColor='rgba(255,133,161,0.45)';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='rgba(255,133,161,0.2)';this.style.transform='none'">
+      <div style="font-size:2.2rem;margin-bottom:1rem;">🫀</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:0.05em;margin-bottom:0.6rem;color:var(--text);">Intimidade & Conexão</h3>
+      <p style="font-size:0.87rem;color:var(--muted);line-height:1.7;">Aprofundar o vínculo emocional, melhorar a comunicação íntima e reconectar com o teu parceiro de forma genuína e duradoura.</p>
+      <div style="margin-top:1.2rem;font-size:0.72rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--glow);">★ Sessão Premium — 2.000 Kz</div>
+    </div>
+
+    <!-- Crise e Conflitos -->
+    <div class="card" style="border-color:rgba(255,133,161,0.2);background:linear-gradient(135deg,rgba(255,133,161,0.05),rgba(255,107,26,0.02));transition:border-color 0.3s,transform 0.3s;" onmouseover="this.style.borderColor='rgba(255,133,161,0.45)';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='rgba(255,133,161,0.2)';this.style.transform='none'">
+      <div style="font-size:2.2rem;margin-bottom:1rem;">⚡</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:0.05em;margin-bottom:0.6rem;color:var(--text);">Crise & Conflitos</h3>
+      <p style="font-size:0.87rem;color:var(--muted);line-height:1.7;">Quando a relação está em ponto crítico. Como resolver conflitos sem destruir o que foi construído, e quando é hora de seguir em frente.</p>
+      <div style="margin-top:1.2rem;font-size:0.72rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--glow);">★ Sessão Premium — 2.000 Kz</div>
+    </div>
+
+  </div>
+
+  <!-- Crédito Semfiltros9 -->
+  <div style="display:flex;align-items:center;gap:1rem;background:linear-gradient(135deg,rgba(255,133,161,0.08),rgba(245,200,66,0.04));border:1px solid rgba(255,133,161,0.2);border-radius:12px;padding:1rem 1.5rem;margin-bottom:3rem;flex-wrap:wrap;">
+    <div style="font-size:1.8rem;">📱</div>
+    <div>
+      <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#ff85a1;margin-bottom:0.2rem;">Área gerida por</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--text);letter-spacing:0.05em;">@<span style="color:#ff85a1;">Semfiltros9</span></div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-top:0.15rem;">Segue a página para conteúdo exclusivo sobre relacionamentos</div>
+    </div>
+    <a href="https://instagram.com/Semfiltros9" target="_blank" style="margin-left:auto;background:#ff85a1;color:#080b12;font-weight:700;font-size:0.8rem;padding:0.5rem 1.1rem;border-radius:100px;text-decoration:none;white-space:nowrap;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">📸 Seguir</a>
+  </div>
+
+  <!-- Sessão Premium (única opção) -->
+  <div style="display:flex;justify-content:center;margin-bottom:4rem;">
+    <div style="background:linear-gradient(135deg,rgba(255,133,161,0.08),rgba(245,200,66,0.05));border:1px solid rgba(255,133,161,0.4);border-radius:16px;padding:2.5rem;display:flex;flex-direction:column;gap:1rem;position:relative;overflow:hidden;max-width:500px;width:100%;">
+      <div style="position:absolute;top:1rem;right:1rem;background:#ff85a1;color:#080b12;font-size:0.65rem;font-weight:700;letter-spacing:0.1em;padding:0.25rem 0.7rem;border-radius:100px;text-transform:uppercase;">⭐ Recomendado</div>
+      <div style="position:absolute;bottom:-40px;right:-40px;width:140px;height:140px;background:radial-gradient(circle,rgba(255,133,161,0.15),transparent 70%);border-radius:50%;pointer-events:none;"></div>
+      <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#ff85a1;margin-bottom:0.3rem;">Sessão Premium</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:3rem;color:var(--glow);line-height:1;">2.000 <span style="font-size:1.2rem;color:var(--muted);">Kz</span></div>
+      <p style="font-size:0.85rem;color:var(--muted);line-height:1.7;">Sessão ao vivo por WhatsApp ou chamada. Acompanhamento real, personalizado e aprofundado para a tua situação específica.</p>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:0.6rem;margin-top:0.5rem;">
+        <li style="font-size:0.83rem;color:var(--muted);display:flex;align-items:center;gap:0.6rem;"><span style="color:#ff85a1;">✓</span> Sessão ao vivo (30–60 min)</li>
+        <li style="font-size:0.83rem;color:var(--muted);display:flex;align-items:center;gap:0.6rem;"><span style="color:#ff85a1;">✓</span> Todos os temas cobertos</li>
+        <li style="font-size:0.83rem;color:var(--muted);display:flex;align-items:center;gap:0.6rem;"><span style="color:#ff85a1;">✓</span> Acompanhamento por 7 dias</li>
+        <li style="font-size:0.83rem;color:var(--muted);display:flex;align-items:center;gap:0.6rem;"><span style="color:#ff85a1;">✓</span> Plano de acção personalizado</li>
+        <li style="font-size:0.83rem;color:var(--muted);display:flex;align-items:center;gap:0.6rem;"><span style="color:#ff85a1;">✓</span> Pagamento via Multicaixa Express</li>
+      </ul>
+      <button onclick="function abrirModalCasais(tipo) {
+    // Define o tipo corretamente (pode ser 'premium' ou 'gratuito')
+    tipoCasais = tipo; // ← MUDANÇA AQUI!
+    
+    const modal = document.getElementById('modalCasais');
+    const infoPag = document.getElementById('infoPagamento');
+    
+    // Mostra/esconde informações de pagamento conforme o tipo
+    if (tipo === 'premium') {
+        infoPag.style.display = 'block';
+        document.getElementById('btnSubmitCasais').innerHTML = '⭐ Agendar Sessão — 2.000 Kz';
+    } else {
+        infoPag.style.display = 'none';
+        document.getElementById('btnSubmitCasais').innerHTML = '💬 Solicitar Conselho Gratuito';
+    }
+    
+    // Reset form
+    document.getElementById('formAreaCasais').style.display = 'block';
+    document.getElementById('sucessoCasais').style.display = 'none';
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}</div>
+
+  </div>
+
+  <!-- Testemunhos / Confiança -->
+  <div style="background:linear-gradient(135deg,rgba(255,133,161,0.05),rgba(245,200,66,0.03));border:1px solid rgba(255,133,161,0.15);border-radius:16px;padding:2.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2rem;text-align:center;">
+    <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#ff85a1;grid-column:1/-1;margin-bottom:-0.5rem;">Por que confiar?</div>
+    <div>
+      <div style="font-size:2rem;margin-bottom:0.5rem;">🤝</div>
+      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">100% Confidencial</strong>
+      <span style="font-size:0.8rem;color:var(--muted);">A tua situação é tratada com total discrição e respeito.</span>
+    </div>
+    <div>
+      <div style="font-size:2rem;margin-bottom:0.5rem;">💬</div>
+      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">Sem Julgamentos</strong>
+      <span style="font-size:0.8rem;color:var(--muted);">Aqui falas abertamente. Só nos interessa ajudar-te.</span>
+    </div>
+    <div>
+      <div style="font-size:2rem;margin-bottom:0.5rem;">⚡</div>
+      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">Resposta Rápida</strong>
+      <span style="font-size:0.8rem;color:var(--muted);">Sessão agendada rapidamente pelo WhatsApp.</span>
+    </div>
+    <div>
+      <div style="font-size:2rem;margin-bottom:0.5rem;">❤️</div>
+      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">Experiência Real</strong>
+      <span style="font-size:0.8rem;color:var(--muted);">Conselhos baseados em experiência humana real, não teoria.</span>
+    </div>
+  </div>
+
+</section>
+
+<!-- MODAL CASAIS -->
+<div class="modal-overlay" id="modalCasais" style="z-index:1000;">
+  <div class="modal-box" style="position:relative;max-width:800px;">
+    <button class="modal-close" onclick="fecharModalCasais()">✕</button>
+
+    <!-- Esquerda -->
+    <div class="modal-left" style="background:linear-gradient(145deg,rgba(255,133,161,0.1),rgba(255,107,26,0.05),rgba(8,11,18,0.9));">
+      <div style="position:absolute;top:-60px;left:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(255,133,161,0.15),transparent 70%);border-radius:50%;"></div>
+      <div class="panel-tag" style="color:#ff85a1;background:rgba(255,133,161,0.1);border-color:rgba(255,133,161,0.25);">💑 Assessoria para Casais</div>
+      <h2 class="panel-title">Conta a tua <em style="color:#ff85a1;text-shadow:0 0 30px rgba(255,133,161,0.4);">história</em></h2>
+      <p class="panel-desc">Preenche o formulário com a tua situação. Cada caso é único e receberás uma resposta personalizada.</p>
+      <div class="perks">
+        <div class="perk">
+          <div class="perk-icon" style="background:rgba(255,133,161,0.1);border-color:rgba(255,133,161,0.2);">🔒</div>
+          <div class="perk-text"><strong>Total confidencialidade</strong><span>A tua situação nunca é partilhada com ninguém.</span></div>
+        </div>
+        <div class="perk">
+          <div class="perk-icon" style="background:rgba(255,133,161,0.1);border-color:rgba(255,133,161,0.2);">❤️</div>
+          <div class="perk-text"><strong>Sem julgamentos</strong><span>Podes falar abertamente sobre qualquer situação.</span></div>
+        </div>
+        <div class="perk">
+          <div class="perk-icon" style="background:rgba(255,133,161,0.1);border-color:rgba(255,133,161,0.2);">📱</div>
+          <div class="perk-text" id="perkTipo"><strong>@Semfiltros9</strong><span>Assessora responsável pela área de casais.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Direita: Formulário -->
+    <div class="modal-right">
+      <div id="formAreaCasais">
+        <div class="form-header">
+          <h2 id="tituloFormCasais">Agendar Sessão Premium</h2>
+          <p id="subtituloFormCasais">Sessão ao vivo com @Semfiltros9 · 2.000 Kz</p>
+        </div>
+        <form onsubmit="submeterCasais(event)">
+          <div class="form-row">
+            <div class="field"><label>O teu nome</label><input type="text" id="nomesCasais" placeholder="Podes usar um nome fictício" required></div>
+            <div class="field"><label>Idade</label><input type="number" placeholder="Ex: 24" min="16" max="80" required></div>
+          </div>
+          <div class="field"><label>WhatsApp para resposta</label><input type="tel" id="waCasais" placeholder="+244 9XX XXX XXX" required></div>
+          <div class="field">
+            <label>Tema do pedido</label>
+            <select id="temaCasais" required>
+              <option value="" disabled selected>Escolher tema...</option>
+              <option>Como conquistar / iniciar relação</option>
+              <option>Relacionamento à distância</option>
+              <option>Traição e confiança</option>
+              <option>Intimidade e conexão</option>
+              <option>Crise e conflitos</option>
+              <option>Outro</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Estado do relacionamento</label>
+            <select required>
+              <option value="" disabled selected>Escolher...</option>
+              <option>Solteiro(a) — quero conquistar alguém</option>
+              <option>Namorando</option>
+              <option>Casado(a)</option>
+              <option>Separado(a) / Em crise</option>
+              <option>Complicado</option>
+            </select>
+          </div>
+          <div class="field"><label>A tua situação (descreve com detalhes)</label><textarea id="situacaoCasais" placeholder="Conta o que está a acontecer. Quanto mais detalhes deres, melhor será o conselho..." style="min-height:110px;" required></textarea></div>
+          <div id="infoPagamento" style="display:none;background:rgba(255,133,161,0.07);border:1px solid rgba(255,133,161,0.2);border-radius:8px;padding:0.9rem;margin-bottom:1rem;font-size:0.82rem;color:var(--muted);line-height:1.6;">
+            💳 <strong style="color:var(--text);">Sessão Premium — 2.000 Kz</strong><br>Após enviares o formulário, serás redirecionado para o WhatsApp onde combinarás o pagamento via <strong style="color:var(--text);">Multicaixa Express</strong> antes da sessão ser agendada.
+          </div>
+          <button type="submit" class="btn-submit" id="btnSubmitCasais" style="background:#ff85a1;box-shadow:0 0 30px rgba(255,133,161,0.3);">⭐ Agendar Sessão — 2.000 Kz</button>
+        </form>
+      </div>
+
+      <!-- Sucesso -->
+      <div class="success-overlay" id="sucessoCasais" style="display:none;flex-direction:column;align-items:center;text-align:center;padding:1.5rem;">
+        <div class="success-icon" style="border-color:#ff85a1;background:rgba(255,133,161,0.1);box-shadow:0 0 40px rgba(255,133,161,0.25);">❤️</div>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:#ff85a1;margin-bottom:0.5rem;">Pedido enviado!</h3>
+        <p style="font-size:0.85rem;color:var(--muted);line-height:1.65;max-width:300px;margin-bottom:1.5rem;">Receberás uma resposta personalizada no teu WhatsApp. Obrigado pela confiança! 💑</p>
+        <a id="btnWhatsappCasais" href="#" target="_blank" style="width:100%;background:#25d366;color:#fff;font-weight:700;font-size:0.88rem;padding:0.85rem;border-radius:8px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:0.5rem;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">💬 Continuar no WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<section class="cta-section" id="contato">
+  <h2>Pronto para<br>brilhar?</h2>
+  <p>Entre em contato e descubra como a Vagalume90 pode transformar sua presença digital.</p>
+  <a href="https://wa.me/244929894589" target="_blank" class="btn-primary">💬 Falar no WhatsApp</a>
+</section>
+
+<!-- FOOTER -->
+<footer style="position:relative;z-index:1;border-top:1px solid rgba(245,200,66,0.07);padding:3rem 2rem 2rem;text-align:center;">
+  <div class="logo" style="display:inline-block;margin-bottom:1.2rem;text-decoration:none;">Vagalume<span>90</span></div>
+  <p style="color:var(--muted);font-size:0.85rem;max-width:400px;margin:0 auto 1.8rem;line-height:1.7;">Empresa de divulgação digital e apoio a utilizadores de internet. Fundada por Ernesto Cardoso — O Hasta.</p>
+
+  <!-- Redes Sociais -->
+  <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-bottom:2rem;">
+    <a href="https://instagram.com/Plebheu90" target="_blank" style="display:flex;align-items:center;gap:0.5rem;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;font-weight:700;font-size:0.85rem;padding:0.6rem 1.3rem;border-radius:100px;text-decoration:none;transition:transform 0.2s,box-shadow 0.2s;box-shadow:0 0 20px rgba(253,29,29,0.25);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 35px rgba(253,29,29,0.45)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 0 20px rgba(253,29,29,0.25)'">
+      📸 Instagram — @Plebheu90
+    </a>
+    <a href="https://youtube.com/@vagalume90" target="_blank" style="display:flex;align-items:center;gap:0.5rem;background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);color:#ff4444;font-weight:700;font-size:0.85rem;padding:0.6rem 1.3rem;border-radius:100px;text-decoration:none;transition:transform 0.2s,background 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.background='rgba(255,0,0,0.2)'" onmouseout="this.style.transform='none';this.style.background='rgba(255,0,0,0.1)'">
+      ▶ YouTube — @vagalume90
+    </a>
+    <a href="https://wa.me/244929894589" target="_blank" style="display:flex;align-items:center;gap:0.5rem;background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.3);color:#25d366;font-weight:700;font-size:0.85rem;padding:0.6rem 1.3rem;border-radius:100px;text-decoration:none;transition:transform 0.2s,background 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.background='rgba(37,211,102,0.2)'" onmouseout="this.style.transform='none';this.style.background='rgba(37,211,102,0.1)'">
+      💬 WhatsApp
+    </a>
+  </div>
+
+  <div style="border-top:1px solid rgba(245,200,66,0.07);padding-top:1.5rem;display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;align-items:center;">
+    <p style="font-size:0.78rem;color:var(--muted);">📧 <a href="/cdn-cgi/l/email-protection#6f050a1c1c0a1f030a0d070a1a2f08020e0603410c0002" style="color:var(--glow);text-decoration:none;"><span class="__cf_email__" data-cfemail="0f656a7c7c6a7f636a6d676a7a4f68626e6663216c6062">[email&#160;protected]</span></a></p>
+    <span style="color:rgba(107,107,122,0.3);">·</span>
+    <p style="font-size:0.78rem;color:var(--muted);">© 2025 <span style="color:var(--glow);">Vagalume90</span> — Todos os direitos reservados.</p>
+  </div>
+</footer>
+
+<!-- WIDGET WHATSAPP FLUTUANTE -->
+<div class="wa-widget" id="waWidget">
+  <!-- Bolha de mensagem -->
+  <div class="wa-bubble" id="waBubble">
+    <button class="wa-bubble-close" onclick="fecharWaBubble()">✕</button>
+    <strong>💬 Vagalume90</strong>
+    Olá! 👋 Na Vagalume90 a <strong style="color:#111;">afinidade conta</strong>. Fala connosco directamente! 🥹
+  </div>
+  <!-- Botão flutuante -->
+  <a href="https://wa.me/244929894589?text=Olá%20Vagalume90!%20🥹%20Vim%20pelo%20site%20e%20quero%20saber%20mais!" target="_blank" class="wa-btn" style="position:relative;" title="Falar no WhatsApp">
+    💬
+    <span class="wa-dot"></span>
+  </a>
+</div>
+
+<!-- POP-UP CAPTURA DE LEADS -->
+<div class="popup-overlay" id="popupLead">
+  <div class="popup-box">
+    <button class="popup-close" onclick="fecharPopup()">✕</button>
+
+    <!-- Conteúdo principal -->
+    <div id="popupForm">
+      <div class="popup-badge">✦ Só na Vagalume90</div>
+      <span class="popup-emoji">🥹</span>
+      <h2 class="popup-title">Aqui a <em>afinidade</em><br>conta</h2>
+      <p class="popup-frase">
+        A Vagalume90 é a <strong>única empresa</strong> onde a afinidade conta de verdade.<br>
+        Deixa o teu WhatsApp e entra na nossa família — livros, cursos, oportunidades e muito mais esperam por ti.
+      </p>
+      <div class="popup-input-group">
+        <input type="text" id="popupNome" placeholder="O teu nome">
+        <input type="tel" id="popupWa" placeholder="WhatsApp — +244 9XX XXX XXX">
+      </div>
+      <button class="popup-btn" onclick="submeterPopup()">🔥 Entrar na família Vagalume90</button>
+      <br>
+      <button class="popup-skip" onclick="fecharPopup()">Agora não, obrigado</button>
+    </div>
+
+    <!-- Sucesso -->
+    <div class="popup-success" id="popupSucesso">
+      <div class="popup-success-icon">✓</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--glow);">Bem-vindo à família!</h3>
+      <p style="font-size:0.85rem;color:var(--muted);line-height:1.7;max-width:280px;text-align:center;">Vais receber novidades, oportunidades e conteúdo exclusivo directamente no teu WhatsApp. 🥹</p>
+      <a id="popupWaLink" href="#" target="_blank" style="background:#25d366;color:#fff;font-weight:700;font-size:0.88rem;padding:0.8rem 2rem;border-radius:8px;text-decoration:none;display:flex;align-items:center;gap:0.5rem;transition:transform 0.2s;margin-top:0.5rem;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">💬 Confirmar no WhatsApp</a>
+      <button class="popup-skip" onclick="fecharPopup()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REGISTO AFILIADOS -->
+<div class="modal-overlay" id="modalRegisto">
+  <div class="modal-box" style="position:relative;">
+    <button class="modal-close" onclick="fecharRegisto()">✕</button>
+
+    <!-- Esquerda -->
+    <div class="modal-left">
+      <div class="panel-tag">✦ Programa de Afiliados</div>
+      <h2 class="panel-title">Faça parte<br>da nossa <em>rede</em></h2>
+      <p class="panel-desc">Registe-se como afiliado Vagalume90 e comece a ganhar comissões promovendo marcas que confiam em nós.</p>
+      <div class="perks">
+        <div class="perk">
+          <div class="perk-icon">💰</div>
+          <div class="perk-text"><strong>Comissões Atrativas</strong><span>Ganhe por cada venda ou lead gerado através do seu link exclusivo.</span></div>
+        </div>
+        <div class="perk">
+          <div class="perk-icon">📊</div>
+          <div class="perk-text"><strong>Painel em Tempo Real</strong><span>Acompanhe cliques, conversões e ganhos quando quiser.</span></div>
+        </div>
+        <div class="perk">
+          <div class="perk-icon">🚀</div>
+          <div class="perk-text"><strong>Suporte Dedicado</strong><span>A nossa equipa ajuda-te a maximizar os teus resultados.</span></div>
+        </div>
+        <div class="perk">
+          <div class="perk-icon">🔗</div>
+          <div class="perk-text"><strong>Link Único Imediato</strong><span>Recebe o teu código de afiliado assim que o registo for aprovado.</span></div>
+        </div>
+        <div class="perk" style="background:rgba(255,0,0,0.05);border:1px solid rgba(255,0,0,0.2);border-radius:10px;padding:0.7rem;margin-top:0.3rem;">
+          <div class="perk-icon" style="background:rgba(255,0,0,0.1);border-color:rgba(255,0,0,0.3);">▶</div>
+          <div class="perk-text">
+            <strong style="color:#ff6666;">🎁 Bónus: 2 Vídeos no YouTube</strong>
+            <span>Como afiliado, tens a oportunidade de publicar <strong style="color:var(--text);">2 vídeos teus</strong> no canal <span style="color:#ff4444;font-weight:700;">@vagalume90</span> e alcançar a nossa audiência.</span>
+          </div>
+        </div>
+        <div class="perk" style="background:rgba(37,211,102,0.05);border:1px solid rgba(37,211,102,0.2);border-radius:10px;padding:0.7rem;margin-top:0.3rem;">
+          <div class="perk-icon" style="background:rgba(37,211,102,0.1);border-color:rgba(37,211,102,0.3);">📚</div>
+          <div class="perk-text">
+            <strong style="color:#25d366;">🔗 Convida & Ganha Livros</strong>
+            <span>Recebe um <strong style="color:var(--text);">link único de convite</strong> após o registo. Por cada afiliado que convidares, ganhas <strong style="color:var(--text);">1 livro PDF grátis</strong>!</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Direita: Formulário -->
+    <div class="modal-right">
+      <div id="formArea">
+        <div class="form-header">
+          <h2>Criar Conta</h2>
+          <p>Preenche os dados abaixo para começar</p>
+        </div>
+        <form onsubmit="submeterRegisto(event)">
+          <div class="form-row">
+            <div class="field"><label>Nome</label><input type="text" placeholder="Teu nome" required></div>
+            <div class="field"><label>Apelido</label><input type="text" placeholder="Teu apelido" required></div>
+          </div>
+          <div class="field"><label>Email</label><input type="email" placeholder="email@exemplo.com" required></div>
+          <div class="field"><label>WhatsApp / Telefone</label><input type="tel" placeholder="+244 9XX XXX XXX" required></div>
+          <div class="form-row">
+            <div class="field">
+              <label>Plataforma Principal</label>
+              <select required>
+                <option value="" disabled selected>Escolher...</option>
+                <option>Instagram</option><option>TikTok</option><option>YouTube</option>
+                <option>Facebook</option><option>Blog / Website</option><option>Telegram</option><option>Outro</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Seguidores Aprox.</label>
+              <select required>
+                <option value="" disabled selected>Escolher...</option>
+                <option>Menos de 1.000</option><option>1.000 – 10.000</option>
+                <option>10.000 – 50.000</option><option>50.000 – 200.000</option><option>Mais de 200.000</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Link do teu perfil / canal</label><input type="url" placeholder="https://instagram.com/seuperfil"></div>
+          <div class="field"><label>Como pretendes divulgar? (opcional)</label><textarea placeholder="Conta-nos um pouco sobre a tua estratégia..."></textarea></div>
+          <div class="field"><label>Palavra-passe</label><input type="password" placeholder="Mínimo 8 caracteres" minlength="8" required></div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="termos" required>
+            <label for="termos">Li e aceito os <a href="Vagalume90_Termos_e_Condicoes.docx" target="_blank" style="color:var(--glow);">Termos e Condições</a> do Programa de Afiliados da Vagalume90.</label>
+          </div>
+          <button type="submit" class="btn-submit">✦ Criar Conta de Afiliado</button>
+          <div class="login-hint">Já tens conta? <a href="#">Entrar aqui</a></div>
+        </form>
+      </div>
+
+      <!-- Sucesso -->
+      <div class="success-overlay" id="sucessoArea" style="flex-direction:column;align-items:center;text-align:center;padding:1.5rem;overflow-y:auto;">
+        <div class="success-icon">✓</div>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--glow);margin-bottom:0.5rem;">Bem-vindo à família!</h3>
+        <p style="font-size:0.85rem;color:var(--muted);line-height:1.65;max-width:320px;margin-bottom:1.2rem;">O teu registo foi enviado. Confirma pelo WhatsApp para activar a conta e receber os teus bónus.</p>
+
+        <!-- Código -->
+        <div style="background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.2);border-radius:10px;padding:0.8rem 1.5rem;margin-bottom:0.4rem;">
+          <div style="font-size:0.68rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.3rem;">O teu código de afiliado</div>
+          <div style="font-family:'Bebas Neue',sans-serif;letter-spacing:0.15em;color:var(--glow);font-size:1.3rem;" id="codigoRef">VAG-XXXXXX</div>
+        </div>
+
+        <!-- Link de convite -->
+        <div style="width:100%;background:rgba(245,200,66,0.05);border:1px solid rgba(245,200,66,0.18);border-radius:10px;padding:1rem;margin-bottom:1rem;">
+          <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.6rem;">🔗 O teu link de convite</div>
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <div id="linkConvite" style="flex:1;background:#080b12;border:1px solid rgba(245,200,66,0.15);border-radius:6px;padding:0.5rem 0.8rem;font-size:0.75rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">vagalume90.com/afiliado?ref=VAG-XXXXXX</div>
+            <button onclick="copiarLink()" style="background:var(--glow);color:#080b12;border:none;border-radius:6px;padding:0.5rem 0.8rem;font-weight:700;font-size:0.75rem;cursor:pointer;white-space:nowrap;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" id="btnCopiar">📋 Copiar</button>
+          </div>
+          <p style="font-size:0.75rem;color:var(--muted);margin-top:0.6rem;line-height:1.5;">Partilha este link nas tuas redes. Cada pessoa que se registar através dele conta como teu convite!</p>
+        </div>
+
+        <!-- Bónus livro -->
+        <div style="width:100%;background:linear-gradient(135deg,rgba(37,211,102,0.06),rgba(245,200,66,0.04));border:1px solid rgba(37,211,102,0.25);border-radius:10px;padding:1rem;margin-bottom:1rem;">
+          <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#25d366;margin-bottom:0.5rem;">🎁 Bónus por Convite</div>
+          <p style="font-size:0.82rem;color:var(--muted);line-height:1.6;">Por cada afiliado que se registar usando o teu link, <strong style="color:var(--text);">ganhas um livro PDF grátis</strong> à tua escolha da nossa loja!</p>
+          <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.7rem;flex-wrap:wrap;justify-content:center;">
+            <span style="font-size:0.75rem;background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.2);color:#25d366;padding:0.2rem 0.7rem;border-radius:100px;">1 convite = 1 livro grátis 📚</span>
+          </div>
+        </div>
+
+        <!-- Confirmar no WhatsApp -->
+        <a href="https://wa.me/244929894589?text=Olá!%20Acabei%20de%20me%20registar%20como%20afiliado%20Vagalume90.%20O%20meu%20código%20é%20" id="btnWhatsapp" target="_blank" style="width:100%;background:#25d366;color:#fff;font-weight:700;font-size:0.88rem;padding:0.8rem;border-radius:8px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:0.5rem;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">💬 Confirmar registo no WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  // Fireflies
   const container = document.getElementById('fireflies');
   for (let i = 0; i < 35; i++) {
     const f = document.createElement('div');
@@ -777,12 +1698,13 @@
     container.appendChild(f);
   }
 
-  // WHATSAPP BUBBLE
+  // ── WIDGET WHATSAPP FLUTUANTE ────────────────────────────
+  // Bolha aparece após 5 segundos, fecha automaticamente após 8 segundos
   setTimeout(function() {
     const bubble = document.getElementById('waBubble');
     if (bubble) {
       bubble.style.display = 'block';
-      setTimeout(() => { if(bubble) bubble.style.display = 'none'; }, 8000);
+      setTimeout(function() { fecharWaBubble(); }, 8000);
     }
   }, 5000);
 
@@ -791,50 +1713,54 @@
     if (bubble) bubble.style.display = 'none';
   }
 
-  // POPUP LEADS
+  // ── POP-UP CAPTURA DE LEADS ──────────────────────────────
+  // Aparece após 25 segundos, apenas 1 vez por sessão
   (function() {
     if (sessionStorage.getItem('popupShown')) return;
-    setTimeout(() => {
-      const popup = document.getElementById('popupLead');
-      if(popup) { popup.classList.add('active'); document.body.style.overflow = 'hidden'; }
+    setTimeout(function() {
+      document.getElementById('popupLead').classList.add('active');
+      document.body.style.overflow = 'hidden';
       sessionStorage.setItem('popupShown', '1');
     }, 25000);
   })();
 
   function fecharPopup() {
-    const popup = document.getElementById('popupLead');
-    if(popup) popup.classList.remove('active');
+    document.getElementById('popupLead').classList.remove('active');
     document.body.style.overflow = '';
   }
 
   function submeterPopup() {
-    const nome = document.getElementById('popupNome')?.value.trim() || '';
-    const wa = document.getElementById('popupWa')?.value.trim() || '';
+    const nome = document.getElementById('popupNome').value.trim();
+    const wa = document.getElementById('popupWa').value.trim();
     if (!wa) {
-      const waInput = document.getElementById('popupWa');
-      if(waInput) waInput.style.borderColor = 'rgba(255,107,26,0.6)';
+      document.getElementById('popupWa').style.borderColor = 'rgba(255,107,26,0.6)';
+      document.getElementById('popupWa').focus();
       return;
     }
-    const msg = encodeURIComponent(`Olá Vagalume90! 🥹 Quero entrar na família!\n\n👤 Nome: ${nome || 'Não informado'}\n📱 WhatsApp: ${wa}`);
-    const link = document.getElementById('popupWaLink');
-    if(link) link.href = `https://wa.me/244929894589?text=${msg}`;
-    const formDiv = document.getElementById('popupForm');
-    const successDiv = document.getElementById('popupSucesso');
-    if(formDiv) formDiv.style.display = 'none';
-    if(successDiv) successDiv.style.display = 'flex';
+    const msg = encodeURIComponent(
+      `Olá Vagalume90! 🥹 Quero entrar na família!
+
+` +
+      `👤 Nome: ${nome || 'Não informado'}
+📱 WhatsApp: ${wa}`
+    );
+    document.getElementById('popupWaLink').href = `https://wa.me/244929894589?text=${msg}`;
+    document.getElementById('popupForm').style.display = 'none';
+    const s = document.getElementById('popupSucesso');
+    s.style.display = 'flex';
   }
 
-  const popupOverlay = document.getElementById('popupLead');
-  if(popupOverlay) {
-    popupOverlay.addEventListener('click', (e) => { if (e.target === popupOverlay) fecharPopup(); });
-  }
+  // Fechar popup ao clicar fora
+  document.getElementById('popupLead').addEventListener('click', function(e) {
+    if (e.target === this) fecharPopup();
+  });
 
-  // MENU MOBILE
+  // ── MENU MOBILE ─────────────────────────────────────────
   function toggleMenu() {
     const btn = document.getElementById('navHamburger');
     const drawer = document.getElementById('navDrawer');
-    if (!drawer || !btn) return;
-    if (drawer.classList.contains('open')) {
+    const isOpen = drawer.classList.contains('open');
+    if (isOpen) {
       drawer.classList.remove('open');
       btn.classList.remove('open');
       document.body.style.overflow = '';
@@ -845,14 +1771,15 @@
     }
   }
 
-  document.addEventListener('keydown', (e) => {
+  // Fechar drawer ao pressionar ESC
+  document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
       const drawer = document.getElementById('navDrawer');
-      if (drawer && drawer.classList.contains('open')) toggleMenu();
+      if (drawer.classList.contains('open')) toggleMenu();
     }
   });
 
-  // SMOOTH SCROLL
+  // Smooth scroll
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       const target = document.querySelector(a.getAttribute('href'));
@@ -860,199 +1787,170 @@
     });
   });
 
-  // MODAL REGISTO
+  // Modal
   function abrirRegisto(e) {
     if (e) e.preventDefault();
-    const modal = document.getElementById('modalRegisto');
-    if(modal) { modal.classList.add('active'); document.body.style.overflow = 'hidden'; }
+    document.getElementById('modalRegisto').classList.add('active');
+    document.body.style.overflow = 'hidden';
   }
-  
   function fecharRegisto() {
-    const modal = document.getElementById('modalRegisto');
-    if(modal) modal.classList.remove('active');
+    document.getElementById('modalRegisto').classList.remove('active');
     document.body.style.overflow = '';
   }
-  
-  const registoModal = document.getElementById('modalRegisto');
-  if(registoModal) {
-    registoModal.addEventListener('click', (e) => { if (e.target === registoModal) fecharRegisto(); });
-  }
-  
-  document.addEventListener('keydown', (e) => {
+  document.getElementById('modalRegisto').addEventListener('click', function(e) {
+    if (e.target === this) fecharRegisto();
+  });
+  document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') fecharRegisto();
   });
+async function submeterRegisto(e) {
+  e.preventDefault(); // Impede que a página recarregue ao submeter o formulário
 
-  // COPIA LINK
-  function copiarLink() {
-    const linkEl = document.getElementById('linkConvite');
-    if(!linkEl) return;
-    navigator.clipboard.writeText(linkEl.textContent).then(() => {
-      const btn = document.getElementById('btnCopiar');
-      if(btn) { btn.textContent = '✅ Copiado!'; setTimeout(() => btn.textContent = '📋 Copiar', 2000); }
-    });
+  // 1. Pegar os dados que o usuário digitou no formulário
+  const nome = e.target.querySelector('div.field:nth-of-type(1) input').value.trim(); // Seleção mais específica
+  const apelido = e.target.querySelector('div.field:nth-of-type(2) input').value.trim(); // Seleção mais específica
+  const email = e.target.querySelector('input[placeholder="email@exemplo.com"]').value.trim();
+  const whatsapp = e.target.querySelector('input[placeholder="+244 9XX XXX XXX"]').value.trim();
+  const plataforma = e.target.querySelector('select:nth-of-type(1)').value; // Primeiro select
+  const seguidores = e.target.querySelector('select:nth-of-type(2)').value; // Segundo select
+  const linkPerfil = e.target.querySelector('input[placeholder="https://instagram.com/seuperfil"]').value.trim();
+  const estrategiaDivulgacao = e.target.querySelector('textarea').value.trim();
+  const password = e.target.querySelector('input[type="password"]').value; 
+  // O checkbox de termos já está validado pelo 'required' no HTML
+
+  // 2. Gerar o código de afiliado
+  const codigo = 'VAG-' + Math.random().toString(36).substring(2,8).toUpperCase();
+
+  // 3. Preparar os dados para guardar no Firestore
+  const dadosAfiliado = {
+    nome: nome,
+    apelido: apelido,
+    email: email,
+    whatsapp: whatsapp,
+    plataformaPrincipal: plataforma,
+    seguidoresAprox: seguidores,
+    linkPerfil: linkPerfil,
+    estrategiaDivulgacao: estrategiaDivulgacao,
+    codigoAfiliado: codigo,
+    dataRegisto: new Date(), // Registra a data/hora do registo
+    // IMPORTANTE: NÃO guarde senhas em texto puro no Firestore. Use Firebase Authentication!
+    // password: password 
+  };
+
+  // 4. Adicionar os dados ao Firestore
+  try {
+    // Usamos 'window.db' porque a variável 'db' foi definida globalmente no seu script type="module"
+    const docRef = await window.addDoc(window.collection(window.db, "afiliados"), dadosAfiliado);
+    console.log("Afiliado registado com sucesso no Firestore! ID do Documento: ", docRef.id);
+
+    // 5. Mostrar a mensagem de sucesso no site
+    document.getElementById('codigoRef').textContent = codigo;
+    document.getElementById('linkConvite').textContent = `vagalume90.com/afiliado?ref=${codigo}`;
+    document.getElementById('btnWhatsapp').href =
+      `https://wa.me/244929894589?text=Olá!%20Acabei%20de%20me%20registar%20como%20afiliado%20Vagalume90.%20O%20meu%20código%20é%20${codigo}`;
+
+    document.getElementById('formArea').style.display = 'none';
+    document.getElementById('sucessoArea').style.display = 'flex';
+
+  } catch (e) {
+    // Se der erro ao guardar no Firestore
+    console.error("Erro ao registar afiliado no Firestore: ", e);
+    alert("Houve um erro ao registar. Por favor, tente novamente mais tarde.");
+  } 
   }
+  // ── MODAL CASAIS ──────────────────────────────────────────
+  let tipoCasais = 'gratuito';
 
-  // MODAL CASAIS
-  let tipoCasais = 'premium';
   function abrirModalCasais(tipo) {
     tipoCasais = 'premium';
     const modal = document.getElementById('modalCasais');
     const infoPag = document.getElementById('infoPagamento');
-    if(infoPag) infoPag.style.display = 'block';
-    const formDiv = document.getElementById('formAreaCasais');
-    const successDiv = document.getElementById('sucessoCasais');
-    if(formDiv) formDiv.style.display = 'block';
-    if(successDiv) successDiv.style.display = 'none';
-    if(modal) { modal.classList.add('active'); document.body.style.overflow = 'hidden'; }
+    infoPag.style.display = 'block';
+    // Reset form
+    document.getElementById('formAreaCasais').style.display = 'block';
+    document.getElementById('sucessoCasais').style.display = 'none';
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
   }
 
   function fecharModalCasais() {
-    const modal = document.getElementById('modalCasais');
-    if(modal) modal.classList.remove('active');
+    document.getElementById('modalCasais').classList.remove('active');
     document.body.style.overflow = '';
   }
 
-  const casaisModal = document.getElementById('modalCasais');
-  if(casaisModal) {
-    casaisModal.addEventListener('click', (e) => { if (e.target === casaisModal) fecharModalCasais(); });
-  }
+  document.getElementById('modalCasais').addEventListener('click', function(e) {
+    if (e.target === this) fecharModalCasais();
+  });
+async function submeterCasais(e) {
+  e.preventDefault();
 
-  function submeterCasais(e) {
-    e.preventDefault();
-    const nome = document.getElementById('nomesCasais')?.value || '';
-    const wa = document.getElementById('waCasais')?.value || '';
-    const tema = document.getElementById('temaCasais')?.value || '';
-    const situacao = document.getElementById('situacaoCasais')?.value || '';
-    const tipo = tipoCasais === 'premium' ? 'Sessão Premium (2.000 Kz)' : 'Conselho Gratuito';
-    const msg = encodeURIComponent(`Olá! Quero ${tipo} na área de Assessoria para Casais.\n\n👤 Nome: ${nome}\n📱 WhatsApp: ${wa}\n💑 Tema: ${tema}\n\n📝 Situação:\n${situacao}`);
-    const waLink = document.getElementById('btnWhatsappCasais');
-    if(waLink) waLink.href = `https://wa.me/244929894589?text=${msg}`;
-    const formDiv = document.getElementById('formAreaCasais');
-    const successDiv = document.getElementById('sucessoCasais');
-    if(formDiv) formDiv.style.display = 'none';
-    if(successDiv) successDiv.style.display = 'flex';
-  }
-</script>
+  // 1. Pegar os dados que o usuário digitou no formulário
+  const nome = document.getElementById('nomesCasais').value;
+  const idade = e.target.querySelector('input[type="number"]').value; // Seleciona o input de idade
+  const wa = document.getElementById('waCasais').value;
+  const tema = document.getElementById('temaCasais').value;
+  const estadoRelacionamento = e.target.querySelector('select:nth-of-type(2)').value; // Segundo select
+  const situacao = document.getElementById('situacaoCasais').value;
 
-<script type="module">
-  // ==============================================
-  // FIREBASE - IMPORTANTE: SALVA OS DADOS
-  // ==============================================
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyA0Z7uaMVo2HsgKpKFbsEQve26xSxjmJr8",
-    authDomain: "vagalume90-79c87.firebaseapp.com",
-    projectId: "vagalume90-79c87",
-    storageBucket: "vagalume90-79c87.firebasestorage.app",
-    messagingSenderId: "933159656212",
-    appId: "1:933159656212:web:0cd1bb6ad11c3838490001",
-    measurementId: "G-28G5ZYE9L0"
+  // Prepare os dados para o Firestore
+  const dadosCasais = {
+    nome: nome,
+    idade: idade,
+    whatsapp: wa,
+    tema: tema,
+    estadoRelacionamento: estadoRelacionamento,
+    situacao: situacao,
+    tipoSessao: tipoCasais === 'premium' ? 'Premium (2000 Kz)' : 'Gratuito',
+    dataEnvio: new Date()
   };
 
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const db = getFirestore(app);
+  try {
+    // Adicionar à coleção 'assessoriaCasais'
+    const docRef = await window.addDoc(window.collection(window.db, "assessoriaCasais"), dadosCasais);
+    console.log("Pedido de assessoria para casais guardado! ID do Documento: ", docRef.id);
 
-  window.firebaseAnalytics = analytics;
-  window.firebaseLogEvent = logEvent;
-  window.firebaseDb = db;
+    // 2. Continuar com o código de sucesso já existente no site
+    const tipoMensagemWhatsapp = tipoCasais === 'premium' ? 'Sessão Premium' : 'Conselho Gratuito';
+    const msg = encodeURIComponent(
+      `Olá! Quero ${tipoMensagemWhatsapp} na área de Assessoria para Casais.\n\n` +
+      `👤 Nome: ${nome}\n📱 WhatsApp: ${wa}\n💑 Tema: ${tema}\n\n` +
+      `📝 Situação:\n${situacao}`
+    );
+    document.getElementById('btnWhatsappCasais').href = `https://wa.me/244929894589?text=${msg}`;
+    document.getElementById('formAreaCasais').style.display = 'none';
+    document.getElementById('sucessoCasais').style.display = 'flex';
 
-  console.log("✅ Firebase OK");
-</script>
-
-<script>
-  // ==============================================
-  // REGISTO DE AFILIADO - FUNÇÃO PRINCIPAL
-  // ==============================================
-  async function submeterRegisto(e) {
-    e.preventDefault();
-
-    // PEGA OS DADOS DO FORMULÁRIO
-    const nome = document.querySelector('#modalRegisto input[placeholder="Teu nome"]')?.value || '';
-    const apelido = document.querySelector('#modalRegisto input[placeholder="Teu apelido"]')?.value || '';
-    const email = document.querySelector('#modalRegisto input[type="email"]')?.value || '';
-    const whatsapp = document.querySelector('#modalRegisto input[type="tel"]')?.value || '';
-    const selects = document.querySelectorAll('#modalRegisto select');
-    const plataforma = selects[0] ? selects[0].value : 'Não informado';
-    const seguidores = selects[1] ? selects[1].value : 'Não informado';
-    const linkPerfil = document.querySelector('#modalRegisto input[type="url"]')?.value || '';
-
-    // GERA CÓDIGO ÚNICO
-    const codigo = 'VAG-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-    const link = `vagalume90.com/afiliado?ref=${codigo}`;
-
-    // 1️⃣ ENVIA PARA ANALYTICS
-    try {
-      if (window.firebaseAnalytics && window.firebaseLogEvent) {
-        window.firebaseLogEvent(window.firebaseAnalytics, 'afiliado_registo', {
-          nome_completo: `${nome} ${apelido}`,
-          email: email,
-          whatsapp: whatsapp,
-          plataforma: plataforma,
-          seguidores: seguidores,
-          link_perfil: linkPerfil || 'Não informado',
-          timestamp: new Date().toISOString()
-        });
-        console.log('✅ Analytics OK');
-      }
-    } catch(err) { console.log('Analytics err:', err); }
-
-    // 2️⃣ SALVA NO FIRESTORE
-    try {
-      if (window.firebaseDb) {
-        const docRef = await addDoc(collection(window.firebaseDb, "afiliados"), {
-          nomeCompleto: `${nome} ${apelido}`,
-          nome: nome,
-          apelido: apelido,
-          email: email,
-          whatsapp: whatsapp,
-          plataforma: plataforma,
-          seguidores: seguidores,
-          linkPerfil: linkPerfil || 'Não informado',
-          codigoAfiliado: codigo,
-          linkConvite: link,
-          dataCadastro: new Date(),
-          status: 'pendente'
-        });
-        console.log('✅ Firestore OK ID:', docRef.id);
-      } else {
-        console.log('⚠️ Firestore não disponível');
-      }
-    } catch(err) {
-      console.error('❌ Erro Firestore:', err);
-      alert('Erro ao salvar. Tente novamente.');
-      return;
-    }
-
-    // 3️⃣ MOSTRA SUCESSO
-    const codigoEl = document.getElementById('codigoRef');
-    const linkEl = document.getElementById('linkConvite');
-    const whatsBtn = document.getElementById('btnWhatsapp');
-    if(codigoEl) codigoEl.textContent = codigo;
-    if(linkEl) linkEl.textContent = link;
-    if(whatsBtn) whatsBtn.href = `https://wa.me/244929894589?text=Olá!%20Acabei%20de%20me%20registar%20como%20afiliado%20Vagalume90.%20O%20meu%20código%20é%20${codigo}`;
-
-    const formDiv = document.getElementById('formArea');
-    const successDiv = document.getElementById('sucessoArea');
-    if(formDiv) formDiv.style.display = 'none';
-    if(successDiv) successDiv.style.display = 'flex';
+  } catch (e) {
+    console.error("Erro ao guardar pedido de assessoria no Firestore: ", e);
+    alert("Houve um erro ao enviar seu pedido. Por favor, tente novamente.");
   }
+}
+  function copiarLink() {
+    const linkConvite = document.getElementById('linkConvite');
+    if (linkConvite) {
+        const texto = linkConvite.textContent;
+        navigator.clipboard.writeText(texto).then(() => {
+            const btn = document.getElementById('btnCopiar');
+            const textoOriginal = btn.textContent;
+            btn.textContent = '✓ Copiado!';
+            setTimeout(() => {
+                btn.textContent = textoOriginal;
+            }, 2000);
+        }).catch(err => {
+            console.error('Erro ao copiar: ', err);
+            alert('Não foi possível copiar. Selecione o texto manualmente.');
+        });
+    }
+}
+  // ─── NOVO CÓDIGO PARA ABRIR FORMULÁRIO AUTOMATICAMENTE ───
+setTimeout(function() {
+    const modal = document.getElementById('modalRegisto');
+    if (modal && !modal.classList.contains('active')) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}, 15000);
 
-  // EXPORTA FUNÇÕES GLOBAIS
-  window.submeterRegisto = submeterRegisto;
-  window.abrirRegisto = abrirRegisto;
-  window.fecharRegisto = fecharRegisto;
-  window.copiarLink = copiarLink;
-  window.abrirModalCasais = abrirModalCasais;
-  window.fecharModalCasais = fecharModalCasais;
-  window.submeterCasais = submeterCasais;
-  window.toggleMenu = toggleMenu;
-  window.fecharPopup = fecharPopup;
-  window.submeterPopup = submeterPopup;
-  window.fecharWaBubble = fecharWaBubble;
 </script>
 </body>
 </html>
