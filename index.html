@@ -1803,89 +1803,6 @@
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') fecharRegisto();
   });
-async function submeterRegisto(e) {
-  e.preventDefault(); // Impede que a página recarregue ao submeter o formulário
-
-  // 1. Pegar os dados que o usuário digitou no formulário
-  const nome = e.target.querySelector('div.field:nth-of-type(1) input').value.trim(); // Seleção mais específica
-  const apelido = e.target.querySelector('div.field:nth-of-type(2) input').value.trim(); // Seleção mais específica
-  const email = e.target.querySelector('input[placeholder="email@exemplo.com"]').value.trim();
-  const whatsapp = e.target.querySelector('input[placeholder="+244 9XX XXX XXX"]').value.trim();
-  const plataforma = e.target.querySelector('select:nth-of-type(1)').value; // Primeiro select
-  const seguidores = e.target.querySelector('select:nth-of-type(2)').value; // Segundo select
-  const linkPerfil = e.target.querySelector('input[placeholder="https://instagram.com/seuperfil"]').value.trim();
-  const estrategiaDivulgacao = e.target.querySelector('textarea').value.trim();
-  const password = e.target.querySelector('input[type="password"]').value; 
-  // O checkbox de termos já está validado pelo 'required' no HTML
-
-  // 2. Gerar o código de afiliado
-  const codigo = 'VAG-' + Math.random().toString(36).substring(2,8).toUpperCase();
-
-  // 3. Preparar os dados para guardar no Firestore
-  const dadosAfiliado = {
-    nome: nome,
-    apelido: apelido,
-    email: email,
-    whatsapp: whatsapp,
-    plataformaPrincipal: plataforma,
-    seguidoresAprox: seguidores,
-    linkPerfil: linkPerfil,
-    estrategiaDivulgacao: estrategiaDivulgacao,
-    codigoAfiliado: codigo,
-    dataRegisto: new Date(), // Registra a data/hora do registo
-    // IMPORTANTE: NÃO guarde senhas em texto puro no Firestore. Use Firebase Authentication!
-    // password: password 
-  };
-
-  // 4. Adicionar os dados ao Firestore
-  try {
-    // Usamos 'window.db' porque a variável 'db' foi definida globalmente no seu script type="module"
-    const docRef = await window.addDoc(window.collection(window.db, "afiliados"), dadosAfiliado);
-    console.log("Afiliado registado com sucesso no Firestore! ID do Documento: ", docRef.id);
-
-    // 5. Mostrar a mensagem de sucesso no site
-    document.getElementById('codigoRef').textContent = codigo;
-    document.getElementById('linkConvite').textContent = `vagalume90.com/afiliado?ref=${codigo}`;
-    document.getElementById('btnWhatsapp').href =
-      `https://wa.me/244929894589?text=Olá!%20Acabei%20de%20me%20registar%20como%20afiliado%20Vagalume90.%20O%20meu%20código%20é%20${codigo}`;
-
-    document.getElementById('formArea').style.display = 'none';
-    document.getElementById('sucessoArea').style.display = 'flex';
-
-  } catch (e) {
-    // Se der erro ao guardar no Firestore
-    console.error("Erro ao registar afiliado no Firestore: ", e);
-    alert("Houve um erro ao registar. Por favor, tente novamente mais tarde.");
-  } 
-  }
-  // ── MODAL CASAIS ──────────────────────────────────────────
-  let tipoCasais = 'gratuito';
-
-  function abrirModalCasais(tipo) {
-    tipoCasais = 'premium';
-    const modal = document.getElementById('modalCasais');
-    const infoPag = document.getElementById('infoPagamento');
-    infoPag.style.display = 'block';
-    // Reset form
-    document.getElementById('formAreaCasais').style.display = 'block';
-    document.getElementById('sucessoCasais').style.display = 'none';
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function fecharModalCasais() {
-    document.getElementById('modalCasais').classList.remove('active');
-    document.body.style.overflow = '';
-  }
-
-  document.getElementById('modalCasais').addEventListener('click', function(e) {
-    if (e.target === this) fecharModalCasais();
-  });
-async function submeterCasais(e) {
-  e.preventDefault();
-
-  // 1. Pegar os dados que o usuário digitou no formulário
-  const nome = document.getElementById('nomesCasais').value;
   const idade = e.target.querySelector('input[type="number"]').value; // Seleciona o input de idade
   const wa = document.getElementById('waCasais').value;
   const tema = document.getElementById('temaCasais').value;
@@ -1903,44 +1820,81 @@ async function submeterCasais(e) {
     tipoSessao: tipoCasais === 'premium' ? 'Premium (2000 Kz)' : 'Gratuito',
     dataEnvio: new Date()
   };
-
-  try {
-    // Adicionar à coleção 'assessoriaCasais'
-    const docRef = await window.addDoc(window.collection(window.db, "assessoriaCasais"), dadosCasais);
-    console.log("Pedido de assessoria para casais guardado! ID do Documento: ", docRef.id);
-
-    // 2. Continuar com o código de sucesso já existente no site
-    const tipoMensagemWhatsapp = tipoCasais === 'premium' ? 'Sessão Premium' : 'Conselho Gratuito';
-    const msg = encodeURIComponent(
-      `Olá! Quero ${tipoMensagemWhatsapp} na área de Assessoria para Casais.\n\n` +
-      `👤 Nome: ${nome}\n📱 WhatsApp: ${wa}\n💑 Tema: ${tema}\n\n` +
-      `📝 Situação:\n${situacao}`
-    );
-    document.getElementById('btnWhatsappCasais').href = `https://wa.me/244929894589?text=${msg}`;
-    document.getElementById('formAreaCasais').style.display = 'none';
-    document.getElementById('sucessoCasais').style.display = 'flex';
-
-  } catch (e) {
-    console.error("Erro ao guardar pedido de assessoria no Firestore: ", e);
-    alert("Houve um erro ao enviar seu pedido. Por favor, tente novamente.");
-  }
-}
-  function copiarLink() {
-    const linkConvite = document.getElementById('linkConvite');
-    if (linkConvite) {
-        const texto = linkConvite.textContent;
-        navigator.clipboard.writeText(texto).then(() => {
-            const btn = document.getElementById('btnCopiar');
-            const textoOriginal = btn.textContent;
-            btn.textContent = '✓ Copiado!';
-            setTimeout(() => {
-                btn.textContent = textoOriginal;
-            }, 2000);
-        }).catch(err => {
-            console.error('Erro ao copiar: ', err);
-            alert('Não foi possível copiar. Selecione o texto manualmente.');
-        });
+async function submeterRegisto(e) {
+    e.preventDefault();
+    
+    // 1. Pegar os dados do formulário
+    const nome = document.querySelector('#modalRegisto input[placeholder="Teu nome"]')?.value || '';
+    const apelido = document.querySelector('#modalRegisto input[placeholder="Teu apelido"]')?.value || '';
+    const email = document.querySelector('#modalRegisto input[placeholder="email@exemplo.com"]')?.value || '';
+    const whatsapp = document.querySelector('#modalRegisto input[placeholder="+244 9XX XXX XXX"]')?.value || '';
+    const plataforma = document.querySelector('#modalRegisto select')?.value || '';
+    const senha = document.querySelector('#modalRegisto input[type="password"]')?.value || '';
+    const termos = document.querySelector('#termos')?.checked || false;
+    
+    // 2. Validar campos obrigatórios
+    if (!nome) {
+        alert('❌ Por favor, digite seu nome');
+        return;
     }
+    if (!email) {
+        alert('❌ Por favor, digite seu email');
+        return;
+    }
+    if (!whatsapp) {
+        alert('❌ Por favor, digite seu WhatsApp');
+        return;
+    }
+    if (!termos) {
+        alert('❌ Você precisa aceitar os Termos e Condições');
+        return;
+    }
+    
+    // 3. Gerar código de afiliado único
+    const codigo = 'VAG-' + Math.random().toString(36).substring(2,8).toUpperCase();
+    
+    // 4. Tentar salvar no Firebase (se disponível)
+    let salvouFirebase = false;
+    try {
+        if (window.db && window.addDoc && window.collection) {
+            await window.addDoc(window.collection(window.db, "afiliados"), {
+                nome: nome,
+                apelido: apelido,
+                email: email,
+                whatsapp: whatsapp,
+                plataforma: plataforma,
+                codigoAfiliado: codigo,
+                dataRegisto: new Date(),
+                status: "pendente"
+            });
+            salvouFirebase = true;
+            console.log("✅ Salvo no Firebase!");
+        }
+    } catch (erro) {
+        console.error("Erro no Firebase:", erro);
+    }
+    
+    // 5. Salvar no localStorage (sempre salva como backup)
+    const afiliados = JSON.parse(localStorage.getItem('vagalume_afiliados') || '[]');
+    afiliados.push({
+        nome, apelido, email, whatsapp, plataforma, 
+        codigo, data: new Date().toISOString(),
+        salvouFirebase: salvouFirebase
+    });
+    localStorage.setItem('vagalume_afiliados', JSON.stringify(afiliados));
+    
+    // 6. Mostrar tela de sucesso
+    document.getElementById('codigoRef').textContent = codigo;
+    document.getElementById('linkConvite').textContent = `vagalume90.com/afiliado?ref=${codigo}`;
+    document.getElementById('btnWhatsapp').href = 
+        `https://wa.me/244929894589?text=Olá!%20Acabei%20de%20me%20registar%20como%20afiliado%20Vagalume90.%20Meu%20código%20é%20${codigo}%20e%20meu%20nome%20é%20${encodeURIComponent(nome)}`;
+    
+    // 7. Esconder formulário e mostrar sucesso
+    document.getElementById('formArea').style.display = 'none';
+    document.getElementById('sucessoArea').style.display = 'flex';
+    
+    // 8. Mensagem de confirmação
+    alert(`✅ Cadastro realizado com sucesso!\n\nSeu código: ${codigo}\n\nClique em "Confirmar no WhatsApp" para ativar sua conta.`);
 }
   // ─── NOVO CÓDIGO PARA ABRIR FORMULÁRIO AUTOMATICAMENTE ───
 setTimeout(function() {
