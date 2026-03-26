@@ -46,7 +46,80 @@
   window.getDownloadURL = getDownloadURL;
   window.analytics = analytics; // Analytics também fica disponível globalmente
 </script>
+// ============================================
+// DETECTOR DE CONVITE DE AFILIADO
+// ============================================
 
+// Função para pegar o código da URL
+function getCodigoConvite() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('ref');
+}
+
+// Quando a página carrega, verifica se tem convite
+document.addEventListener('DOMContentLoaded', function() {
+    const codigoConvite = getCodigoConvite();
+    
+    if (codigoConvite) {
+        // Salva que este visitante veio de um afiliado
+        localStorage.setItem('veio_de_afiliado', codigoConvite);
+        
+        // Mostra um aviso bonito para o visitante
+        mostrarBannerConvite(codigoConvite);
+        
+        console.log(`🎉 Visitante veio do afiliado: ${codigoConvite}`);
+    }
+});
+
+// Função para mostrar banner de convite
+function mostrarBannerConvite(codigo) {
+    const banner = document.createElement('div');
+    banner.id = 'bannerConvite';
+    banner.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #f5c842, #ff6b1a);
+            color: #080b12;
+            padding: 15px 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: bold;
+            z-index: 9999;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            font-family: 'DM Sans', sans-serif;
+        ">
+            🎉 <strong>Você foi convidado por um afiliado Vagalume90!</strong> 🎉
+            <br>
+            <small style="display: block; margin-top: 5px;">
+                Cadastre-se como afiliado e ganhe benefícios!
+            </small>
+            <button onclick="fecharBanner()" style="
+                background: #080b12;
+                color: #f5c842;
+                border: none;
+                border-radius: 20px;
+                padding: 5px 15px;
+                margin-top: 8px;
+                cursor: pointer;
+                font-size: 12px;
+            ">✕ Fechar</button>
+        </div>
+    `;
+    document.body.insertBefore(banner, document.body.firstChild);
+}
+
+function fecharBanner() {
+    const banner = document.getElementById('bannerConvite');
+    if (banner) banner.remove();
+}
+
+// Função para usar quando alguém se cadastrar (pegar quem indicou)
+function getQuemIndicou() {
+    return localStorage.getItem('veio_de_afiliado') || null;
+}
 
 </script>
 </script>
@@ -1642,6 +1715,56 @@
           <button type="submit" class="btn-submit">✦ Criar Conta de Afiliado</button>
           <div class="login-hint">Já tens conta? <a href="#">Entrar aqui</a></div>
         </form>
+        async function submeterRegisto(e) {
+    e.preventDefault();
+    
+    // ... (código que você já tem para pegar os dados) ...
+    
+    // ============================================
+    // NOVO: Descobrir quem indicou este afiliado
+    // ============================================
+    
+    let codigoIndicador = localStorage.getItem('veio_de_afiliado');
+    
+    // Também verificar na URL por segurança
+    if (!codigoIndicador) {
+        const urlParams = new URLSearchParams(window.location.search);
+        codigoIndicador = urlParams.get('ref');
+    }
+    
+    // ============================================
+    // Salvar com informação de quem indicou
+    // ============================================
+    
+    const dadosNovoAfiliado = {
+        nome: nome,
+        apelido: apelido,
+        email: email,
+        whatsapp: whatsapp,
+        plataforma: plataforma,
+        codigo: codigo,
+        indicadoPor: codigoIndicador,  // ← QUEM INDICOU
+        dataRegisto: new Date().toISOString()
+    };
+    
+    // Salvar no localStorage
+    const afiliados = JSON.parse(localStorage.getItem('vagalume_afiliados') || '[]');
+    afiliados.push(dadosNovoAfiliado);
+    localStorage.setItem('vagalume_afiliados', JSON.stringify(afiliados));
+    
+    // ============================================
+    // Mensagem especial se veio de indicação
+    // ============================================
+    
+    if (codigoIndicador) {
+        alert(`🎉 Excelente! Você foi indicado por um afiliado!\n\nEle ganhou benefícios por te trazer. Seja bem-vindo à família Vagalume90! 🥹`);
+        
+        // Limpar para não usar de novo
+        localStorage.removeItem('veio_de_afiliado');
+    }
+    
+    // ... (resto do código de sucesso) ...
+}
       </div>
 
       <!-- Sucesso -->
@@ -1660,10 +1783,19 @@
         <div style="width:100%;background:rgba(245,200,66,0.05);border:1px solid rgba(245,200,66,0.18);border-radius:10px;padding:1rem;margin-bottom:1rem;">
           <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.6rem;">🔗 O teu link de convite</div>
           <div style="display:flex;gap:0.5rem;align-items:center;">
-            <div id="linkConvite" style="flex:1;background:#080b12;border:1px solid rgba(245,200,66,0.15);border-radius:6px;padding:0.5rem 0.8rem;font-size:0.75rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">vagalume90.com/afiliado?ref=VAG-XXXXXX</div>
-            <button onclick="copiarLink()" style="background:var(--glow);color:#080b12;border:none;border-radius:6px;padding:0.5rem 0.8rem;font-weight:700;font-size:0.75rem;cursor:pointer;white-space:nowrap;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" id="btnCopiar">📋 Copiar</button>
-          </div>
-          <p style="font-size:0.75rem;color:var(--muted);margin-top:0.6rem;line-height:1.5;">Partilha este link nas tuas redes. Cada pessoa que se registar através dele conta como teu convite!</p>
+            <div id="linkConvite = `https://${window.location.hostname}/?ref=${codigo}`;
+// Ou se quiser o link completo:
+// const linkConvite = `https://vagalume90.com/?ref=${codigo}`;
+
+document.getElementById('linkConvite').textContent = linkConvite;
+document.getElementById('linkConvite').setAttribute('data-link', linkConvite);
+
+// Botão de copiar também deve copiar este link
+function copiarLink() {
+    const link = document.getElementById('linkConvite').textContent;
+    navigator.clipboard.writeText(link);
+    alert('✅ Link copiado! Compartilhe com seus amigos.');
+}
         </div>
 
         <!-- Bónus livro -->
@@ -1682,8 +1814,10 @@
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-  // Fireflies
+<script>
+  // ============================================
+  // FIREFLIES
+  // ============================================
   const container = document.getElementById('fireflies');
   for (let i = 0; i < 35; i++) {
     const f = document.createElement('div');
@@ -1698,13 +1832,209 @@
     container.appendChild(f);
   }
 
-  // ── WIDGET WHATSAPP FLUTUANTE ────────────────────────────
-  // Bolha aparece após 5 segundos, fecha automaticamente após 8 segundos
+  // ============================================
+  // DETECTOR DE CONVITE DE AFILIADO
+  // ============================================
+  function getCodigoConvite() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('ref');
+  }
+
+  function mostrarBannerConvite(codigo) {
+    const banner = document.createElement('div');
+    banner.id = 'bannerConvite';
+    banner.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 80px;
+        left: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #f5c842, #ff6b1a);
+        color: #080b12;
+        padding: 15px 20px;
+        border-radius: 12px;
+        text-align: center;
+        font-weight: bold;
+        z-index: 9999;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        font-family: 'DM Sans', sans-serif;
+      ">
+        🎉 <strong>Você foi convidado por um afiliado Vagalume90!</strong> 🎉
+        <br>
+        <small style="display: block; margin-top: 5px;">
+          Cadastre-se como afiliado e ganhe benefícios!
+        </small>
+        <button onclick="fecharBanner()" style="
+          background: #080b12;
+          color: #f5c842;
+          border: none;
+          border-radius: 20px;
+          padding: 5px 15px;
+          margin-top: 8px;
+          cursor: pointer;
+          font-size: 12px;
+        ">✕ Fechar</button>
+      </div>
+    `;
+    document.body.insertBefore(banner, document.body.firstChild);
+  }
+
+  function fecharBanner() {
+    const banner = document.getElementById('bannerConvite');
+    if (banner) banner.remove();
+  }
+
+  // Verificar convite ao carregar
+  document.addEventListener('DOMContentLoaded', function() {
+    const codigoConvite = getCodigoConvite();
+    if (codigoConvite) {
+      localStorage.setItem('veio_de_afiliado', codigoConvite);
+      mostrarBannerConvite(codigoConvite);
+      console.log(`🎉 Visitante veio do afiliado: ${codigoConvite}`);
+    }
+  });
+
+  // ============================================
+  // FUNÇÃO PRINCIPAL: SUBMETER REGISTO DE AFILIADO
+  // ============================================
+  async function submeterRegisto(e) {
+    e.preventDefault();
+    
+    // PEGAR DADOS DO FORMULÁRIO
+    const nome = document.querySelector('#modalRegisto input[placeholder="Teu nome"]')?.value || '';
+    const apelido = document.querySelector('#modalRegisto input[placeholder="Teu apelido"]')?.value || '';
+    const email = document.querySelector('#modalRegisto input[placeholder="email@exemplo.com"]')?.value || '';
+    const whatsapp = document.querySelector('#modalRegisto input[placeholder="+244 9XX XXX XXX"]')?.value || '';
+    const plataforma = document.querySelector('#modalRegisto select')?.value || '';
+    const linkPerfil = document.querySelector('#modalRegisto input[placeholder="https://instagram.com/seuperfil"]')?.value || '';
+    const estrategia = document.querySelector('#modalRegisto textarea')?.value || '';
+    const senha = document.querySelector('#modalRegisto input[type="password"]')?.value || '';
+    const termos = document.querySelector('#termos')?.checked || false;
+    
+    // VALIDAR
+    if (!nome) { alert('❌ Digite seu nome'); return; }
+    if (!email) { alert('❌ Digite seu email'); return; }
+    if (!whatsapp) { alert('❌ Digite seu WhatsApp'); return; }
+    if (!termos) { alert('❌ Aceite os Termos e Condições'); return; }
+    
+    // GERAR CÓDIGO
+    const codigo = 'VAG-' + Math.random().toString(36).substring(2,8).toUpperCase();
+    
+    // DESCOBRIR QUEM INDICOU
+    let codigoIndicador = localStorage.getItem('veio_de_afiliado');
+    if (!codigoIndicador) {
+      const urlParams = new URLSearchParams(window.location.search);
+      codigoIndicador = urlParams.get('ref');
+    }
+    
+    // GERAR LINK DE CONVITE CORRETO
+    const linkConvite = `https://${window.location.hostname}/?ref=${codigo}`;
+    
+    // SALVAR NO LOCALSTORAGE
+    const dadosNovoAfiliado = {
+      nome: nome,
+      apelido: apelido,
+      email: email,
+      whatsapp: whatsapp,
+      plataforma: plataforma,
+      linkPerfil: linkPerfil,
+      estrategia: estrategia,
+      codigo: codigo,
+      indicadoPor: codigoIndicador,
+      dataRegisto: new Date().toISOString()
+    };
+    
+    const afiliados = JSON.parse(localStorage.getItem('vagalume_afiliados') || '[]');
+    afiliados.push(dadosNovoAfiliado);
+    localStorage.setItem('vagalume_afiliados', JSON.stringify(afiliados));
+    
+    // TENTAR SALVAR NO FIREBASE (se disponível)
+    try {
+      if (window.db && window.addDoc && window.collection) {
+        await window.addDoc(window.collection(window.db, "afiliados"), {
+          nome, apelido, email, whatsapp, plataforma, linkPerfil, estrategia,
+          codigoAfiliado: codigo, indicadoPor: codigoIndicador, dataRegisto: new Date()
+        });
+        console.log("✅ Salvo no Firebase!");
+      }
+    } catch (erro) {
+      console.error("Erro no Firebase:", erro);
+    }
+    
+    // ATUALIZAR TELA DE SUCESSO
+    document.getElementById('codigoRef').textContent = codigo;
+    document.getElementById('linkConvite').textContent = linkConvite;
+    document.getElementById('btnWhatsapp').href = 
+      `https://wa.me/244929894589?text=Olá!%20Acabei%20de%20me%20registar%20como%20afiliado%20Vagalume90.%20Meu%20código%20é%20${codigo}%20e%20meu%20nome%20é%20${encodeURIComponent(nome)}`;
+    
+    // MOSTRAR SUCESSO
+    document.getElementById('formArea').style.display = 'none';
+    document.getElementById('sucessoArea').style.display = 'flex';
+    
+    // MENSAGEM
+    if (codigoIndicador) {
+      alert(`🎉 Cadastro realizado! Você foi indicado pelo afiliado ${codigoIndicador}\n\nSeu código: ${codigo}\n\nCompartilhe seu link e ganhe benefícios!`);
+      localStorage.removeItem('veio_de_afiliado');
+    } else {
+      alert(`✅ Cadastro realizado! Seu código: ${codigo}\n\nCompartilhe seu link e ganhe benefícios!`);
+    }
+  }
+
+  // ============================================
+  // FUNÇÃO COPIAR LINK
+  // ============================================
+  function copiarLink() {
+    const linkElement = document.getElementById('linkConvite');
+    if (linkElement) {
+      const link = linkElement.textContent;
+      navigator.clipboard.writeText(link).then(() => {
+        const btn = document.getElementById('btnCopiar');
+        if (btn) {
+          const originalText = btn.textContent;
+          btn.textContent = '✓ Copiado!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }
+      }).catch(() => alert('Não foi possível copiar. Selecione o texto manualmente.'));
+    }
+  }
+
+  // ============================================
+  // FUNÇÕES DO MENU E MODAIS
+  // ============================================
+  function toggleMenu() {
+    const btn = document.getElementById('navHamburger');
+    const drawer = document.getElementById('navDrawer');
+    const isOpen = drawer.classList.contains('open');
+    if (isOpen) {
+      drawer.classList.remove('open');
+      btn.classList.remove('open');
+      document.body.style.overflow = '';
+    } else {
+      drawer.classList.add('open');
+      btn.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function abrirRegisto(e) {
+    if (e) e.preventDefault();
+    document.getElementById('modalRegisto').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  
+  function fecharRegisto() {
+    document.getElementById('modalRegisto').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  // ============================================
+  // WIDGET WHATSAPP
+  // ============================================
   setTimeout(function() {
     const bubble = document.getElementById('waBubble');
     if (bubble) {
       bubble.style.display = 'block';
-      setTimeout(function() { fecharWaBubble(); }, 8000);
+      setTimeout(() => fecharWaBubble(), 8000);
     }
   }, 5000);
 
@@ -1713,14 +2043,18 @@
     if (bubble) bubble.style.display = 'none';
   }
 
-  // ── POP-UP CAPTURA DE LEADS ──────────────────────────────
-  // Aparece após 25 segundos, apenas 1 vez por sessão
+  // ============================================
+  // POP-UP CAPTURA DE LEADS
+  // ============================================
   (function() {
     if (sessionStorage.getItem('popupShown')) return;
     setTimeout(function() {
-      document.getElementById('popupLead').classList.add('active');
-      document.body.style.overflow = 'hidden';
-      sessionStorage.setItem('popupShown', '1');
+      const popup = document.getElementById('popupLead');
+      if (popup) {
+        popup.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        sessionStorage.setItem('popupShown', '1');
+      }
     }, 25000);
   })();
 
@@ -1737,174 +2071,123 @@
       document.getElementById('popupWa').focus();
       return;
     }
-    const msg = encodeURIComponent(
-      `Olá Vagalume90! 🥹 Quero entrar na família!
-
-` +
-      `👤 Nome: ${nome || 'Não informado'}
-📱 WhatsApp: ${wa}`
-    );
+    const msg = encodeURIComponent(`Olá Vagalume90! 🥹 Quero entrar na família!\n\n👤 Nome: ${nome || 'Não informado'}\n📱 WhatsApp: ${wa}`);
     document.getElementById('popupWaLink').href = `https://wa.me/244929894589?text=${msg}`;
     document.getElementById('popupForm').style.display = 'none';
-    const s = document.getElementById('popupSucesso');
-    s.style.display = 'flex';
+    document.getElementById('popupSucesso').style.display = 'flex';
   }
 
-  // Fechar popup ao clicar fora
-  document.getElementById('popupLead').addEventListener('click', function(e) {
+  document.getElementById('popupLead')?.addEventListener('click', function(e) {
     if (e.target === this) fecharPopup();
   });
 
-  // ── MENU MOBILE ─────────────────────────────────────────
-  function toggleMenu() {
-    const btn = document.getElementById('navHamburger');
-    const drawer = document.getElementById('navDrawer');
-    const isOpen = drawer.classList.contains('open');
-    if (isOpen) {
-      drawer.classList.remove('open');
-      btn.classList.remove('open');
-      document.body.style.overflow = '';
+  // ============================================
+  // MODAL CASAIS
+  // ============================================
+  let tipoCasais = 'premium';
+
+  function abrirModalCasais(tipo) {
+    tipoCasais = tipo;
+    const modal = document.getElementById('modalCasais');
+    const infoPag = document.getElementById('infoPagamento');
+    if (tipo === 'premium') {
+      infoPag.style.display = 'block';
+      document.getElementById('btnSubmitCasais').innerHTML = '⭐ Agendar Sessão — 2.000 Kz';
     } else {
-      drawer.classList.add('open');
-      btn.classList.add('open');
-      document.body.style.overflow = 'hidden';
+      infoPag.style.display = 'none';
+      document.getElementById('btnSubmitCasais').innerHTML = '💬 Solicitar Conselho Gratuito';
     }
+    document.getElementById('formAreaCasais').style.display = 'block';
+    document.getElementById('sucessoCasais').style.display = 'none';
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
   }
 
-  // Fechar drawer ao pressionar ESC
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      const drawer = document.getElementById('navDrawer');
-      if (drawer.classList.contains('open')) toggleMenu();
+  function fecharModalCasais() {
+    document.getElementById('modalCasais').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  async function submeterCasais(e) {
+    e.preventDefault();
+    
+    const nome = document.getElementById('nomesCasais').value;
+    const idade = document.querySelector('#modalCasais input[type="number"]')?.value;
+    const wa = document.getElementById('waCasais').value;
+    const tema = document.getElementById('temaCasais').value;
+    const estadoRelacionamento = document.querySelector('#modalCasais select:nth-of-type(2)')?.value;
+    const situacao = document.getElementById('situacaoCasais').value;
+    
+    const dadosCasais = {
+      nome, idade, whatsapp: wa, tema, estadoRelacionamento, situacao,
+      tipoSessao: tipoCasais === 'premium' ? 'Premium (2000 Kz)' : 'Gratuito',
+      dataEnvio: new Date()
+    };
+    
+    try {
+      if (window.db && window.addDoc && window.collection) {
+        await window.addDoc(window.collection(window.db, "assessoriaCasais"), dadosCasais);
+        console.log("Pedido de assessoria guardado!");
+      }
+    } catch (erro) {
+      console.error("Erro:", erro);
     }
+    
+    const tipoMsg = tipoCasais === 'premium' ? 'Sessão Premium' : 'Conselho Gratuito';
+    const msg = encodeURIComponent(`Olá! Quero ${tipoMsg} na área de Assessoria para Casais.\n\n👤 Nome: ${nome}\n📱 WhatsApp: ${wa}\n💑 Tema: ${tema}\n\n📝 Situação:\n${situacao}`);
+    document.getElementById('btnWhatsappCasais').href = `https://wa.me/244929894589?text=${msg}`;
+    document.getElementById('formAreaCasais').style.display = 'none';
+    document.getElementById('sucessoCasais').style.display = 'flex';
+  }
+
+  document.getElementById('modalCasais')?.addEventListener('click', function(e) {
+    if (e.target === this) fecharModalCasais();
   });
 
-  // Smooth scroll
+  // ============================================
+  // SMOOTH SCROLL
+  // ============================================
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       const target = document.querySelector(a.getAttribute('href'));
-      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
     });
   });
 
-  // Modal
-  function abrirRegisto(e) {
-    if (e) e.preventDefault();
-    document.getElementById('modalRegisto').classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-  function fecharRegisto() {
-    document.getElementById('modalRegisto').classList.remove('active');
-    document.body.style.overflow = '';
-  }
-  document.getElementById('modalRegisto').addEventListener('click', function(e) {
+  // ============================================
+  // FECHAR MODAIS COM ESC
+  // ============================================
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      fecharRegisto();
+      fecharModalCasais();
+      const drawer = document.getElementById('navDrawer');
+      if (drawer && drawer.classList.contains('open')) toggleMenu();
+    }
+  });
+
+  // ============================================
+  // FECHAR MODAL REGISTO AO CLICAR FORA
+  // ============================================
+  document.getElementById('modalRegisto')?.addEventListener('click', function(e) {
     if (e.target === this) fecharRegisto();
   });
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') fecharRegisto();
-  });
-  const idade = e.target.querySelector('input[type="number"]').value; // Seleciona o input de idade
-  const wa = document.getElementById('waCasais').value;
-  const tema = document.getElementById('temaCasais').value;
-  const estadoRelacionamento = e.target.querySelector('select:nth-of-type(2)').value; // Segundo select
-  const situacao = document.getElementById('situacaoCasais').value;
 
-  // Prepare os dados para o Firestore
-  const dadosCasais = {
-    nome: nome,
-    idade: idade,
-    whatsapp: wa,
-    tema: tema,
-    estadoRelacionamento: estadoRelacionamento,
-    situacao: situacao,
-    tipoSessao: tipoCasais === 'premium' ? 'Premium (2000 Kz)' : 'Gratuito',
-    dataEnvio: new Date()
-  };
-async function submeterRegisto(e) {
-    e.preventDefault();
-    
-    // 1. Pegar os dados do formulário
-    const nome = document.querySelector('#modalRegisto input[placeholder="Teu nome"]')?.value || '';
-    const apelido = document.querySelector('#modalRegisto input[placeholder="Teu apelido"]')?.value || '';
-    const email = document.querySelector('#modalRegisto input[placeholder="email@exemplo.com"]')?.value || '';
-    const whatsapp = document.querySelector('#modalRegisto input[placeholder="+244 9XX XXX XXX"]')?.value || '';
-    const plataforma = document.querySelector('#modalRegisto select')?.value || '';
-    const senha = document.querySelector('#modalRegisto input[type="password"]')?.value || '';
-    const termos = document.querySelector('#termos')?.checked || false;
-    
-    // 2. Validar campos obrigatórios
-    if (!nome) {
-        alert('❌ Por favor, digite seu nome');
-        return;
-    }
-    if (!email) {
-        alert('❌ Por favor, digite seu email');
-        return;
-    }
-    if (!whatsapp) {
-        alert('❌ Por favor, digite seu WhatsApp');
-        return;
-    }
-    if (!termos) {
-        alert('❌ Você precisa aceitar os Termos e Condições');
-        return;
-    }
-    
-    // 3. Gerar código de afiliado único
-    const codigo = 'VAG-' + Math.random().toString(36).substring(2,8).toUpperCase();
-    
-    // 4. Tentar salvar no Firebase (se disponível)
-    let salvouFirebase = false;
-    try {
-        if (window.db && window.addDoc && window.collection) {
-            await window.addDoc(window.collection(window.db, "afiliados"), {
-                nome: nome,
-                apelido: apelido,
-                email: email,
-                whatsapp: whatsapp,
-                plataforma: plataforma,
-                codigoAfiliado: codigo,
-                dataRegisto: new Date(),
-                status: "pendente"
-            });
-            salvouFirebase = true;
-            console.log("✅ Salvo no Firebase!");
-        }
-    } catch (erro) {
-        console.error("Erro no Firebase:", erro);
-    }
-    
-    // 5. Salvar no localStorage (sempre salva como backup)
-    const afiliados = JSON.parse(localStorage.getItem('vagalume_afiliados') || '[]');
-    afiliados.push({
-        nome, apelido, email, whatsapp, plataforma, 
-        codigo, data: new Date().toISOString(),
-        salvouFirebase: salvouFirebase
-    });
-    localStorage.setItem('vagalume_afiliados', JSON.stringify(afiliados));
-    
-    // 6. Mostrar tela de sucesso
-    document.getElementById('codigoRef').textContent = codigo;
-    document.getElementById('linkConvite').textContent = `vagalume90.com/afiliado?ref=${codigo}`;
-    document.getElementById('btnWhatsapp').href = 
-        `https://wa.me/244929894589?text=Olá!%20Acabei%20de%20me%20registar%20como%20afiliado%20Vagalume90.%20Meu%20código%20é%20${codigo}%20e%20meu%20nome%20é%20${encodeURIComponent(nome)}`;
-    
-    // 7. Esconder formulário e mostrar sucesso
-    document.getElementById('formArea').style.display = 'none';
-    document.getElementById('sucessoArea').style.display = 'flex';
-    
-    // 8. Mensagem de confirmação
-    alert(`✅ Cadastro realizado com sucesso!\n\nSeu código: ${codigo}\n\nClique em "Confirmar no WhatsApp" para ativar sua conta.`);
-}
-  // ─── NOVO CÓDIGO PARA ABRIR FORMULÁRIO AUTOMATICAMENTE ───
-setTimeout(function() {
+  // ============================================
+  // AUTO ABRIR MODAL (OPCIONAL)
+  // ============================================
+  setTimeout(function() {
     const modal = document.getElementById('modalRegisto');
     if (modal && !modal.classList.contains('active')) {
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+      // Descomente se quiser abrir automaticamente
+      // modal.classList.add('active');
+      // document.body.style.overflow = 'hidden';
     }
-}, 15000);
-
+  }, 15000);
+</script>
 </script>
 </body>
 </html>
