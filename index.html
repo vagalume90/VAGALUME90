@@ -3,6 +3,10 @@
 <head>
   <!-- Firebase SDK -->
 <script type="module">
+  // Depois de window.orderBy = orderBy;
+console.log("🔥 Firebase conectado!");
+console.log("✅ Auth disponível:", !!window.auth);
+console.log("✅ Firestore disponível:", !!window.db);
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
   import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, doc, setDoc, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
@@ -1308,59 +1312,96 @@
   });
 
   // Submit registo
-  async function submeterRegisto(e) {
-    e.preventDefault();
-    const form = e.target;
-    const nome = form.querySelector('input[placeholder="Teu nome"]').value;
-    const apelido = form.querySelector('input[placeholder="Teu apelido"]').value;
-    const email = form.querySelector('input[type="email"]').value;
-    const telefone = form.querySelector('input[type="tel"]').value;
-    const plataforma = form.querySelectorAll('select')[0].value;
-    const seguidores = form.querySelectorAll('select')[1].value;
-    const perfilLink = form.querySelector('input[type="url"]').value;
-    const estrategia = form.querySelector('textarea').value;
-    const senha = form.querySelector('input[type="password"]').value;
+ // Submit registo - VERSÃO CORRIGIDA
+async function submeterRegisto(e) {
+  e.preventDefault();
+  const form = e.target;
+  const nome = form.querySelector('input[placeholder="Teu nome"]').value;
+  const apelido = form.querySelector('input[placeholder="Teu apelido"]').value;
+  const email = form.querySelector('input[type="email"]').value;
+  const telefone = form.querySelector('input[type="tel"]').value;
+  const plataforma = form.querySelectorAll('select')[0].value;
+  const seguidores = form.querySelectorAll('select')[1].value;
+  const perfilLink = form.querySelector('input[type="url"]').value;
+  const estrategia = form.querySelector('textarea').value;
+  const senha = form.querySelector('input[type="password"]').value;
+  
+  // Validação básica
+  if (!email || !senha || !nome || !apelido) {
+    alert("Por favor, preencha todos os campos obrigatórios.");
+    return;
+  }
+  
+  if (senha.length < 6) {
+    alert("A palavra-passe deve ter pelo menos 6 caracteres.");
+    return;
+  }
+  
+  const codigo = 'VAG-' + Math.random().toString(36).substring(2,8).toUpperCase();
+  const link = `https://vagalume90.com/afiliado?ref=${codigo}`;
+  
+  try {
+    console.log("📝 Tentando criar usuário no Firebase Auth...");
     
-    const codigo = 'VAG-' + Math.random().toString(36).substring(2,8).toUpperCase();
-    const link = `vagalume90.com/afiliado?ref=${codigo}`;
+    // 1. Criar usuário no Firebase Auth
+    const userCredential = await window.createUserWithEmailAndPassword(window.auth, email, senha);
+    const userId = userCredential.user.uid;
+    console.log("✅ Usuário criado com ID:", userId);
     
-    try {
-      // 1. Criar usuário no Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(window.auth, email, senha);
-      const userId = userCredential.user.uid;
-      
-      // 2. Salvar dados no Firestore
-      await addDoc(collection(window.db, "afiliados"), {
-        userId: userId,
-        nome: nome,
-        apelido: apelido,
-        email: email,
-        telefone: telefone,
-        plataforma: plataforma,
-        seguidores: seguidores,
-        perfilLink: perfilLink,
-        estrategia: estrategia,
-        codigoAfiliado: codigo,
-        linkAfiliado: link,
-        dataRegisto: serverTimestamp(),
-        status: "pendente",
-        convites: 0,
-        livrosGanhos: 0
-      });
-      
-      // 3. Mostrar sucesso
-      document.getElementById('codigoRef').textContent = codigo;
-      document.getElementById('linkConvite').textContent = link;
-      document.getElementById('btnWhatsapp').href = 
-        `https://wa.me/244929894589?text=Olá!%20Acabei%20de%20me%20registar%20como%20afiliado%20Vagalume90.%20Meu%20código%20é%20${codigo}%20e%20meu%20email%20${email}`;
-      
-      document.getElementById('formArea').style.display = 'none';
-      document.getElementById('sucessoArea').style.display = 'flex';
-      
-    } catch (error) {
-      console.error("Erro no registo:", error);
-      alert("Erro ao registar: " + error.message);
+    // 2. Salvar dados no Firestore (collection: afiliados)
+    const docRef = await window.addDoc(window.collection(window.db, "afiliados"), {
+      userId: userId,
+      nome: nome,
+      apelido: apelido,
+      email: email,
+      telefone: telefone,
+      plataforma: plataforma,
+      seguidores: seguidores,
+      perfilLink: perfilLink,
+      estrategia: estrategia,
+      codigoAfiliado: codigo,
+      linkAfiliado: link,
+      dataRegisto: new Date(), // serverTimestamp às vezes dá problema
+      status: "pendente",
+      convites: 0,
+      livrosGanhos: 0
+    });
+    
+    console.log("✅ Dados salvos no Firestore, ID:", docRef.id);
+    
+    // 3. Mostrar sucesso
+    document.getElementById('codigoRef').textContent = codigo;
+    document.getElementById('linkConvite').textContent = link;
+    
+    // Montar mensagem para WhatsApp
+    const msgWhatsApp = `Olá! Acabei de me registar como afiliado Vagalume90.%0A%0A📝 Meus dados:%0A👤 Nome: ${nome} ${apelido}%0A📧 Email: ${email}%0A📱 Telefone: ${telefone}%0A🔑 Meu código: ${codigo}%0A🔗 Link: ${link}%0A%0A✅ Aguardo confirmação!`;
+    
+    document.getElementById('btnWhatsapp').href = `https://wa.me/244929894589?text=${msgWhatsApp}`;
+    
+    // Esconder formulário e mostrar sucesso
+    document.getElementById('formArea').style.display = 'none';
+    document.getElementById('sucessoArea').style.display = 'flex';
+    
+  } catch (error) {
+    console.error("❌ Erro detalhado:", error);
+    
+    // Mensagens de erro mais amigáveis
+    let mensagemErro = "Erro ao registar: ";
+    
+    if (error.code === 'auth/email-already-in-use') {
+      mensagemErro += "Este e-mail já está registado. Use outro e-mail ou faça login.";
+    } else if (error.code === 'auth/invalid-email') {
+      mensagemErro += "E-mail inválido. Digite um e-mail real (ex: nome@provedor.com).";
+    } else if (error.code === 'auth/weak-password') {
+      mensagemErro += "A palavra-passe é muito fraca. Use pelo menos 6 caracteres.";
+    } else if (error.code === 'auth/operation-not-allowed') {
+      mensagemErro += "O registo de e-mail/senha não está ativado no Firebase Console.";
+    } else {
+      mensagemErro += error.message;
     }
+    
+    alert(mensagemErro);
+  }
 }
   // ── MODAL CASAIS ──────────────────────────────────────────
   let tipoCasais = 'gratuito';
@@ -1428,14 +1469,22 @@ async function submeterCasais(e) {
       alert("Erro ao enviar: " + error.message);
     }
 }
-
-  function copiarLink() {
-    const link = document.getElementById('linkConvite').textContent;
-    navigator.clipboard.writeText(link).then(() => {
-      const btn = document.getElementById('btnCopiar');
+function copiarLink() {
+  const linkElement = document.getElementById('linkConvite');
+  if (!linkElement) return;
+  
+  const link = linkElement.textContent;
+  navigator.clipboard.writeText(link).then(() => {
+    const btn = document.getElementById('btnCopiar');
+    if (btn) {
       btn.textContent = '✅ Copiado!';
       setTimeout(() => btn.textContent = '📋 Copiar', 2000);
-    });
+    }
+  }).catch(err => {
+    console.error("Erro ao copiar:", err);
+    alert("Não foi possível copiar. Selecione o link manualmente.");
+  });
+}
   }
 </script>
 </body>
