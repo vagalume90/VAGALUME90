@@ -1270,7 +1270,8 @@ console.log("✅ Firestore disponível:", !!window.db);
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+ <script>
   // Fireflies
   const container = document.getElementById('fireflies');
   for (let i = 0; i < 35; i++) {
@@ -1294,25 +1295,36 @@ console.log("✅ Firestore disponível:", !!window.db);
     });
   });
 
-  // Modal
+  // ========== FUNÇÕES DO MODAL ==========
   function abrirRegisto(e) {
     if (e) e.preventDefault();
-    document.getElementById('modalRegisto').classList.add('active');
-    document.body.style.overflow = 'hidden';
+    const modal = document.getElementById('modalRegisto');
+    if (modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      console.log("✅ Modal aberto!");
+    } else {
+      console.error("❌ Modal não encontrado!");
+    }
   }
+
   function fecharRegisto() {
-    document.getElementById('modalRegisto').classList.remove('active');
-    document.body.style.overflow = '';
+    const modal = document.getElementById('modalRegisto');
+    if (modal) {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
   }
+
+  // Fechar modal ao clicar fora
   document.getElementById('modalRegisto').addEventListener('click', function(e) {
     if (e.target === this) fecharRegisto();
   });
+  
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') fecharRegisto();
   });
-
-  // Submit registo
- // Submit registo - VERSÃO CORRIGIDA
+  // ========== SUBMIT REGISTO ==========
 async function submeterRegisto(e) {
   e.preventDefault();
   const form = e.target;
@@ -1326,7 +1338,6 @@ async function submeterRegisto(e) {
   const estrategia = form.querySelector('textarea').value;
   const senha = form.querySelector('input[type="password"]').value;
   
-  // Validação básica
   if (!email || !senha || !nome || !apelido) {
     alert("Por favor, preencha todos os campos obrigatórios.");
     return;
@@ -1338,18 +1349,16 @@ async function submeterRegisto(e) {
   }
   
   const codigo = 'VAG-' + Math.random().toString(36).substring(2,8).toUpperCase();
-  const link = `https://vagalume90.com/afiliado?ref=${codigo}`;
+  const dominioAtual = window.location.origin;
+  const linkConvite = `${dominioAtual}/?ref=${codigo}`;
   
   try {
-    console.log("📝 Tentando criar usuário no Firebase Auth...");
-    
-    // 1. Criar usuário no Firebase Auth
+    console.log("📝 Criando usuário...");
     const userCredential = await window.createUserWithEmailAndPassword(window.auth, email, senha);
     const userId = userCredential.user.uid;
-    console.log("✅ Usuário criado com ID:", userId);
+    console.log("✅ Usuário criado:", userId);
     
-    // 2. Salvar dados no Firestore (collection: afiliados)
-    const docRef = await window.addDoc(window.collection(window.db, "afiliados"), {
+    await window.addDoc(window.collection(window.db, "afiliados"), {
       userId: userId,
       nome: nome,
       apelido: apelido,
@@ -1360,87 +1369,83 @@ async function submeterRegisto(e) {
       perfilLink: perfilLink,
       estrategia: estrategia,
       codigoAfiliado: codigo,
-      linkAfiliado: link,
-      dataRegisto: new Date(), // serverTimestamp às vezes dá problema
+      linkAfiliado: linkConvite,
+      dataRegisto: new Date(),
       status: "pendente",
       convites: 0,
       livrosGanhos: 0
     });
     
-    console.log("✅ Dados salvos no Firestore, ID:", docRef.id);
-    
-    // 3. Mostrar sucesso
     document.getElementById('codigoRef').textContent = codigo;
-    document.getElementById('linkConvite').textContent = link;
+    document.getElementById('linkConvite').textContent = linkConvite;
     
-    // Montar mensagem para WhatsApp
-    const msgWhatsApp = `Olá! Acabei de me registar como afiliado Vagalume90.%0A%0A📝 Meus dados:%0A👤 Nome: ${nome} ${apelido}%0A📧 Email: ${email}%0A📱 Telefone: ${telefone}%0A🔑 Meu código: ${codigo}%0A🔗 Link: ${link}%0A%0A✅ Aguardo confirmação!`;
-    
+    const msgWhatsApp = `Olá! Acabei de me registar como afiliado Vagalume90.%0A%0A📝 Nome: ${nome} ${apelido}%0A📧 Email: ${email}%0A📱 Telefone: ${telefone}%0A🔑 Código: ${codigo}%0A🔗 Link de convite: ${linkConvite}`;
     document.getElementById('btnWhatsapp').href = `https://wa.me/244929894589?text=${msgWhatsApp}`;
     
-    // Esconder formulário e mostrar sucesso
     document.getElementById('formArea').style.display = 'none';
     document.getElementById('sucessoArea').style.display = 'flex';
     
   } catch (error) {
-    console.error("❌ Erro detalhado:", error);
-    
-    // Mensagens de erro mais amigáveis
+    console.error("❌ Erro:", error);
     let mensagemErro = "Erro ao registar: ";
-    
     if (error.code === 'auth/email-already-in-use') {
-      mensagemErro += "Este e-mail já está registado. Use outro e-mail ou faça login.";
+      mensagemErro += "Este e-mail já está registado.";
     } else if (error.code === 'auth/invalid-email') {
-      mensagemErro += "E-mail inválido. Digite um e-mail real (ex: nome@provedor.com).";
+      mensagemErro += "E-mail inválido.";
     } else if (error.code === 'auth/weak-password') {
-      mensagemErro += "A palavra-passe é muito fraca. Use pelo menos 6 caracteres.";
+      mensagemErro += "Palavra-passe muito fraca. Use pelo menos 6 caracteres.";
     } else if (error.code === 'auth/operation-not-allowed') {
-      mensagemErro += "O registo de e-mail/senha não está ativado no Firebase Console.";
+      mensagemErro += "Registo por e-mail não está ativado no Firebase Console.";
     } else {
       mensagemErro += error.message;
     }
-    
     alert(mensagemErro);
   }
 }
-  // ── MODAL CASAIS ──────────────────────────────────────────
-  let tipoCasais = 'gratuito';
 
+  // ========== MODAL CASAIS ==========
   function abrirModalCasais(tipo) {
-    tipoCasais = 'premium';
     const modal = document.getElementById('modalCasais');
     const infoPag = document.getElementById('infoPagamento');
-    infoPag.style.display = 'block';
-    // Reset form
-    document.getElementById('formAreaCasais').style.display = 'block';
-    document.getElementById('sucessoCasais').style.display = 'none';
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    if (infoPag) infoPag.style.display = 'block';
+    if (document.getElementById('formAreaCasais')) {
+      document.getElementById('formAreaCasais').style.display = 'block';
+    }
+    if (document.getElementById('sucessoCasais')) {
+      document.getElementById('sucessoCasais').style.display = 'none';
+    }
+    if (modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
   }
 
   function fecharModalCasais() {
-    document.getElementById('modalCasais').classList.remove('active');
-    document.body.style.overflow = '';
+    const modal = document.getElementById('modalCasais');
+    if (modal) {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
   }
 
-  document.getElementById('modalCasais').addEventListener('click', function(e) {
-    if (e.target === this) fecharModalCasais();
-  });
+  if (document.getElementById('modalCasais')) {
+    document.getElementById('modalCasais').addEventListener('click', function(e) {
+      if (e.target === this) fecharModalCasais();
+    });
+  }
 
-async function submeterCasais(e) {
+  async function submeterCasais(e) {
     e.preventDefault();
     const nome = document.getElementById('nomesCasais').value;
-    const idade = document.getElementById('idadeCasais')?.value || document.querySelector('#modalCasais input[type="number"]')?.value;
+    const idade = document.querySelector('#modalCasais input[type="number"]')?.value;
     const wa = document.getElementById('waCasais').value;
     const tema = document.getElementById('temaCasais').value;
-    const estadoRelacionamento = document.querySelector('#modalCasais select:nth-of-type(2)').value;
+    const estadoRelacionamento = document.querySelector('#modalCasais select:nth-of-type(2)')?.value;
     const situacao = document.getElementById('situacaoCasais').value;
-    
     const tipo = 'Sessão Premium (2.000 Kz)';
     
     try {
-      // Salvar no Firestore
-      await addDoc(collection(window.db, "consultas_casais"), {
+      await window.addDoc(window.collection(window.db, "consultas_casais"), {
         nome: nome,
         idade: idade || "Não informado",
         whatsapp: wa,
@@ -1448,44 +1453,103 @@ async function submeterCasais(e) {
         estadoRelacionamento: estadoRelacionamento,
         situacao: situacao,
         tipo: tipo,
-        dataEnvio: serverTimestamp(),
+        dataEnvio: new Date(),
         status: "pendente",
         respondido: false
       });
       
-      // Mensagem para WhatsApp
       const msg = encodeURIComponent(
         `Olá! Quero ${tipo} na área de Assessoria para Casais.\n\n` +
         `👤 Nome: ${nome}\n📱 WhatsApp: ${wa}\n💑 Tema: ${tema}\n\n` +
         `📝 Situação:\n${situacao}`
       );
       
-      document.getElementById('btnWhatsappCasais').href = `https://wa.me/244929894589?text=${msg}`;
-      document.getElementById('formAreaCasais').style.display = 'none';
-      document.getElementById('sucessoCasais').style.display = 'flex';
+      const btnWhats = document.getElementById('btnWhatsappCasais');
+      if (btnWhats) btnWhats.href = `https://wa.me/244929894589?text=${msg}`;
+      
+      if (document.getElementById('formAreaCasais')) {
+        document.getElementById('formAreaCasais').style.display = 'none';
+      }
+      if (document.getElementById('sucessoCasais')) {
+        document.getElementById('sucessoCasais').style.display = 'flex';
+      }
       
     } catch (error) {
       console.error("Erro:", error);
       alert("Erro ao enviar: " + error.message);
     }
-}
-function copiarLink() {
-  const linkElement = document.getElementById('linkConvite');
-  if (!linkElement) return;
-  
-  const link = linkElement.textContent;
-  navigator.clipboard.writeText(link).then(() => {
-    const btn = document.getElementById('btnCopiar');
-    if (btn) {
-      btn.textContent = '✅ Copiado!';
-      setTimeout(() => btn.textContent = '📋 Copiar', 2000);
-    }
-  }).catch(err => {
-    console.error("Erro ao copiar:", err);
-    alert("Não foi possível copiar. Selecione o link manualmente.");
-  });
-}
   }
+
+  function copiarLink() {
+    const linkElement = document.getElementById('linkConvite');
+    if (!linkElement) return;
+    const link = linkElement.textContent;
+    navigator.clipboard.writeText(link).then(() => {
+      const btn = document.getElementById('btnCopiar');
+      if (btn) {
+        btn.textContent = '✅ Copiado!';
+        setTimeout(() => btn.textContent = '📋 Copiar', 2000);
+      }
+    }).catch(err => {
+      console.error("Erro ao copiar:", err);
+      alert("Não foi possível copiar. Selecione o link manualmente.");
+    });
+  }
+  // ========== FUNÇÃO PARA LER CÓDIGO DE CONVITE NA URL ==========
+function lerCodigoConvite() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const refCodigo = urlParams.get('ref');
+  
+  if (refCodigo) {
+    console.log("🔗 Visitante veio do convite do afiliado:", refCodigo);
+    sessionStorage.setItem('codigoAfiliadoOrigem', refCodigo);
+    const msg = document.createElement('div');
+    msg.innerHTML = `🎉 Você foi convidado por um afiliado Vagalume90! <br> <strong style="font-size:18px;">${refCodigo}</strong>`;
+    msg.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #f5c842, #ff6b1a);
+      color: #080b12;
+      padding: 15px 25px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: bold;
+      z-index: 1000;
+      box-shadow: 0 0 30px rgba(245,200,66,0.5);
+      animation: slideIn 0.5s ease;
+      max-width: 350px;
+      text-align: center;
+      font-family: 'DM Sans', sans-serif;
+    `;
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 8000);
+    // Salvar clique no Firestore
+try {
+  await window.addDoc(window.collection(window.db, "cliques_convite"), {
+    codigoAfiliado: refCodigo,
+    dataClique: new Date(),
+    ip: "coletado pelo servidor",
+    userAgent: navigator.userAgent
+  });
+  console.log("✅ Clique registrado!");
+} catch(e) { console.log("Erro ao registrar clique:", e); }
+  }
+}
+
+// Adicionar animação
+const styleConvite = document.createElement('style');
+styleConvite.textContent = `
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+`;
+document.head.appendChild(styleConvite);
+
+// Executar ao carregar a página
+lerCodigoConvite();
+</script>
 </script>
 </body>
 </html>
