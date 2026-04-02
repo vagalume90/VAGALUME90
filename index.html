@@ -1496,7 +1496,7 @@ async function submeterRegisto(e) {
     });
   }
   // ========== FUNÇÃO PARA LER CÓDIGO DE CONVITE NA URL ==========
-function lerCodigoConvite() {
+ async function lerCodigoConvite () {
   const urlParams = new URLSearchParams(window.location.search);
   const refCodigo = urlParams.get('ref');
   
