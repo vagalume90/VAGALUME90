@@ -496,6 +496,147 @@ console.log("✅ Firestore disponível:", !!window.db);
     .modal-left { padding:2rem 1.5rem; border-right:none; border-bottom:1px solid rgba(245,200,66,0.1); }
     .modal-right { padding:2rem 1.5rem; }
     .form-row { grid-template-columns:1fr; }
+  }  /* ========== DEPOIMENTOS ========== */
+  .testimonials {
+    position: relative;
+    z-index: 1;
+    padding: 5rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .testimonials-header {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+  
+  .testimonials-header .section-label {
+    display: inline-block;
+  }
+  
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+  }
+  
+  .testimonial-card {
+    background: var(--card);
+    border: 1px solid rgba(245,200,66,0.1);
+    border-radius: 16px;
+    padding: 2rem;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  
+  .testimonial-card:hover {
+    border-color: rgba(245,200,66,0.3);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  }
+  
+  .testimonial-quote {
+    font-size: 3rem;
+    color: rgba(245,200,66,0.2);
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-family: serif;
+  }
+  
+  .testimonial-text {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    font-style: italic;
+  }
+  
+  .testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(245,200,66,0.1);
+  }
+  
+  .testimonial-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--glow), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+  
+  .testimonial-info h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--glow);
+    margin-bottom: 0.2rem;
+  }
+  
+  .testimonial-info p {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  
+  .testimonial-stars {
+    color: var(--glow);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: 2px;
+  }
+  
+  @media (max-width: 700px) {
+    .testimonials-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+    /* ========== BOTÕES DE COMPARTILHAMENTO ========== */
+  .share-buttons {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .btn-share {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    border: none;
+  }
+  
+  .btn-share-whatsapp {
+    background: #25d366;
+    color: #fff;
+  }
+  
+  .btn-share-whatsapp:hover {
+    background: #128C7E;
+    transform: translateY(-2px);
+  }
+  
+  .btn-share-copy {
+    background: rgba(245,200,66,0.15);
+    color: var(--glow);
+    border: 1px solid rgba(245,200,66,0.3);
+  }
+
+  .btn-share-copy:hover {
+    background: rgba(245,200,66,0.25);
+    transform: translateY(-2px);
   }
 </style>
 </head>
@@ -864,11 +1005,11 @@ console.log("✅ Firestore disponível:", !!window.db);
       <div style="background:linear-gradient(135deg,rgba(255,107,26,0.1),rgba(245,200,66,0.08));border-radius:8px;height:160px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;border:1px solid rgba(255,107,26,0.1);">📗</div>
       <div>
         <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Livro Digital</div>
-        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;margin-bottom:0.5rem;color:var(--text);">Título do Livro 2</h3>
-        <p style="font-size:0.83rem;color:var(--muted);line-height:1.65;">Descrição breve do livro. Adiciona aqui o tema, o que o leitor vai aprender e para quem é indicado.</p>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;margin-bottom:0.5rem;color:var(--text);">POR QUE CONTINUAS POBRE </h3>
+        <p style="font-size:0.83rem;color:var(--muted);line-height:1.65;">uma visâo real sobre o que é pobreza e suas causas. por que contuas , ninguem resolve um problema sem antes o conhecer esta é a tua ipotese de conhecer a razão da sua pobreza .</p>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;">
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--glow);">0 Kz</span>
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--glow);">2999 Kz</span>
         <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20Livro%202" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.6rem 1.2rem;border-radius:6px;text-decoration:none;transition:transform 0.2s;display:flex;align-items:center;gap:0.4rem;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">💬 Comprar</a>
       </div>
     </div>
@@ -878,11 +1019,11 @@ console.log("✅ Firestore disponível:", !!window.db);
       <div style="background:linear-gradient(135deg,rgba(245,200,66,0.08),rgba(255,107,26,0.12));border-radius:8px;height:160px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;border:1px solid rgba(245,200,66,0.1);">📙</div>
       <div>
         <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Livro Digital</div>
-        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;margin-bottom:0.5rem;color:var(--text);">Título do Livro 3</h3>
-        <p style="font-size:0.83rem;color:var(--muted);line-height:1.65;">Descrição breve do livro. Adiciona aqui o tema, o que o leitor vai aprender e para quem é indicado.</p>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;margin-bottom:0.5rem;color:var(--text);">Relacionamentos maquinas de resolver problemas </h3>
+        <p style="font-size:0.83rem;color:var(--muted);line-height:1.65;">relacionamentos não é um conto de fadas vem e conheça a verdadeira definição de relacionamento . Relacionamento maquinas de resolver problemas , Um guia completo de como sobreviver a cada dia no seu relacionamento.</p>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;">
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--glow);">0 Kz</span>
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--glow);">3999 Kz</span>
         <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20Livro%203" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.6rem 1.2rem;border-radius:6px;text-decoration:none;transition:transform 0.2s;display:flex;align-items:center;gap:0.4rem;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">💬 Comprar</a>
       </div>
     </div>
@@ -905,7 +1046,7 @@ console.log("✅ Firestore disponível:", !!window.db);
     <div>
       <div style="font-size:2rem;margin-bottom:0.5rem;">💳</div>
       <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">3. Efetua o pagamento</strong>
-      <span style="font-size:0.8rem;color:var(--muted);">Pagamento via Multicaixa Express ou transferência bancária.</span>
+      <span style="font-size:0.8rem;color:var(--muted);">Pagamento via Multicaixa Express ou transferência bancária e Unitel, Afrimoney .</span>
     </div>
     <div>
       <div style="font-size:2rem;margin-bottom:0.5rem;">📥</div>
@@ -1111,7 +1252,73 @@ console.log("✅ Firestore disponível:", !!window.db);
     </div>
   </div>
 </div>
+<!-- ========== DEPOIMENTOS ========== -->
+<section class="testimonials" id="depoimentos">
+  <div class="testimonials-header">
+    <div class="section-label">⭐ Depoimentos</div>
+    <h2 class="section-title">O que dizem<br><em style="font-style:normal;color:var(--glow);">quem já brilha</em></h2>
+    <p class="section-sub" style="margin: 1rem auto 0; text-align: center;">Histórias reais de pessoas que transformaram seu negócio com a Vagalume90</p>
+  </div>
 
+  <div class="testimonials-grid">
+    
+    <!-- Depoimento 1 -->
+    <div class="testimonial-card">
+      <div class="testimonial-quote">"</div>
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">
+        "A Vagalume90 transformou completamente minha presença digital. Em apenas 3 meses, meu Instagram cresceu 500% e consegui monetizar meu conteúdo. O apoio e a estratégia do Ernesto foram fundamentais!"
+      </p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">👩‍💻</div>
+        <div class="testimonial-info">
+          <h4>Domingos lucio </h4>
+          <p>Influenciador Digital · @Luqueque</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Depoimento 2 -->
+    <div class="testimonial-card">
+      <div class="testimonial-quote">"</div>
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">
+        "Entrei para o programa de afiliados sem saber nada sobre marketing digital. Hoje, já indiquei mais de 50 pessoas e tenho uma renda extra que mudou minha vida. Recomendo a todos!"
+      </p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">👨‍💼</div>
+        <div class="testimonial-info">
+          <h4>Gilberto pascoal </h4>
+          <p>Afiliado Top · Desde 2024</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Depoimento 3 -->
+    <div class="testimonial-card">
+      <div class="testimonial-quote">"</div>
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">
+        "A assessoria personalizada do @Plebheu90 me ajudou a estruturar meu negócio do zero. As estratégias de divulgação funcionaram melhor do que eu imaginava. Gratidão eterna!"
+      </p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">👩‍🎨</div>
+        <div class="testimonial-info">
+          <h4>Hernane Gasolina </h4>
+          <p>Empreendedor Criativo</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Botão para enviar depoimento -->
+  <div style="text-align: center; margin-top: 3rem;">
+    <a href="https://wa.me/244929894589?text=Olá!%20Quero%20deixar%20meu%20depoimento%20sobre%20a%20Vagalume90" target="_blank" class="btn-ghost" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+      📝 Deixe o seu depoimento
+    </a>
+  </div>
+</section>
 <!-- CTA -->
 <section class="cta-section" id="contato">
   <h2>Pronto para<br>brilhar?</h2>
