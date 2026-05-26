@@ -1,150 +1,136 @@
 import os
+import json
 import uuid
 import base64
-from typing import Optional
-from fastapi import FastAPI, HTTPException, status
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
 import httpx
+from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel, Field
 import google.generativeai as genai
 
-# ==========================================
-# CONFIGURAÇÃO COPIADA / VARIÁVEIS DE AMBIENTE
-# ==========================================
+router = APIRouter()
+
+# Configura a chave da API do Gemini (pega direto do Render)
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "SUA_CHAVE_AQUI")
 genai.configure(api_key=GEMINI_API_KEY)
 
-app = FastAPI(
-    title="VAGALUME90 - Motor de Conhecimento e Imagem Universal",
-    version="0.1.0",
-    description="API disruptiva: Texto inteligente e Geração de Imagens com Inteligência Artificial."
-)
+# =================================================================
+# 1. MODELOS DE ENTRADA E SAÍDA (Schemas das Telas do FastAPI)
+# =================================================================
 
-# Garante que a pasta para guardar imagens estáticas existe
-OS_STATIC_DIR = "static"
-if not os.path.exists(OS_STATIC_DIR):
-    os.makedirs(OS_STATIC_DIR)
-
-app.mount("/static", StaticFiles(directory=OS_STATIC_DIR), name="static")
-
-# ==========================================
-# MODELOS DE DADOS (SCHEMAS)
-# ==========================================
-class RequestTexto(BaseModel):
-    tema: str = Field(..., example="África nova")
-
-class ResponseTexto(BaseModel):
-    motor_ia: str = "Gemini Developer API"
+# Para o Gerador de Texto
+class RespostaInteligente(BaseModel):
+    motor_ia: str = "Gemini 1.5 Flash"
+    status: str = "Sucesso"
     conteudo: str
 
-class RequestImagem(BaseModel):
+class PedidoConteudo(BaseModel):
     descricao: str = Field(..., example="África nova")
 
-class ResponseImagem(BaseModel):
+# Para o Gerador de Imagem
+class RespostaImagem(BaseModel):
     motor_ia: str = "Stable Diffusion (Flux/Pollinations)"
     status: str = "Sucesso"
     url_imagem: str
     imagem_base64: str
 
-# ==========================================
-# ENDPOINTS
-# ==========================================
-
-@app.get("/", tags=["default"])
-async def inicio():
-    return {"mensagem": "VAGALUME90 API está online e operacional."}
+class PedidoImagem(BaseModel):
+    descricao: str = Field(..., example="África nova")
 
 
-@app.post("/api/ia/gerar", response_model=ResponseTexto, tags=["default"])
-async def api_gerar_conteudo(payload: RequestTexto):
-    """
-    Gera texto inteligente usando o Gemini de forma estruturada, 
-    evitando o erro de 'additionalProperties'.
-    """
+# =================================================================
+# 2. ROTA DE GERAR TEXTO (Gemini - Corrigido Definitivamente)
+# =================================================================
+@router.post("/api/ia/gerar", response_model=RespostaInteligente)
+async def gerar_conteudo(pedido: PedidoConteudo):
     try:
-        # Usamos o modelo recomendado para texto geral
         model = genai.GenerativeModel("gemini-1.5-flash")
         
-        prompt_engenharia = (
-            f"Gere um conteúdo profundo, profissional e criativo sobre o tema: '{payload.tema}'. "
-            "A sua resposta deve ser em formato de texto limpo e bem estruturado."
+        # Engenharia de prompt para forçar a IA a responder em formato JSON limpo
+        # Isso elimina a necessidade do 'response_schema' que causava o erro no Render
+        prompt_instrucao = (
+            "Atue como um motor de conhecimento disruptivo. Responda estritamente em formato JSON válido. "
+            "O JSON deve conter apenas uma chave chamada \"conteudo\".\n"
+            f"Pergunta: {pedido.descricao}"
         )
-
-        # Configuração segura para evitar conflitos de Schema no modo Developer
-        configuracao = genai.GenerationConfig(
-            response_mime_type="text/plain", # Evita conflito forçando texto fluido
-            temperature=0.7
-        )
-
-        # Chamada assíncrona simulada (executada em threadpool pelo FastAPI se necessário)
-        resposta = model.generate_content(prompt_engenharia, generation_config=configuracao)
         
-        if not resposta.text:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="A IA não conseguiu gerar uma resposta válida para este tema."
-            )
-
-        return ResponseTexto(conteudo=resposta.text)
-
+        response = model.generate_content(
+            prompt_instrucao,
+            generation_config=genai.GenerationConfig(
+                response_mime_type="application/json",
+                temperature=0.7
+            ),
+        )
+        
+        if not response.text:
+            raise HTTPException(status_code=500, detail="A IA retornou uma resposta vazia.")
+            
+        # Converte o texto JSON que o Gemini enviou em um dicionário Python
+        dados_resposta = json.loads(response.text)
+        texto_final = dados_resposta.get("conteudo", response.text)
+        
+        return RespostaInteligente(
+            motor_ia="Gemini 1.5 Flash",
+            status="Sucesso",
+            conteudo=texto_final
+        )
+        
+    except json.JSONDecodeError:
+        # Caso a IA mude o formato, entregamos o texto direto para não quebrar o sistema
+        return RespostaInteligente(
+            motor_ia="Gemini 1.5 Flash",
+            status="Sucesso",
+            conteudo=response.text if 'response' in locals() else "Erro ao processar formato."
+        )
     except Exception as e:
-        # Retorna o erro real com o código HTTP correto (500) para o cliente
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
-            detail=f"Erro interno no motor Gemini: {str(e)}"
+            detail=f"Erro no Gemini: {str(e)}"
         )
 
 
-@app.post("/api/ia/gerar-imagem", response_model=ResponseImagem, tags=["default"])
-async def api_gerar_imagem(payload: RequestImagem):
-    """
-    Gera imagens do futuro usando o motor Flux via Pollinations AI.
-    Trabalha de forma 100% assíncrona.
-    """
-    # Formata a URL do serviço externo de forma segura
-    prompt_formatado = httpx.URL(payload.descricao)
-    url_flux = f"https://image.pollinations.ai/p/{prompt_formatado}?width=1024&height=1024&nologo=true"
-    
+# =================================================================
+# 3. ROTA DE GERAR IMAGEM (Flux / Pollinations - Otimizado e Seguro)
+# =================================================================
+@router.post("/api/ia/gerar-imagem", response_model=RespostaImagem)
+async def gerar_imagem(pedido: PedidoImagem):
     try:
-        # Uso do httpx.AsyncClient para não bloquear o servidor durante o download da imagem
-        async with httpx.AsyncClient() as client:
-            resposta_url = await client.get(url_flux, timeout=30.0)
-            
-            if resposta_url.status_code != 200:
-                raise HTTPException(
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail="Não foi possível obter resposta do servidor de imagens."
-                )
-            
-            conteudo_imagem = resposta_url.content
-
-        # Criação de um nome de ficheiro único
-        nome_ficheiro = f"{uuid.uuid4().hex}.jpg"
-        caminho_completo = os.path.join(OS_STATIC_DIR, nome_ficheiro)
+        # Prepara o texto para ser transmitido de forma segura na URL
+        prompt_formatado = httpx.URL(pedido.descricao)
+        url_externa = f"https://image.pollinations.ai/p/{prompt_formatado}?width=1024&height=1024&nologo=true"
         
-        # Gravação assíncrona do ficheiro no disco
-        with open(caminho_completo, "wb") as f:
-            f.write(conteudo_imagem)
+        # Faz o download da imagem de forma assíncrona (não trava o servidor)
+        async with httpx.AsyncClient() as client:
+            resposta_imagem = await client.get(url_externa, timeout=30.0)
+            if resposta_imagem.status_code != 200:
+                raise HTTPException(status_code=502, detail="O servidor de imagens falhou ou está ocupado.")
+        
+        conteudo_binario = resposta_imagem.content
+
+        # Configura as pastas e nomes únicos para salvar no Render
+        nome_arquivo = f"{uuid.uuid4().hex}.jpg"
+        pasta_static = "static"
+        
+        if not os.path.exists(pasta_static):
+            os.makedirs(pasta_static)
             
-        # Conversão para string Base64 limpa
-        string_base64 = base64.b64encode(conteudo_imagem).decode("utf-8")
+        caminho_completo = os.path.join(pasta_static, nome_arquivo)
+        
+        # Guarda o arquivo físico da imagem no servidor
+        with open(caminho_completo, "wb") as f:
+            f.write(conteudo_binario)
+            
+        # Transforma a imagem em código Base64 para o painel front-end ler na hora
+        string_base64 = base64.b64encode(conteudo_binario).decode("utf-8")
         uri_base64 = f"data:image/jpeg;base64,{string_base64}"
         
-        # URL relativa para o cliente aceder
-        url_relativa = f"/static/{nome_ficheiro}"
-
-        return ResponseImagem(
-            url_imagem=url_relativa,
+        return RespostaImagem(
+            motor_ia="Stable Diffusion (Flux/Pollinations)",
+            status="Sucesso",
+            url_imagem=f"/static/{nome_arquivo}",
             imagem_base64=uri_base64
         )
-
-    except httpx.RequestError as err_http:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Falha de rede ao gerar imagem: {str(err_http)}"
-        )
+        
+    except httpx.RequestError as err_rede:
+        raise HTTPException(status_code=503, detail=f"Erro de rede ao gerar imagem: {str(err_rede)}")
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erro ao processar imagem no servidor: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Erro no motor de imagem: {str(e)}")
