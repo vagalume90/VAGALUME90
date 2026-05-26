@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from typing import List, Dict
 from google import genai
 from google.genai import types
-from PIL import Image  # Biblioteca para processamento de imagem
+from PIL import Image
 
 # --- CONFIGURAÇÕES DO GERADOR UNIVERSAL DE TEXTO ---
 class PerguntaSimulado(BaseModel):
@@ -56,7 +56,7 @@ def gerar_imagem_ia(descricao_imagem: str) -> dict:
     try:
         client = genai.Client(api_key=api_key)
         
-        # 1. IA gera a imagem de fundo (1024x1024 pixels)
+        # 1. IA gera a imagem de fundo usando o modelo correto da Google
         resultado = client.models.generate_images(
             model='imagen-3.0-generate-001',
             prompt=descricao_imagem,
@@ -71,30 +71,28 @@ def gerar_imagem_ia(descricao_imagem: str) -> dict:
         img_fundo = Image.open(io.BytesIO(imagem_generada.image.image_bytes))
         
         # 2. PROCESSO DA MARCA DE ÁGUA LOCAL (PASTA ADM)
-        # Apontamos o caminho diretamente para dentro da tua pasta adm
         nome_arquivo_logo = "adm/logo_olho.jpg"
         
         if os.path.exists(nome_arquivo_logo):
             img_logo = Image.open(nome_arquivo_logo)
             
-            # Redimensiona o olho futurista para um tamanho ideal (150 pixels de largura)
+            # Ajusta o tamanho do olho na imagem final
             novo_tamanho = 150
             proporcao = novo_tamanho / float(img_logo.size[0])
             altura_nova = int((float(img_logo.size[1]) * float(proporcao)))
             img_logo = img_logo.resize((novo_tamanho, altura_nova), Image.Resampling.LANCZOS)
             
-            # Define a posição no canto inferior direito com margem de 20 pixels
+            # Posiciona no canto inferior direito
             posicao_x = img_fundo.size[0] - novo_tamanho - 20
             posicao_y = img_fundo.size[1] - altura_nova - 20
             
-            # Cola a imagem do olho em cima do fundo gerado
             img_fundo.paste(img_logo, (posicao_x, posicao_y))
             
-        # 3. Guarda a imagem carimbada na memória do servidor
+        # 3. Guarda a imagem final combinada na memória
         buffer_final = io.BytesIO()
         img_fundo.save(buffer_final, format="JPEG", quality=90)
         
-        # 4. Converte para Base64 pronto para enviar para o teu site
+        # 4. Transforma em Base64 para exibir no teu site
         import base64
         imagem_base64 = base64.b64encode(buffer_final.getvalue()).decode('utf-8')
         
