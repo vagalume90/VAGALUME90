@@ -1,6 +1,5 @@
 import os
 import io
-import urllib.request  # Biblioteca nativa para ler o link do teu logo
 from pydantic import BaseModel, Field
 from typing import List, Dict
 from google import genai
@@ -48,12 +47,9 @@ def gerar_conteudo_ia(tema: str) -> dict:
         return {"motor_ia": "Erro", "detalhe_erro": str(e)}
 
 
-# --- CÓDIGO CORRIGIDO: CRIADOR DE IMAGENS COM CARIMBO DO LOGO ---
+# --- CÓDIGO DO CRIADOR DE IMAGENS COM O OLHO NA PASTA ADM ---
 def gerar_imagem_ia(descricao_imagem: str) -> dict:
     api_key = os.environ.get("GEMINI_API_KEY")
-    # Pegamos o link do teu logo que vais guardar no Render
-    url_logo = os.environ.get("URL_LOGO_VAGALUME")
-    
     if not api_key:
         return {"erro": "Falta a GEMINI_API_KEY no servidor."}
         
@@ -71,58 +67,39 @@ def gerar_imagem_ia(descricao_imagem: str) -> dict:
             )
         )
         
-        imagem_gerada = resultado.generated_images[0]
-        img_fundo = Image.open(io.BytesIO(imagem_gerada.image.image_bytes))
+        imagem_generada = resultado.generated_images[0]
+        img_fundo = Image.open(io.BytesIO(imagem_generada.image.image_bytes))
         
-        # 2. SE O LINK DO LOGO EXISTIR, ELE COLA O LOGO EM CIMA DA IMAGEM
-        if url_logo:
-            try:
-                # Faz o download da imagem do teu logo a partir do link
-                req = urllib.request.Request(url_logo, headers={'User-Agent': 'Mozilla/5.0'})
-                with urllib.request.urlopen(req) as response:
-                    logo_bytes = response.read()
-                
-                img_logo = Image.open(io.BytesIO(logo_bytes))
-                
-                # CORTE APENAS DO OLHO (Sem as letras VG90 de baixo)
-                # O teu logo original é quadrado. Vamos cortar apenas a metade de cima onde está o olho.
-                largura_logo, altura_logo = img_logo.size
-                caixa_corte = (0, 0, largura_logo, int(altura_logo * 0.58)) # Pega do topo até 58% da altura (só o olho)
-                so_o_olho = img_logo.crop(caixa_corte)
-                
-                # Redimensiona o olho para ficar com um tamanho bonito no canto da imagem (Ex: 140 pixels de largura)
-                novo_tamanho = 140
-                proporcao = novo_tamanho / float(so_o_olho.size[0])
-                altura_nova = int((float(so_o_olho.size[1]) * float(proporcao)))
-                so_o_olho = so_o_olho.resize((novo_tamanho, altura_nova), Image.Resampling.LANCZOS)
-                
-                # Posição onde o olho vai ser colado (Canto inferior direito)
-                # X = 1024 - 140 - 20 (margem) = 864 | Y = 1024 - altura - 20 (margem)
-                posicao_x = img_fundo.size[0] - novo_tamanho - 20
-                posicao_y = img_fundo.size[1] - altura_nova - 20
-                
-                # Se o teu logo tiver transparência (PNG), colamos usando ele mesmo como máscara
-                if img_logo.mode == 'RGBA' or 'transparency' in img_logo.info:
-                    # Converte o pedaço cortado para RGBA para manter a transparência perfeita
-                    so_o_olho = so_o_olho.convert("RGBA")
-                    img_fundo.paste(so_o_olho, (posicao_x, posicao_y), so_o_olho)
-                else:
-                    # Se for fundo branco, cola normal
-                    img_fundo.paste(so_o_olho, (posicao_x, posicao_y))
-            except Exception as erro_logo:
-                # Se falhar o download do logo por algum motivo, o código continua para não travar o utilizador
-                pass
-
-        # 3. Guarda a imagem final com o carimbo do olho na memória
+        # 2. PROCESSO DA MARCA DE ÁGUA LOCAL (PASTA ADM)
+        # Apontamos o caminho diretamente para dentro da tua pasta adm
+        nome_arquivo_logo = "adm/logo_olho.jpg"
+        
+        if os.path.exists(nome_arquivo_logo):
+            img_logo = Image.open(nome_arquivo_logo)
+            
+            # Redimensiona o olho futurista para um tamanho ideal (150 pixels de largura)
+            novo_tamanho = 150
+            proporcao = novo_tamanho / float(img_logo.size[0])
+            altura_nova = int((float(img_logo.size[1]) * float(proporcao)))
+            img_logo = img_logo.resize((novo_tamanho, altura_nova), Image.Resampling.LANCZOS)
+            
+            # Define a posição no canto inferior direito com margem de 20 pixels
+            posicao_x = img_fundo.size[0] - novo_tamanho - 20
+            posicao_y = img_fundo.size[1] - altura_nova - 20
+            
+            # Cola a imagem do olho em cima do fundo gerado
+            img_fundo.paste(img_logo, (posicao_x, posicao_y))
+            
+        # 3. Guarda a imagem carimbada na memória do servidor
         buffer_final = io.BytesIO()
         img_fundo.save(buffer_final, format="JPEG", quality=90)
         
-        # 4. Converte para Base64 para o teu site exibir
+        # 4. Converte para Base64 pronto para enviar para o teu site
         import base64
         imagem_base64 = base64.b64encode(buffer_final.getvalue()).decode('utf-8')
         
         return {
-            "motor_ia": "Google Imagen 3 + Olho VAGALUME90",
+            "motor_ia": "Google Imagen 3 + Olho Futurista VAGALUME90",
             "status": "Sucesso",
             "imagem_resultado": f"data:image/jpeg;base64,{imagem_base64}"
         }
