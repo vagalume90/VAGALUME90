@@ -58,7 +58,7 @@ def gerar_imagem_ia(descricao_imagem: str) -> dict:
         
         # 1. IA gera a imagem de fundo (1024x1024 pixels)
         resultado = client.models.generate_images(
-            model='imagen-3.0-generate-002',
+            model='imagen-3.0-generate-001',
             prompt=descricao_imagem,
             config=types.GenerateImagesConfig(
                 number_of_images=1,
