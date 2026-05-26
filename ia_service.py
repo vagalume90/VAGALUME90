@@ -1,6 +1,7 @@
 import os
 import json
 import httpx
+import uuid
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import google.generativeai as genai
@@ -11,85 +12,94 @@ router = APIRouter()
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 # =================================================================
-# 1. MODELOS DE ENTRADA E SAÍDA (Telas de dados do FastAPI)
+# 1. MODELOS DE ENTRADA E SAÍDA (Ajustados ao teu Swagger)
 # =================================================================
 
-# Para o Gerador de Texto
+# Para o Gerador de Texto (/api/ia/gerar)
 class RespostaInteligente(BaseModel):
     motor_ia: str
-    status: str
-    conteudo: str
+    conteudo: str | None
+    erro: str | None
 
 class PedidoConteudo(BaseModel):
-    descricao: str
+    tema: str  # Alterado de 'descricao' para 'tema' para bater com o teu site
 
-# Para o Gerador de Imagem
+
+# Para o Gerador de Imagem (/api/ia/gerar-imagem)
 class RespostaImagem(BaseModel):
     motor_ia: str
     status: str
     url_imagem: str
 
 class PedidoImagem(BaseModel):
-    descricao: str
+    descricao: str  # Este já estava correto no teu site
 
 
 # =================================================================
-# 2. ROTA DE GERAR TEXTO (Gemini - Corrigido sem o Erro)
+# 2. ROTA DE GERAR TEXTO (Gemini - Totalmente Corrigido)
 # =================================================================
 @router.post("/api/ia/gerar", response_model=RespostaInteligente)
-async def gerar_conteudo(pedido: PedidoConteudo):
+async def generar_conteudo(pedido: PedidoConteudo):
     try:
         model = genai.GenerativeModel("gemini-1.5-flash")
-        prompt = f"Gere uma resposta inteligente e disruptiva para: {pedido.descricao}"
+        
+        # Criamos um formato de resposta restrito em JSON que a API gratuita aceita
+        prompt = (
+            f"Gere um conteúdo curto, inteligente e disruptivo sobre o tema: {pedido.tema}. "
+            f"Responda OBRIGATORIAMENTE em formato JSON com o seguinte formato exato: "
+            f'{{"conteudo": "sua resposta aqui"}}'
+        )
         
         response = model.generate_content(
             prompt,
             generation_config=genai.GenerationConfig(
-                response_mime_type="application/json",
-                response_schema=RespostaInteligente, # Formato seguro que corrige o erro!
+                response_mime_type="application/json"
             ),
         )
         
+        # Tenta ler o JSON que o Gemini devolveu
         dados_resposta = json.loads(response.text)
         
         return RespostaInteligente(
             motor_ia="Gemini 1.5 Flash",
-            status="Sucesso",
-            conteudo=dados_resposta.get("conteudo", response.text)
+            conteudo=dados_resposta.get("conteudo", response.text),
+            erro=None
         )
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro no Gemini: {str(e)}")
+        # Se falhar, devolve o formato de erro que o teu sistema espera
+        return RespostaInteligente(
+            motor_ia="Erro",
+            conteudo=None,
+            erro=str(e)
+        )
 
 
 # =================================================================
-# 3. ROTA DE GERAR IMAGEM (Flux / Pollinations - O que funciona!)
+# 3. ROTA DE GERAR IMAGEM (Flux / Pollinations - Mantido)
 # =================================================================
 @router.post("/api/ia/gerar-imagem", response_model=RespostaImagem)
 async def gerar_imagem(pedido: PedidoImagem):
     try:
-        # Organiza o termo de busca para a IA de imagem
+        # Formata o texto para a URL da IA
         prompt_formatado = pedido.descricao.replace(" ", ",")
         url_externa = f"https://image.pollinations.ai/prompt/{prompt_formatado}?width=1024&height=1024&nologo=true"
         
-        # Faz o download da imagem para salvar no teu servidor do Render
+        # Faz o download da imagem gerada
         async with httpx.AsyncClient() as client:
             resposta_imagem = await client.get(url_externa)
             if resposta_imagem.status_code != 200:
                 raise HTTPException(status_code=500, detail="Erro ao conectar com o motor de imagem.")
         
-        # Cria um nome único para o arquivo de imagem
-        import uuid
-        nome_arquivo = f"{uuid.uuid4().hex}.jpg"
+        # Cria a pasta static se não existir no Render
         pasta_static = "static"
-        
-        # Cria a pasta static no Render se ela não existir
         if not os.path.exists(pasta_static):
             os.makedirs(pasta_static)
             
+        # Salva o arquivo com nome único
+        nome_arquivo = f"{uuid.uuid4().hex}.jpg"
         caminho_completo = os.path.join(pasta_static, nome_arquivo)
         
-        # Guarda a imagem na pasta do teu servidor
         with open(caminho_completo, "wb") as f:
             f.write(resposta_imagem.content)
             
