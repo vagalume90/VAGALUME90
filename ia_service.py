@@ -47,7 +47,7 @@ def gerar_conteudo_ia(tema: str) -> dict:
         return {"motor_ia": "Erro", "detalhe_erro": str(e)}
 
 
-# --- CÓDIGO DO CRIADOR DE IMAGENS COM O OLHO NA PASTA ADM ---
+# --- CÓDIGO DO CRIADOR DE IMAGENS COM O MODELO ATUALIZADO ---
 def gerar_imagem_ia(descricao_imagem: str) -> dict:
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
@@ -56,9 +56,9 @@ def gerar_imagem_ia(descricao_imagem: str) -> dict:
     try:
         client = genai.Client(api_key=api_key)
         
-        # 1. IA gera a imagem de fundo usando o modelo correto da Google
+        # 1. IA gera a imagem de fundo usando o modelo oficial estável do Imagen 3
         resultado = client.models.generate_images(
-            model='imagen-3.0-generate-001',
+            model='imagen-3.0-generate-002',
             prompt=descricao_imagem,
             config=types.GenerateImagesConfig(
                 number_of_images=1,
