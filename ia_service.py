@@ -82,7 +82,7 @@ def obter_cliente_gemini() -> genai.Client:
 
 
 # =========================================================
-# GERADOR DE CONTEÚDO IA
+# GERADOR DE CONTEÚDO IA (Texto)
 # =========================================================
 
 def gerar_conteudo_ia(tema: str) -> Dict:
@@ -181,56 +181,68 @@ def aplicar_logo(
 
 
 # =========================================================
-# GERADOR DE IMAGEM IA
+# GERADOR DE IMAGEM IA (Multimodal)
 # =========================================================
 
 def gerar_imagem_ia(descricao_imagem: str, retornar_base64: bool = True) -> Dict:
     """
-    Gera uma imagem de alta definição usando Imagen 3 e carimba o olho do Vagalume90.
+    Gera imagem capturando os bytes do modelo multimodal estável e aplica o olho futurista.
     """
+    if not descricao_imagem.strip():
+        return RespostaImagem(
+            motor_ia="Erro",
+            status="Falha",
+            erro="A descrição da imagem não pode estar vazia."
+        ).model_dump()
+
     try:
         client = obter_cliente_gemini()
 
-        logger.info(f"Enviando prompt de imagem ao Imagen 3: {descricao_imagem}")
-        
-        # Alterado para o ID de modelo correto exigido pelo novo SDK da Google
-        resultado = client.models.generate_images(
-            model="imagen-3.0-generate-002",
-            prompt=descricao_imagem,
-            config=types.GenerateImagesConfig(
-                number_of_images=1,
-                output_mime_type="image/jpeg",
-                aspect_ratio="1:1"
+        logger.info(f"Enviando pedido de imagem multimodal ao Gemini: {descricao_imagem}")
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=descricao_imagem,
+            config=types.GenerateContentConfig(
+                response_modalities=["TEXT", "IMAGE"]
             )
         )
 
-        if not resultado.generated_images:
-            raise ValueError("Nenhuma imagem foi devolvida pelo motor da Google.")
+        imagem_bytes = None
 
-        imagem_bytes = resultado.generated_images[0].image.image_bytes
+        # Varrer as partes da resposta à procura dos bytes puros da imagem gerada
+        if response.candidates and response.candidates[0].content.parts:
+            for part in response.candidates[0].content.parts:
+                if part.inline_data:
+                    imagem_bytes = part.inline_data.data
+                    break
+
+        if not imagem_bytes:
+            raise ValueError("O modelo do Gemini respondeu com sucesso, mas não gerou nenhum bloco de imagem válido.")
+
         img_fundo = Image.open(io.BytesIO(imagem_bytes))
 
-        # Procura automática por logo_olho.png ou logo_olho.jpg na pasta adm
+        # Configuração inteligente da marca d'água na pasta adm
         caminho_logo = ADM_DIR / "logo_olho.png"
         if not caminho_logo.exists():
             caminho_logo = ADM_DIR / "logo_olho.jpg"
 
-        # Mescla a imagem com o logo
+        # Mesclar plano de fundo com a logo do Vagalume90
         img_final = aplicar_logo(imagem_fundo=img_fundo, caminho_logo=caminho_logo)
         img_final = img_final.convert("RGB")
 
-        # Salva o arquivo localmente com nome único
+        # Gerar o arquivo físico local na pasta static com nome único
         nome_arquivo = f"{uuid.uuid4().hex}.jpg"
         caminho_saida = STATIC_DIR / nome_arquivo
         img_final.save(caminho_saida, format="JPEG", quality=90, optimize=True)
         logger.info(f"Imagem final guardada com sucesso em: {caminho_saida}")
 
         resposta = RespostaImagem(
-            motor_ia="Google Imagen 3 + VAGALUME90",
+            motor_ia="Google Gemini Multimodal + VAGALUME90",
             status="Sucesso",
             url_imagem=f"/static/{nome_arquivo}"
         )
 
+        # Processar o Base64 pronto para ser exibido diretamente no Front-end
         if retornar_base64:
             buffer = io.BytesIO()
             img_final.save(buffer, format="JPEG")
@@ -240,7 +252,7 @@ def gerar_imagem_ia(descricao_imagem: str, retornar_base64: bool = True) -> Dict
         return resposta.model_dump()
 
     except Exception as e:
-        logger.exception("Erro na rota de geração de imagem.")
+        logger.exception("Erro no processamento da imagem multimodal.")
         return RespostaImagem(
             motor_ia="Erro",
             status="Falha",
