@@ -162,18 +162,15 @@ def aplicar_logo(
     try:
         img_logo = Image.open(caminho_logo).convert("RGBA")
         
-        # Mantém a proporção original do olho futurista
         proporcao = tamanho_logo / float(img_logo.size[0])
         nova_altura = int(float(img_logo.size[1]) * proporcao)
 
         img_logo = img_logo.resize((tamanho_logo, nova_altura), RESAMPLING)
         imagem_fundo = imagem_fundo.convert("RGBA")
 
-        # Define o canto inferior direito com margem flexível
         pos_x = imagem_fundo.width - tamanho_logo - margem
         pos_y = imagem_fundo.height - nova_altura - margem
 
-        # Cola a logo respeitando a transparência (canal alpha)
         imagem_fundo.paste(img_logo, (pos_x, pos_y), img_logo)
         logger.info("Marca d'água do olho futurista aplicada com sucesso.")
         return imagem_fundo
@@ -195,6 +192,8 @@ def gerar_imagem_ia(descricao_imagem: str, retornar_base64: bool = True) -> Dict
         client = obter_cliente_gemini()
 
         logger.info(f"Enviando prompt de imagem ao Imagen 3: {descricao_imagem}")
+        
+        # Alterado para o ID de modelo correto exigido pelo novo SDK da Google
         resultado = client.models.generate_images(
             model="imagen-3.0-generate-002",
             prompt=descricao_imagem,
@@ -232,7 +231,6 @@ def gerar_imagem_ia(descricao_imagem: str, retornar_base64: bool = True) -> Dict
             url_imagem=f"/static/{nome_arquivo}"
         )
 
-        # Se solicitado ou por padrão, insere o Base64 pronto para o Frontend
         if retornar_base64:
             buffer = io.BytesIO()
             img_final.save(buffer, format="JPEG")
