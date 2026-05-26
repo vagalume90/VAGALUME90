@@ -4,6 +4,8 @@ import json
 import uuid
 import base64
 import logging
+import urllib.parse
+import requests  # Certifica-te de ter 'requests' no requirements.txt
 from pathlib import Path
 from typing import List, Dict, Optional
 
@@ -26,11 +28,9 @@ BASE_DIR = Path(__file__).parent
 STATIC_DIR = BASE_DIR / "static"
 ADM_DIR = BASE_DIR / "adm"
 
-# Garante que as pastas necessárias existem no servidor
 STATIC_DIR.mkdir(exist_ok=True)
 ADM_DIR.mkdir(exist_ok=True)
 
-# Compatibilidade de redimensionamento do Pillow
 try:
     RESAMPLING = Image.Resampling.LANCZOS
 except AttributeError:
@@ -38,7 +38,7 @@ except AttributeError:
 
 
 # =========================================================
-# SCHEMAS PYDANTIC (Estruturas de Dados)
+# SCHEMAS PYDANTIC
 # =========================================================
 
 class PerguntaSimulado(BaseModel):
@@ -71,46 +71,25 @@ class RespostaImagem(BaseModel):
 
 
 # =========================================================
-# CLIENTE GEMINI
+# GERADOR DE CONTEÚDO IA (Google Gemini 2.5 Flash)
 # =========================================================
 
 def obter_cliente_gemini() -> genai.Client:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        raise EnvironmentError("A variável GEMINI_API_KEY não foi encontrada no ambiente.")
+        raise EnvironmentError("A variável GEMINI_API_KEY não foi encontrada.")
     return genai.Client(api_key=api_key)
 
 
-# =========================================================
-# GERADOR DE CONTEÚDO IA (Texto)
-# =========================================================
-
 def gerar_conteudo_ia(tema: str) -> Dict:
-    """
-    Gera conteúdo educacional estruturado focado no mercado africano.
-    """
+    """Gera o ecossistema de texto estruturado usando o Gemini."""
     try:
         client = obter_cliente_gemini()
-
-        prompt_sistema = """
-        Tu és o Tutor Universal do VAGALUME90.
-        O teu trabalho é:
-        - Ensinar qualquer tema de forma brilhante e descomprometida.
-        - Explicar conceitos complexos usando uma linguagem moderna, direta e adaptada para a realidade de África.
-        - Criar aplicações reais, focando em como monetizar esse conhecimento na prática no mercado atual.
-        - Desenvolver simulados inteligentes para fixação de alto nível.
-        """
-
-        prompt_usuario = f"""
-        Cria um ecossistema completo de aprendizagem sobre:
-        TEMA: {tema}
-
-        Regras:
-        - Explicação moderna, profunda e direta ao ponto.
-        - Casos e exemplos práticos aplicados ao contexto africano.
-        - Plano de ação claro focado no mercado atual.
-        - Simulado inteligente com questões de alto nível.
-        """
+        prompt_sistema = (
+            "Tu és o Tutor Universal do VAGALUME90. Ensinas qualquer tema de forma moderna, "
+            "direta e adaptada para África, focando em mercado e monetização."
+        )
+        prompt_usuario = f"Cria um ecossistema completo de aprendizagem sobre: {tema}"
 
         response = client.models.generate_content(
             model="gemini-2.5-flash",
@@ -122,127 +101,87 @@ def gerar_conteudo_ia(tema: str) -> Dict:
                 temperature=0.3,
             ),
         )
-
-        if not response.text:
-            raise ValueError("Resposta vazia da IA.")
-
-        conteudo = json.loads(response.text)
-        logger.info("Conteúdo IA gerado com sucesso pelo Gemini.")
-
         return RespostaIA(
             motor_ia="Google Gemini 2.5 Flash",
-            conteudo=conteudo
+            conteudo=json.loads(response.text)
         ).model_dump(by_alias=True)
-
     except Exception as e:
-        logger.exception("Erro ao gerar conteúdo IA.")
-        return RespostaIA(
-            motor_ia="Erro",
-            erro=f"Falha ao gerar conteúdo: {str(e)}"
-        ).model_dump()
+        logger.exception("Erro no texto do Gemini.")
+        return RespostaIA(motor_ia="Erro", erro=str(e)).model_dump()
 
 
 # =========================================================
 # PROCESSAMENTO DE MARCA D'ÁGUA (LOGO)
 # =========================================================
 
-def aplicar_logo(
-    imagem_fundo: Image.Image,
-    caminho_logo: Path,
-    tamanho_logo: int = 150,
-    margem: int = 20
-) -> Image.Image:
-    """
-    Aplica de forma inteligente a logo do Vagalume90 no canto inferior direito.
-    """
+def aplicar_logo(imagem_fundo: Image.Image, caminho_logo: Path, tamanho_logo: int = 150, margem: int = 20) -> Image.Image:
     if not caminho_logo.exists():
-        logger.warning(f"Logo não encontrada em: {caminho_logo}. Gerando imagem sem marca d'água.")
+        logger.warning(f"Logo não encontrada em: {caminho_logo}")
         return imagem_fundo
-
     try:
         img_logo = Image.open(caminho_logo).convert("RGBA")
-        
         proporcao = tamanho_logo / float(img_logo.size[0])
         nova_altura = int(float(img_logo.size[1]) * proporcao)
-
         img_logo = img_logo.resize((tamanho_logo, nova_altura), RESAMPLING)
+        
         imagem_fundo = imagem_fundo.convert("RGBA")
-
         pos_x = imagem_fundo.width - tamanho_logo - margem
         pos_y = imagem_fundo.height - nova_altura - margem
-
         imagem_fundo.paste(img_logo, (pos_x, pos_y), img_logo)
-        logger.info("Marca d'água do olho futurista aplicada com sucesso.")
         return imagem_fundo
-
     except Exception:
-        logger.exception("Erro ao aplicar a marca d'água na imagem.")
+        logger.exception("Erro ao aplicar logo.")
         return imagem_fundo
 
 
 # =========================================================
-# GERADOR DE IMAGEM IA (Multimodal)
+# GERADOR DE IMAGEM IA (Stable Diffusion - 100% Gratuito)
 # =========================================================
 
 def gerar_imagem_ia(descricao_imagem: str, retornar_base64: bool = True) -> Dict:
-    """
-    Gera imagem capturando os bytes do modelo multimodal estável e aplica o olho futurista.
-    """
+    """Gera uma imagem incrível usando Stable Diffusion de forma totalmente gratuita."""
     if not descricao_imagem.strip():
-        return RespostaImagem(
-            motor_ia="Erro",
-            status="Falha",
-            erro="A descrição da imagem não pode estar vazia."
-        ).model_dump()
+        return RespostaImagem(motor_ia="Erro", status="Falha", erro="Descrição vazia.").model_dump()
 
     try:
-        client = obter_cliente_gemini()
+        # Formata o texto do prompt para que o link da internet consiga ler corretamente
+        prompt_codificado = urllib.parse.quote(descricao_imagem)
+        
+        # URL da API estável e gratuita do Stable Diffusion (Pollinations)
+        url_api = f"https://image.pollinations.ai/p/{prompt_codificado}?width=1024&height=1024&nologo=true"
+        
+        logger.info(f"Fazendo pedido ao Stable Diffusion: {url_api}")
+        
+        # Faz o download dos bytes da imagem gerada
+        response = requests.get(url_api, timeout=30)
+        if response.status_code != 200:
+            raise ValueError(f"A API do Stable Diffusion respondeu com erro código: {response.status_code}")
 
-        logger.info(f"Enviando pedido de imagem multimodal ao Gemini: {descricao_imagem}")
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=descricao_imagem,
-            config=types.GenerateContentConfig(
-                response_modalities=["TEXT", "IMAGE"]
-            )
-        )
-
-        imagem_bytes = None
-
-        # Varrer as partes da resposta à procura dos bytes puros da imagem gerada
-        if response.candidates and response.candidates[0].content.parts:
-            for part in response.candidates[0].content.parts:
-                if part.inline_data:
-                    imagem_bytes = part.inline_data.data
-                    break
-
-        if not imagem_bytes:
-            raise ValueError("O modelo do Gemini respondeu com sucesso, mas não gerou nenhum bloco de imagem válido.")
-
+        imagem_bytes = response.content
         img_fundo = Image.open(io.BytesIO(imagem_bytes))
 
-        # Configuração inteligente da marca d'água na pasta adm
+        # Procura pelo logo do olho futurista do Vagalume90
         caminho_logo = ADM_DIR / "logo_olho.png"
         if not caminho_logo.exists():
             caminho_logo = ADM_DIR / "logo_olho.jpg"
 
-        # Mesclar plano de fundo com a logo do Vagalume90
+        # Aplica a marca d'água no canto inferior direito
         img_final = aplicar_logo(imagem_fundo=img_fundo, caminho_logo=caminho_logo)
         img_final = img_final.convert("RGB")
 
-        # Gerar o arquivo físico local na pasta static com nome único
+        # Guarda o arquivo físico localmente na pasta static do servidor
         nome_arquivo = f"{uuid.uuid4().hex}.jpg"
         caminho_saida = STATIC_DIR / nome_arquivo
         img_final.save(caminho_saida, format="JPEG", quality=90, optimize=True)
-        logger.info(f"Imagem final guardada com sucesso em: {caminho_saida}")
+        logger.info(f"Imagem guardada com sucesso em: {caminho_saida}")
 
         resposta = RespostaImagem(
-            motor_ia="Google Gemini Multimodal + VAGALUME90",
+            motor_ia="Stable Diffusion (Flux/Pollinations)",
             status="Sucesso",
             url_imagem=f"/static/{nome_arquivo}"
         )
 
-        # Processar o Base64 pronto para ser exibido diretamente no Front-end
+        # Transforma em base64 se o teu painel precisar de renderização instantânea
         if retornar_base64:
             buffer = io.BytesIO()
             img_final.save(buffer, format="JPEG")
@@ -252,16 +191,13 @@ def gerar_imagem_ia(descricao_imagem: str, retornar_base64: bool = True) -> Dict
         return resposta.model_dump()
 
     except Exception as e:
-        logger.exception("Erro no processamento da imagem multimodal.")
+        logger.exception("Erro ao gerar imagem no Stable Diffusion.")
         return RespostaImagem(
-            motor_ia="Erro",
+            motor_ia="Stable Diffusion",
             status="Falha",
             erro=f"Erro interno no processamento: {str(e)}"
         ).model_dump()
 
 
-# =========================================================
-# TESTE LOCAL / AMBIENTE
-# =========================================================
 if __name__ == "__main__":
-    print("Módulo carregado com sucesso. Pronto para servir a API do VAGALUME90.")
+    print("Módulo Híbrido Estável VAGALUME90 (Gemini + Stable Diffusion) carregado.")
