@@ -2,73 +2,48 @@ import os
 import uuid
 import base64
 import httpx
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 import google.generativeai as genai
 
-# Configuração do Gemini
+# Configuração da chave do Gemini
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
-router = APIRouter()
+app = FastAPI()
 
-# --- Schemas ---
-class PedidoConteudo(BaseModel):
-    tema: str = Field(..., example="Africa")
-
-class RespostaInteligente(BaseModel):
-    motor_ia: str = "Gemini 1.5 Flash"
-    status: str
-    conteudo: str
+class PedidoTema(BaseModel):
+    tema: str
 
 class PedidoImagem(BaseModel):
-    descricao: str = Field(..., example="Africa")
+    descricao: str
 
-class RespostaImagem(BaseModel):
-    motor_ia: str = "Stable Diffusion (Flux)"
-    status: str
-    url_imagem: str
-    imagem_base64: str
-
-# --- Rota de Texto (Estável) ---
-@router.post("/api/ia/gerar", response_model=RespostaInteligente)
-async def gerar_conteudo(pedido: PedidoConteudo):
+@app.post("/api/ia/gerar")
+async def gerar_conteudo(pedido: PedidoTema):
     try:
         model = genai.GenerativeModel("gemini-1.5-flash")
+        # Simples, sem esquemas complexos que causam erro
         response = model.generate_content(f"Escreva um texto informativo sobre: {pedido.tema}")
-        
-        return RespostaInteligente(
-            status="Sucesso",
-            conteudo=response.text
-        )
+        return {"motor_ia": "Gemini 1.5 Flash", "status": "Sucesso", "conteudo": response.text}
     except Exception as e:
-        return RespostaInteligente(
-            status="Erro",
-            conteudo=f"Erro ao gerar texto: {str(e)}"
-        )
+        return {"motor_ia": "Gemini", "status": "Erro", "erro": str(e)}
 
-# --- Rota de Imagem (Otimizada) ---
-@router.post("/api/ia/gerar-imagem", response_model=RespostaImagem)
+@app.post("/api/ia/gerar-imagem")
 async def gerar_imagem(pedido: PedidoImagem):
     try:
-        url = f"https://image.pollinations.ai/p/{pedido.descricao}?width=1024&height=1024&nologo=true"
-        
+        # Usando uma URL de geração de imagem mais estável e gratuita (Pollinations)
+        url = f"https://image.pollinations.ai/prompt/{pedido.descricao}?width=1024&height=1024&nologo=true"
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, timeout=30.0)
             
-        conteudo = resp.content
-        nome_arquivo = f"{uuid.uuid4().hex}.jpg"
-        pasta = "static"
+        if resp.status_code != 200:
+            raise Exception(f"API de imagem retornou erro {resp.status_code}")
+            
+        base64_image = base64.b64encode(resp.content).decode('utf-8')
         
-        if not os.path.exists(pasta):
-            os.makedirs(pasta)
-            
-        with open(f"{pasta}/{nome_arquivo}", "wb") as f:
-            f.write(conteudo)
-            
-        return RespostaImagem(
-            status="Sucesso",
-            url_imagem=f"/{pasta}/{nome_arquivo}",
-            imagem_base64=f"data:image/jpeg;base64,{base64.b64encode(conteudo).decode()}"
-        )
+        return {
+            "motor_ia": "Pollinations AI",
+            "status": "Sucesso",
+            "imagem_base64": f"data:image/jpeg;base64,{base64_image}"
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"motor_ia": "IA Imagem", "status": "Falha", "erro": str(e)}
