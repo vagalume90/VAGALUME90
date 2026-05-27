@@ -3,19 +3,24 @@ import base64
 import httpx
 from fastapi import FastAPI
 from pydantic import BaseModel
-# IMPORTANTE: Mudança para a nova SDK oficial de 2026
 from google import genai
 from google.genai import errors
 
 app = FastAPI(title="Vagalume90 API", version="1.0.0")
 
-# Inicializa o cliente oficial. Ele vai procurar automaticamente 
-# pela variável de ambiente GEMINI_API_KEY no Render.
+# Procurar a chave guardada no Render de forma segura
+chave_render = os.environ.get("GEMINI_API_KEY")
+
 try:
-    client = genai.Client()
+    if chave_render:
+        # Inicializa usando a chave que está escondida no Render
+        client = genai.Client(api_key=chave_render)
+    else:
+        client = None
+        print("AVISO: A variável GEMINI_API_KEY não foi encontrada no Render.")
 except Exception as e:
     client = None
-    print(f"Aviso: Erro ao inicializar o cliente Gemini. Verifique a GEMINI_API_KEY. Erro: {e}")
+    print(f"Erro ao inicializar cliente: {e}")
 
 class PedidoTema(BaseModel):
     tema: str
@@ -26,10 +31,12 @@ class PedidoImagem(BaseModel):
 @app.post("/api/ia/gerar")
 async def gerar_conteudo(pedido: PedidoTema):
     if not client:
-        return {"status": "Erro", "conteudo": "Cliente Gemini não inicializado. Verifique a chave de API no Render."}
+        return {
+            "status": "Erro", 
+            "conteudo": "A API não detetou a chave GEMINI_API_KEY nas definições do Render. Verifique a aba Environment."
+        }
         
     try:
-        # Método oficial e atualizado para geração de conteúdo em 2026
         response = client.models.generate_content(
             model='gemini-1.5-flash',
             contents=f"Escreva um texto informativo sobre: {pedido.tema}",
@@ -37,7 +44,6 @@ async def gerar_conteudo(pedido: PedidoTema):
         return {"status": "Sucesso", "conteudo": response.text}
         
     except errors.APIError as e:
-        # Captura erros específicos da API do Google (ex: chave inválida, modelo não encontrado)
         return {"status": "Erro", "conteudo": f"Erro na API do Gemini: {e.message} (Código: {e.code})"}
     except Exception as e:
         return {"status": "Erro", "conteudo": f"Erro inesperado: {str(e)}"}
