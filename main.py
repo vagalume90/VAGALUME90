@@ -1,93 +1,147 @@
 import os
 import base64
+import time
+import asyncio
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException, status
 from pydantic import BaseModel
-from google import genai
+from urllib.parse import quote
+from contextlib import asynccontextmanager
 
-app = FastAPI(title="Vagalume90 API", version="1.0.0")
+# 🔥 CACHE SIMPLES (memória)
+cache = {}
+CACHE_TTL = 300  # 5 minutos
 
-# Inicialização direta e limpa do cliente usando a variável do Render
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+# 🔥 RATE LIMIT (simples por IP)
+limites = {}
+LIMITE_REQ = 20  # por minuto
 
-class PedidoTema(BaseModel):
+# 🔥 GERENCIADOR DE CICLO DE VIDA (Substitui o antigo on_event)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Inicializa o cliente HTTP global na abertura do servidor
+    global client_http
+    client_http = httpx.AsyncClient(
+        timeout=20.0,
+        headers={"User-Agent": "Vagalume90/2.0"}
+    )
+    yield
+    # Garante o fechamento seguro e limpo quando o Render reiniciar ou desligar
+    await client_http.aclose()
+
+app = FastAPI(title="Vagalume90 API PRO", version="2.0.1", lifespan=lifespan)
+
+class PedidoIA(BaseModel):
     tema: str
+    descricao_imagem: str
 
-class PedidoImagem(BaseModel):
-    descricao: str
+# 🔒 LOGICA DE RATE LIMIT
+def permitido(ip: str) -> bool:
+    agora = time.time()
 
-# 🔥 LISTA DE MODELOS OTIMIZADA PARA CONTA GRATUITA
-MODELOS = [
-    "gemini-2.0-flash-lite",       # Modelo leve ideal para o plano gratuito de 2026
-    "gemini-2.0-flash",            # Fallback se o lite não responder
-    "gemini-1.5-flash",
-    "gemini-1.5-pro"
-]
+    if ip not in limites:
+        limites[ip] = []
 
-# 🔥 FUNÇÃO INTELIGENTE SIMBIÓTICA
-def gerar_texto_seguro(prompt: str):
-    erros = []
+    # Limpa requisições antigas fora da janela de 60 segundos
+    limites[ip] = [t for t in limites[ip] if agora - t < 60]
 
-    for modelo in MODELOS:
+    if len(limites[ip]) >= LIMITE_REQ:
+        return False
+
+    limites[ip].append(agora)
+    return True
+
+# ⚡ LOGICA DE CACHE
+def get_cache(chave: str):
+    if chave in cache:
+        dados, tempo = cache[chave]
+        if time.time() - tempo < CACHE_TTL:
+            return dados
+    return None
+
+def set_cache(chave: str, valor: str):
+    cache[chave] = (valor, time.time())
+
+# 🔥 MOTOR DE TEXTO
+async def gerar_texto(prompt: str):
+    cache_key = f"texto:{prompt}"
+    cached = get_cache(cache_key)
+    if cached:
+        print("Texto recuperado do Cache!")
+        return cached
+
+    url = f"https://text.pollinations.ai/{quote(prompt)}?model=llama"
+
+    for tentativa in range(3):
         try:
-            print(f"Tentando comunicação com o modelo: {modelo}")
-            response = client.models.generate_content(
-                model=modelo,
-                contents=prompt
-            )
-
-            if response and response.text:
-                return response.text, None
-
+            resp = await client_http.get(url)
+            if resp.status_code == 200 and resp.text.strip():
+                texto = resp.text.strip()
+                set_cache(cache_key, texto)
+                return texto
         except Exception as e:
-            erros.append(f"{modelo}: {str(e)}")
+            print(f"Erro ao gerar texto (Tentativa {tentativa + 1}/3): {e}")
+        
+        # Aguarda 1 segundo antes de tentar novamente para estabilizar a rede
+        if tentativa < 2:
+            await asyncio.sleep(1)
 
-    # Se nenhum modelo funcionar, retorna None e a lista de erros capturados
-    return None, erros
+    return None
 
-# 🔥 ENDPOINT DO TEXTO
-@app.post("/api/ia/gerar")
-async def gerar_conteudo(pedido: PedidoTema):
-    try:
-        resultado, erros = gerar_texto_seguro(
-            f"Escreva um texto informativo sobre: {pedido.tema}"
+# 🖼️ MOTOR DE IMAGEM
+async def gerar_imagem(descricao: str):
+    cache_key = f"img:{descricao}"
+    cached = get_cache(cache_key)
+    if cached:
+        print("Imagem recuperada do Cache!")
+        return cached
+
+    url = f"https://image.pollinations.ai/prompt/{quote(descricao)}?width=1024&height=1024&nologo=true"
+
+    for tentativa in range(3):
+        try:
+            resp = await client_http.get(url)
+            if resp.status_code == 200:
+                img = base64.b64encode(resp.content).decode("utf-8")
+                resultado = f"data:image/jpeg;base64,{img}"
+                set_cache(cache_key, resultado)
+                return resultado
+        except Exception as e:
+            print(f"Erro ao gerar imagem (Tentativa {tentativa + 1}/3): {e}")
+            
+        if tentativa < 2:
+            await asyncio.sleep(1)
+
+    return None
+
+# 🚀 ENDPOINT COMPLETO (Unificado e Protegido)
+@app.post("/api/ia/completo")
+async def gerar_completo(pedido: PedidoIA, request: Request):
+    ip = request.client.host
+
+    # Validação do Rate Limit com retorno HTTP 429 correto
+    if not permitido(ip):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail={"status": "Bloqueado", "mensagem": "Muitas requisições consecutivas. Aguarde um minuto."}
         )
 
-        # Se o texto foi gerado com sucesso
-        if resultado:
-            return {
-                "status": "Sucesso",
-                "conteudo": resultado
-            }
+    prompt = f"Escreva um texto informativo em português sobre: {pedido.tema}"
 
-        # Se falhou em todos os modelos da lista
-        return {
-            "status": "Erro controlado",
-            "conteudo": "Nenhum modelo disponível no momento. Verifique as cotas da Google.",
-            "detalhes": erros
-        }
+    # Executa ambas as gerações em paralelo para máxima velocidade no backend
+    texto, imagem = await asyncio.gather(
+        gerar_texto(prompt),
+        gerar_imagem(pedido.descricao_imagem)
+    )
 
-    except Exception as e:
-        return {
-            "status": "Erro crítico",
-            "conteudo": f"Erro inesperado no servidor: {str(e)}"
-        }
+    if not texto and not imagem:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_AVAILABLE,
+            detail={"status": "Erro", "mensagem": "Os serviços de IA estão temporariamente indisponíveis."}
+        )
 
-# 🔥 ENDPOINT DA IMAGEM
-@app.post("/api/ia/gerar-imagem")
-async def gerar_imagem(pedido: PedidoImagem):
-    try:
-        url = f"https://image.pollinations.ai/prompt/{pedido.descricao}?width=1024&height=1024&nologo=true"
-        async with httpx.AsyncClient() as client_http:
-            resp = await client_http.get(url, timeout=30.0)
-            
-        if resp.status_code != 200:
-            return {"status": "Falha", "erro": f"Erro na API de imagem: {resp.status_code}"}
-            
-        base64_image = base64.b64encode(resp.content).decode('utf-8')
-        return {
-            "status": "Sucesso",
-            "imagem_base64": f"data:image/jpeg;base64,{base64_image}"
-        }
-    except Exception as e:
-        return {"status": "Falha", "erro": str(e)}
+    return {
+        "status": "Sucesso",
+        "texto": texto,
+        "imagem": imagem
+    }
