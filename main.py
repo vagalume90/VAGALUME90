@@ -3,37 +3,49 @@ import base64
 import time
 import asyncio
 import httpx
-from fastapi import FastAPI, Request, HTTPException, status
-from pydantic import BaseModel
+from fastapi import FastAPI, Request, HTTPException, status, Depends
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from pydantic import BaseModel, EmailStr
 from urllib.parse import quote
 from contextlib import asynccontextmanager
 from typing import Optional
 
-# ⚡ CACHE SIMPLES
+# ⚡ CACHE SIMPLES E RATE LIMIT
 cache = {}
 CACHE_TTL = 300  
-
-# 🔒 RATE LIMIT
 limites = {}
 LIMITE_REQ = 20  
+
+# 🔒 SIMULAÇÃO DE BASE DE DADOS EM MEMÓRIA (Para teste inicial rápido)
+# No futuro, isto será ligado ao Supabase/PostgreSQL para ficar guardado para sempre.
+base_de_dados_utilizadores = {}
+
+# 🔑 CONFIGURAÇÃO DE SEGURANÇA (Chave Digital / Token)
+TOKEN_SECRETO = "Vagalume90_Chave_Secreta_Super_Protegida_2026"
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global client_http
     client_http = httpx.AsyncClient(
         timeout=30.0,
-        headers={"User-Agent": "Vagalume90/2.0.3"}
+        headers={"User-Agent": "Vagalume90/2.1.0"}
     )
     yield
     await client_http.aclose()
 
-app = FastAPI(title="Vagalume90 API PRO", version="2.0.3", lifespan=lifespan)
+app = FastAPI(title="Vagalume90 API PRO", version="2.1.0", lifespan=lifespan)
 
-# 📋 MODELO DE DADOS FLEXÍVEL (A imagem agora é opcional: Optional[str] = None)
+# 📋 MODELOS DE DADOS (Estruturas de validação)
+class RegistoUtilizador(BaseModel):
+    email: EmailStr
+    password: str
+
 class PedidoIA(BaseModel):
     tema: str
     descricao_imagem: Optional[str] = None
 
+# 🔒 LÓGICA DE PROTEÇÃO DE TRÁFEGO
 def permitido(ip: str) -> bool:
     agora = time.time()
     if ip not in limites:
@@ -44,6 +56,7 @@ def permitido(ip: str) -> bool:
     limites[ip].append(agora)
     return True
 
+# ⚡ LÓGICA DE CACHE
 def get_cache(chave: str):
     if chave in cache:
         dados, tempo = cache[chave]
@@ -54,7 +67,73 @@ def get_cache(chave: str):
 def set_cache(chave: str, valor: str):
     cache[chave] = (valor, time.time())
 
-# 📝 MOTOR DE TEXTO BLINDADO
+
+# ==========================================
+# 🚪 ROTAS DE AUTENTICAÇÃO (NOVO)
+# ==========================================
+
+@app.post("/api/auth/register", status_code=status.HTTP_211_CREATED)
+async def registar_utilizador(dados: RegistoUtilizador):
+    email_limpo = dados.email.lower().strip()
+    
+    if email_limpo in base_de_dados_utilizadores:
+        raise HTTPException(status_code=400, detail="Este email já está registado no Vagalume90.")
+    
+    if len(dados.password) < 6:
+        raise HTTPException(status_code=400, detail="A password deve ter pelo menos 6 caracteres.")
+    
+    # Guarda o utilizador (com criptografia simulada para este teste rápido)
+    password_criptografada = f"seguro_{base64.b64encode(dados.password.encode()).decode()}"
+    base_de_dados_utilizadores[email_limpo] = {
+        "email": email_limpo,
+        "password": password_criptografada
+    }
+    
+    return {"status": "Sucesso", "mensagem": "Utilizador registado com sucesso! Já pode fazer login."}
+
+
+@app.post("/api/auth/login")
+async def fazer_login(form_data: OAuth2PasswordRequestForm = Depends()):
+    email_limpo = form_data.username.lower().strip()
+    utilizador = base_de_dados_utilizadores.get(email_limpo)
+    
+    if not utilizador:
+        raise HTTPException(status_code=400, detail="Email ou password incorretos.")
+        
+    password_validar = f"seguro_{base64.b64encode(form_data.password.encode()).decode()}"
+    if utilizador["password"] != password_validar:
+        raise HTTPException(status_code=400, detail="Email ou password incorretos.")
+    
+    # Se acertou, gera o Token (Chave Digital) com o email dele dentro
+    token_acesso = base64.b64encode(f"{email_limpo}:{TOKEN_SECRETO}".encode()).decode()
+    
+    return {
+        "access_token": token_acesso, 
+        "token_type": "bearer",
+        "mensagem": "Login efetuado com sucesso!"
+    }
+
+
+# 🛡️ FUNÇÃO QUE VALIDA SE O UTILIZADOR ESTÁ LOGADO ANTES DE LIBERAR A IA
+async def obter_utilizador_atual(token: str = Depends(oauth2_scheme)):
+    try:
+        decodificado = base64.b64decode(token.encode()).decode()
+        email, segredo = decodificado.split(":")
+        if segredo != TOKEN_SECRETO:
+            raise HTTPException(status_code=401, detail="Token inválido.")
+        return email
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Não autorizado. Por favor, faça login primeiro.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+# ==========================================
+# 📝 MOTORES DE IA (TEXTO E IMAGEM)
+# ==========================================
+
 async def generar_texto(prompt: str):
     cache_key = f"texto:{prompt}"
     cached = get_cache(cache_key)
@@ -62,7 +141,6 @@ async def generar_texto(prompt: str):
         return cached
 
     url = f"https://text.pollinations.ai/{quote(prompt)}"
-
     for tentativa in range(3):
         try:
             resp = await client_http.get(url)
@@ -71,15 +149,12 @@ async def generar_texto(prompt: str):
                 if texto:
                     set_cache(cache_key, texto)
                     return texto
-        except Exception as e:
-            print(f"Erro no texto (Tentativa {tentativa + 1}/3): {e}")
-        
+        except Exception:
+            pass
         if tentativa < 2:
             await asyncio.sleep(1.5)
+    return None
 
-    return None # Retorna None em vez de mensagem de erro fixa para sabermos que falhou
-
-# 🖼️ MOTOR DE IMAGEM BLINDADO
 async def generar_imagem(descricao: str):
     cache_key = f"img:{descricao}"
     cached = get_cache(cache_key)
@@ -87,7 +162,6 @@ async def generar_imagem(descricao: str):
         return cached
 
     url = f"https://image.pollinations.ai/prompt/{quote(descricao)}?width=1024&height=1024&nologo=true"
-
     for tentativa in range(3):
         try:
             resp = await client_http.get(url)
@@ -96,54 +170,48 @@ async def generar_imagem(descricao: str):
                 resultado = f"data:image/jpeg;base64,{img}"
                 set_cache(cache_key, resultado)
                 return resultado
-        except Exception as e:
-            print(f"Erro na imagem (Tentativa {tentativa + 1}/3): {e}")
-            
+        except Exception:
+            pass
         if tentativa < 2:
             await asyncio.sleep(1.5)
-
     return None
 
-# 🚀 ENDPOINT INTELIGENTE E ANTIFALHAS
+
+# ==========================================
+# 🚀 ENDPOINT DE IA BLINDADO COM AUTENTICAÇÃO
+# ==========================================
+
+# Repare o final da linha abaixo: adicionámos a dependência do login obrigatório!
 @app.post("/api/ia/completo")
-async def gerar_completo(pedido: PedidoIA, request: Request):
+async def gerar_completo(pedido: PedidoIA, request: Request, email_utilizador: str = Depends(obter_utilizador_atual)):
     ip = request.client.host
 
     if not permitido(ip):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail={"status": "Bloqueado", "mensagem": "Muitas requisições. Aguarde."}
-        )
+        raise HTTPException(status_code=429, detail="Muitas requisições. Aguarde.")
 
-    # Prepara as tarefas que vamos executar
     prompt_comando = f"Escreva um texto informativo, detalhado e profissional em português sobre: {pedido.tema}"
     
     tarefas = [generar_texto(prompt_comando)]
     gerar_uma_foto = False
 
-    # Só adiciona a tarefa da imagem se o utilizador preencheu o campo
     if pedido.descricao_imagem and pedido.descricao_imagem.strip():
         tarefas.append(generar_imagem(pedido.descricao_imagem))
         gerar_uma_foto = True
     else:
-        tarefas.append(asyncio.sleep(0)) # Linha de segurança caso não queira imagem
+        tarefas.append(asyncio.sleep(0))
 
-    # Executa tudo em paralelo sem travar
     resultados = await asyncio.gather(*tarefas)
     texto_gerado = resultados[0]
-    imagem_gerada = resultados[1] if gerar_uma_foto else None
+    imagem_generated = resultados[1] if gerar_uma_foto else None
 
-    # Se AMBOS falharem na internet, aí sim avisamos o cliente
     if not texto_gerado and (gerar_uma_foto and not imagem_generated):
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_AVAILABLE,
-            detail={"status": "Erro", "mensagem": "Os serviços externos de IA estão offline. Tente mais tarde."}
-        )
+        raise HTTPException(status_code=503, detail="Serviços de IA offline.")
 
-    # Constrói a resposta dinâmica baseada no que deu certo
-    resposta = {"status": "Parcial" if (not texto_gerado or (gerar_uma_foto and not imagem_gerada)) else "Sucesso"}
-    
-    resposta["texto"] = texto_gerado if texto_gerado else "Aviso: Não foi possível gerar o texto informativo neste momento."
-    resposta["imagem"] = imagem_gerada if imagem_gerada else ("Nenhuma imagem solicitada" if not gerar_uma_foto else "Aviso: Não foi possível gerar a imagem neste momento.")
+    resposta = {
+        "status": "Sucesso",
+        "utilizador_autorizado": email_utilizador, # Mostra quem pediu
+        "texto": texto_gerado if texto_gerado else "Não foi possível gerar o texto.",
+        "imagem": imagem_generated if imagem_generated else "Nenhuma imagem solicitada."
+    }
 
     return resposta
