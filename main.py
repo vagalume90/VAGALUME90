@@ -16,9 +16,10 @@ class PedidoTema(BaseModel):
 class PedidoImagem(BaseModel):
     descricao: str
 
-# 🔥 LISTA DE MODELOS ATUALIZADA (fallback automático de segurança)
+# 🔥 LISTA DE MODELOS OTIMIZADA PARA CONTA GRATUITA
 MODELOS = [
-    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",       # Modelo leve ideal para o plano gratuito de 2026
+    "gemini-2.0-flash",            # Fallback se o lite não responder
     "gemini-1.5-flash",
     "gemini-1.5-pro"
 ]
@@ -44,7 +45,7 @@ def gerar_texto_seguro(prompt: str):
     # Se nenhum modelo funcionar, retorna None e a lista de erros capturados
     return None, erros
 
-# 🔥 ENDPOINT DO TEXTO (União das duas lógicas)
+# 🔥 ENDPOINT DO TEXTO
 @app.post("/api/ia/gerar")
 async def gerar_conteudo(pedido: PedidoTema):
     try:
@@ -62,7 +63,7 @@ async def gerar_conteudo(pedido: PedidoTema):
         # Se falhou em todos os modelos da lista
         return {
             "status": "Erro controlado",
-            "conteudo": "Nenhum modelo disponível no momento.",
+            "conteudo": "Nenhum modelo disponível no momento. Verifique as cotas da Google.",
             "detalhes": erros
         }
 
@@ -72,7 +73,7 @@ async def gerar_conteudo(pedido: PedidoTema):
             "conteudo": f"Erro inesperado no servidor: {str(e)}"
         }
 
-# 🔥 ENDPOINT DA IMAGEM (Mantido intacto e integrado)
+# 🔥 ENDPOINT DA IMAGEM
 @app.post("/api/ia/gerar-imagem")
 async def gerar_imagem(pedido: PedidoImagem):
     try:
