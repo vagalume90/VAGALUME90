@@ -1,12 +1,11 @@
 import os
-import uuid
 import base64
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
 import google.generativeai as genai
 
-# Configuração da chave do Gemini
+# Configuração da API
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 app = FastAPI()
@@ -21,29 +20,21 @@ class PedidoImagem(BaseModel):
 async def gerar_conteudo(pedido: PedidoTema):
     try:
         model = genai.GenerativeModel("gemini-1.5-flash")
-        # Simples, sem esquemas complexos que causam erro
         response = model.generate_content(f"Escreva um texto informativo sobre: {pedido.tema}")
-        return {"motor_ia": "Gemini 1.5 Flash", "status": "Sucesso", "conteudo": response.text}
+        return {"status": "Sucesso", "conteudo": response.text}
     except Exception as e:
-        return {"motor_ia": "Gemini", "status": "Erro", "erro": str(e)}
+        return {"status": "Erro", "conteudo": str(e)}
 
 @app.post("/api/ia/gerar-imagem")
 async def gerar_imagem(pedido: PedidoImagem):
     try:
-        # Usando uma URL de geração de imagem mais estável e gratuita (Pollinations)
         url = f"https://image.pollinations.ai/prompt/{pedido.descricao}?width=1024&height=1024&nologo=true"
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, timeout=30.0)
             
-        if resp.status_code != 200:
-            raise Exception(f"API de imagem retornou erro {resp.status_code}")
-            
-        base64_image = base64.b64encode(resp.content).decode('utf-8')
-        
         return {
-            "motor_ia": "Pollinations AI",
             "status": "Sucesso",
-            "imagem_base64": f"data:image/jpeg;base64,{base64_image}"
+            "imagem_base64": f"data:image/jpeg;base64,{base64.b64encode(resp.content).decode()}"
         }
     except Exception as e:
-        return {"motor_ia": "IA Imagem", "status": "Falha", "erro": str(e)}
+        return {"status": "Falha", "erro": str(e)}
