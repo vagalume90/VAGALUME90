@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vagalume90 - Login do Ecossistema</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: #111827;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #1f2937;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #3b82f6; /* Azul Vagalume */
+        }
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #9ca3af;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #374151;
+            background-color: #1f2937;
+            color: #fff;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-submit:hover {
+            background-color: #2563eb;
+        }
+        .error-msg {
+            color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.1);
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            text-align: center;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h2>Vagalume90 Portal</h2>
+    
+    {% if erro %}
+        <div class="error-msg">{{ erro }}</div>
+    {% endif %}
+
+    <form action="/login" method="POST">
+        <div class="form-group">
+            <label for="username">Nome de Utilizador ou Email</label>
+            <input type="text" id="username" name="username" required placeholder="Ex: aventuriro_90">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Senha</label>
+            <input type="password" id="password" name="password" required placeholder="Sua senha segura">
+        </div>
+        
+        <button type="submit" class="btn-submit">Entrar no Ecossistema</button>
+    </form>
+</div>
+
+</body>
+</html>
