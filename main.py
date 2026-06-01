@@ -1,200 +1,138 @@
-import base64
-import time
-import asyncio
-import httpx
-from fastapi import FastAPI, Request, HTTPException, status, Depends
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel, EmailStr
-from urllib.parse import quote
-from contextlib import asynccontextmanager
-from typing import Optional
-from jose import jwt, JWTError
-from passlib.context import CryptContext
-from datetime import datetime, timedelta
+import os
+from flask import Flask, render_template, request, redirect, session, jsonify
+from pymongo import MongoClient
+import firebase_admin
+from firebase_admin import credentials, auth
 
-# ==========================================
-# 🔐 CONFIGURAÇÃO DE SEGURANÇA
-# ==========================================
+app = Flask(__name__)
 
-SECRET_KEY = "SUPER_CHAVE_ULTRA_SECRETA_2026"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+# Chave secreta para gerir as sessões dos utilizadores
+app.secret_key = os.environ.get('SECRET_KEY', 'vagalume90_secret_key_2026_portal')
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+# 1. INICIALIZAÇÃO DO FIREBASE (Autenticação)
+try:
+    # Se já estiver inicializado (evita erros em reloads), usa a app existente
+    if not firebase_admin._apps:
+        # Tenta carregar o arquivo de credenciais local ou do Render
+        cred_path = os.environ.get('FIREBASE_CREDENTIALS_PATH', 'firebase-sdk.json')
+        if os.path.exists(cred_path):
+            cred = credentials.Certificate(cred_path)
+            firebase_admin.initialize_app(cred)
+        else:
+            # Caso não encontre o arquivo, inicializa com as credenciais padrão do ambiente
+            firebase_admin.initialize_app()
+    print("Firebase Authentication inicializado com sucesso!")
+except Exception as e:
+    print(f"Aviso ao inicializar Firebase: {e}. Certifica-te de que o Firebase está configurado.")
 
-# ==========================================
-# 🧠 BASE DE DADOS (MEMÓRIA - MVP)
-# ==========================================
+# 2. LIGAÇÃO AO MONGODB ATLAS (Ranks e Dados do Ecossistema)
+MONGO_URI = os.environ.get(
+    'MONGO_URI', 
+    'mongodb+srv://vagalume903_db_user:Vagalume90_2026!@cluster0.f8cltes.mongodb.net/?appName=Cluster0'
+)
 
-db_users = {}
+try:
+    client = MongoClient(MONGO_URI)
+    db = client['vagalume90_db']  # Nome da tua base de dados
+    users_col = db['users']       # Coleção de perfis e ranks
+    print("Conexão ao MongoDB Atlas estabelecida com sucesso!")
+except Exception as e:
+    print(f"Erro ao conectar ao MongoDB Atlas: {e}")
 
-# ==========================================
-# ⚡ CLIENTE GLOBAL HTTP
-# ==========================================
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    global client_http
-    client_http = httpx.AsyncClient(
-        timeout=30.0,
-        headers={"User-Agent": "Vagalume90/PRO"}
-    )
-    yield
-    await client_http.aclose()
+# --- ROTAS DO SISTEMA ---
 
-app = FastAPI(title="Vagalume90 API PRO", version="3.0.0", lifespan=lifespan)
-
-# ==========================================
-# 📋 MODELOS DE DADOS
-# ==========================================
-
-class UserRegister(BaseModel):
-    email: EmailStr
-    password: str
-
-class PedidoTexto(BaseModel):
-    tema: str
-
-class PedidoImagem(BaseModel):
-    descricao_imagem: str
-
-class PedidoCompleto(BaseModel):
-    tema: str
-    descricao_imagem: Optional[str] = None
-
-# ==========================================
-# 🔑 FUNÇÕES DE SEGURANÇA
-# ==========================================
-
-def hash_password(password: str):
-    return pwd_context.hash(password)
-
-def verify_password(password: str, hashed: str):
-    return pwd_context.verify(password, hashed)
-
-def criar_token(data: dict):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-async def obter_utilizador(token: str = Depends(oauth2_scheme)):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email = payload.get("sub")
-        if not email:
-            raise HTTPException(status_code=401, detail="Token inválido")
-        return email
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
-
-# ==========================================
-# 🛡️ RATE LIMIT
-# ==========================================
-
-limite_user = {}
-
-def check_limite(user):
-    agora = time.time()
-    if user not in limite_user:
-        limite_user[user] = []
-    limite_user[user] = [t for t in limite_user[user] if agora - t < 60]
-    if len(limite_user[user]) > 15:
-        raise HTTPException(status_code=429, detail="Muitas requisições. Aguarde um minuto.")
-    limite_user[user].append(agora)
-
-# ==========================================
-# 🚪 AUTENTICAÇÃO
-# ==========================================
-
-@app.post("/api/auth/register", tags=["Autenticação"])
-async def register(user: UserRegister):
-    if user.email in db_users:
-        raise HTTPException(status_code=400, detail="Utilizador já existe")
-    db_users[user.email] = {
-        "email": user.email,
-        "password": hash_password(user.password)
-    }
-    return {"msg": "Utilizador criado com sucesso"}
-
-@app.post("/api/auth/login", tags=["Autenticação"])
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = db_users.get(form_data.username)
-    if not user or not verify_password(form_data.password, user["password"]):
-        raise HTTPException(status_code=400, detail="Credenciais inválidas")
-    token = criar_token({"sub": form_data.username})
-    return {
-        "access_token": token,
-        "token_type": "bearer"
-    }
-
-# ==========================================
-# 🧠 MOTORES DE IA (POLLINATIONS)
-# ==========================================
-
-MAX_TEXTO = 3000
-
-async def gerar_texto(prompt: str):
-    url = f"https://text.pollinations.ai/{quote(prompt)}"
-    try:
-        resp = await client_http.get(url)
-        if resp.status_code == 200:
-            return resp.text[:MAX_TEXTO]
-    except:
-        pass
-    return None
-
-async def gerar_imagem(descricao: str):
-    url = f"https://image.pollinations.ai/prompt/{quote(descricao)}?width=1024&height=1024&nologo=true"
-    try:
-        resp = await client_http.get(url)
-        if resp.status_code == 200:
-            img = base64.b64encode(resp.content).decode()
-            return f"data:image/jpeg;base64,{img}"
-    except:
-        pass
-    return None
-
-# ==========================================
-# 🚀 ENDPOINTS DE INTELIGÊNCIA ARTIFICIAL
-# ==========================================
-
-@app.post("/api/ia/texto-apenas", tags=["Inteligência Artificial"])
-async def rota_texto_apenas(pedido: PedidoTexto, user: str = Depends(obter_utilizador)):
-    """Gera EXCLUSIVAMENTE o artigo em texto."""
-    check_limite(user)
-    prompt = f"Escreva um texto informativo em português sobre: {pedido.tema}"
-    texto = await gerar_texto(prompt)
-    if not texto:
-        raise HTTPException(status_code=503, detail="Erro ao gerar texto da IA")
-    return {"status": "Sucesso", "user": user, "texto": texto}
-
-@app.post("/api/ia/imagem-apenas", tags=["Inteligência Artificial"])
-async def rota_imagem_apenas(pedido: PedidoImagem, user: str = Depends(obter_utilizador)):
-    """Gera EXCLUSIVAMENTE a imagem em alta resolução."""
-    check_limite(user)
-    imagem = await gerar_imagem(pedido.descricao_imagem)
-    if not imagem:
-        raise HTTPException(status_code=503, detail="Erro ao gerar imagem da IA")
-    return {"status": "Sucesso", "user": user, "imagem": imagem}
-
-@app.post("/api/ia/completo", tags=["Inteligência Artificial"])
-async def gerar_completo(pedido: PedidoCompleto, user: str = Depends(obter_utilizador)):
-    """Gera Texto E Imagem em simultâneo (Combo completo)."""
-    check_limite(user)
-    prompt = f"Escreva um texto informativo em português sobre: {pedido.tema}"
+# ROTA PRINCIPAL (INDEX) - O Portal dos Mundos
+@app.route('/')
+def index():
+    if 'user' not in session:
+        return redirect('/login')
     
-    texto_task = gerar_texto(prompt)
-    img_task = gerar_imagem(pedido.descricao_imagem) if pedido.descricao_imagem else asyncio.sleep(0)
-    
-    texto, imagem = await asyncio.gather(texto_task, img_task)
-    if not texto:
-        raise HTTPException(status_code=503, detail="Erro ao gerar conteúdo")
+    # Renderiza o portal passando o utilizador e o rank vindo do MongoDB
+    return render_template('index.html', usuario=session['user'], rank=session['rank'])
+
+
+# ROTA DE LOGIN - Firebase + MongoDB
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        # O Firebase gera um "idToken" no frontend (JavaScript) após o login ter sucesso lá
+        # ou podes receber o email/username e a senha para validar via API do Firebase
+        id_token = request.form.get('idToken')
+        email = request.form.get('email')
+        username = request.form.get('username')
         
-    return {
-        "status": "Sucesso",
-        "user": user,
-        "texto": texto,
-        "imagem": imagem if imagem else "Sem imagem"
-    }
+        # Fluxo A: Autenticação via Token do Firebase (Mais seguro para Frontend)
+        if id_token:
+            try:
+                decoded_token = auth.verify_id_token(id_token)
+                uid = decoded_token['uid']
+                user_email = decoded_token.get('email', '')
+                
+                # Procurar ou criar o perfil deste utilizador no MongoDB para ler o Rank
+                user_profile = users_col.find_one({"firebase_uid": uid})
+                if not user_profile:
+                    # Se for o primeiro login, regista-o no MongoDB como Aventuriro
+                    user_profile = {
+                        "firebase_uid": uid,
+                        "username": username if username else user_email.split('@')[0],
+                        "email": user_email,
+                        "rank": "Aventuriro"
+                    }
+                    users_col.insert_one(user_profile)
+                
+                # Salva os dados na sessão do Flask
+                session['user'] = user_profile['username']
+                session['rank'] = user_profile.get('rank', 'Aventuriro')
+                return redirect('/')
+                
+            except Exception as e:
+                return render_template('login.html', erro=f"Erro de autenticação no Firebase: {e}")
+        
+        # Fluxo B: Formulário Tradicional de Teste (Caso ainda não uses Tokens no JS)
+        elif email or username:
+            search_query = {"email": email} if email else {"username": username}
+            user_profile = users_col.find_one(search_query)
+            
+            if user_profile:
+                session['user'] = user_profile['username']
+                session['rank'] = user_profile.get('rank', 'Aventuriro')
+                return redirect('/')
+            
+            return render_template('login.html', erro="Utilizador não encontrado no sistema.")
+            
+    return render_template('login.html')
+
+
+# ROTA DE LOGOUT
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/login')
+
+
+# --- ROTAS DE ACESSO AOS MUNDOS DO ECOSSISTEMA ---
+
+@app.route('/mundo/mercado')
+def mundo_mercado():
+    if 'user' not in session:
+        return redirect('/login')
+    return render_template('mercado.html', rank=session['rank'])
+
+@app.route('/mundo/matrix')
+def mundo_matrix():
+    if 'user' not in session:
+        return redirect('/login')
+    return render_template('matrix.html', rank=session['rank'])
+
+@app.route('/mundo/ruas')
+def mundo_ruas():
+    if 'user' not in session:
+        return redirect('/login')
+    return render_template('ruas.html', rank=session['rank'])
+
+
+if __name__ == '__main__':
+    porta = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=porta, debug=True)
+    
