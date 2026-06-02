@@ -58,7 +58,7 @@ body::before{
   50% { transform: scale(1.04); opacity: 1; }
 }
 
-/* Olho de Fallback em CSS Puro (Ativado se a imagem falhar no Render) */
+/* Olho de Fallback em CSS Puro (Ativado se a imagem falhar) */
 .css-eye-fallback {
   width: 150px; height: 150px; border-radius: 50%;
   border: 2px solid var(--rose); background: rgba(232, 64, 122, 0.1);
@@ -122,7 +122,7 @@ body::before{
     <div class="dna-ring dr2"></div>
     <div class="dna-ring dr3"></div>
     
-    <img src="olho.png" alt="Olho Consciente VG90" class="neural-eye-img" id="core-eye" onerror="switchToCssEye()">
+    <img src="logo_olho.jpg.png" alt="Olho Consciente VG90" class="neural-eye-img" id="core-eye" onerror="switchToCssEye()">
   </div>
 
   <div id="pulse-instruction">INICIALIZAR CONEXÃO NEURAL</div>
@@ -130,7 +130,7 @@ body::before{
   <div id="login-card">
     <div id="form-login" class="auth-form">
       <div class="terminal-header" style="color:var(--rose);">// ENTRAR_NO_ECOSSISTEMA (MATRIX/MERCADO/RUAS)</div>
-      <form action="/login" method="POST" onsubmit="handleFormSubmit(event, 'login')">
+      <form onsubmit="handleFormSubmit(event, 'login')">
         <div class="input-group"><input type="text" name="username" placeholder="IDENTIFICADOR" required autocomplete="off"></div>
         <div class="input-group"><input type="password" name="password" placeholder="CHAVE NEURAL" required></div>
         <button type="submit" class="btn-connect" style="background:linear-gradient(135deg, var(--rose), #9d174d);">CONECTAR AO NÚCLEO</button>
@@ -140,7 +140,7 @@ body::before{
 
     <div id="form-register" class="auth-form">
       <div class="terminal-header" style="color:var(--gold);">// MANIFESTAR_NOVO_OPERADOR (NÍVEL: AVENTURIRO)</div>
-      <form action="/register" method="POST" onsubmit="handleFormSubmit(event, 'register')">
+      <form onsubmit="handleFormSubmit(event, 'register')">
         <div class="input-group"><input type="text" name="username" placeholder="ESCOLHER IDENTIFICADOR" required autocomplete="off"></div>
         <div class="input-group"><input type="email" name="email" placeholder="ENDEREÇO DE SINAPSE" required autocomplete="off"></div>
         <div class="input-group"><input type="password" name="password" placeholder="GERAR CHAVE CRIPTO-NEURAL" required></div>
@@ -165,7 +165,6 @@ function switchToCssEye() {
     fallback.className = 'css-eye-fallback';
     fallback.id = 'core-eye';
     eyeImg.replaceWith(fallback);
-    // Re-sincroniza a identidade cromática do olho alternativo imediatamente após a troca
     syncPortalIdentity(isReturningUser);
   }
 }
@@ -245,29 +244,66 @@ function closeTerminal(e) {
   document.getElementById('eye-container').style.transform = 'scale(1) translateY(0)';
 }
 
-// INTERCEPTADOR DE SUBMISSÃO BLINDADO (Garante transição local e previne erros no Render)
+// INTERCEPTADOR DE SUBMISSÃO CONECTADO AO BACKEND PYTHON DO MONGODB
 function handleFormSubmit(event, type) {
-  event.preventDefault(); // Impede a recarga abrupta e fatal da página 
+  event.preventDefault();
 
-  localStorage.setItem('vg90_returning_operator', 'true');
-  isReturningUser = true;
+  const form = event.target;
+  const formData = new FormData(form);
   const readout = document.getElementById('readout');
-  
-  if(type === 'register') {
-    if (readout) {
-      readout.style.color = 'var(--gold)';
-      readout.textContent = "NÓDULO MANIFESTADO COM SUCESSO · TRANSMITINDO SINAL AO BACKEND...";
-    }
-    setTimeout(() => {
-      syncPortalIdentity(true); // Redireciona a nível visual para o ecrã de Autenticação Rosa
-    }, 1500);
+
+  if (type === 'register') {
+    if (readout) readout.textContent = "MANIFESTANDO NÓDULO... TRANSMITINDO SINAL AO BACKEND...";
+    
+    fetch('/register', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        localStorage.setItem('vg90_returning_operator', 'true');
+        if (readout) {
+          readout.style.color = 'var(--gold)';
+          readout.textContent = "SUCESSO! OPERADOR CONFIGURADO COMO AVENTURIRO. REDIRECIONANDO...";
+        }
+        setTimeout(() => { syncPortalIdentity(true); }, 2000);
+      } else {
+        if (readout) {
+          readout.style.color = '#ff4444';
+          readout.textContent = `ERRO: ${data.message}`;
+        }
+      }
+    })
+    .catch(err => {
+      if (readout) readout.textContent = "ERRO CRÍTICO NA SINAPSE DE REDE.";
+    });
+
   } else {
-    if (readout) {
-      readout.style.color = 'var(--rose)';
-      readout.textContent = "SINAPSE CONFIRMADA · CONECTANDO À MATRIX DA VG DEV ZONE...";
-    }
-    // Opcional: Se já tiveres a rota interna pronta no Flask/FastAPI, descomenta a linha abaixo:
-    // setTimeout(() => { window.location.href = "/dashboard"; }, 1000);
+    if (readout) readout.textContent = "VALIDANDO CHAVE CRIPTO-NEURAL... AGUARDE SINCRO...";
+    
+    fetch('/login', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        if (readout) {
+          readout.style.color = 'var(--rose)';
+          readout.textContent = `ACESSO CONCEDIDO · BEM-VINDO ${data.username.toUpperCase()} [RANK: ${data.rank}] · ENTRANDO NA MATRIX...`;
+        }
+        setTimeout(() => { window.location.href = "/mundo/matrix"; }, 1500);
+      } else {
+        if (readout) {
+          readout.style.color = '#ff4444';
+          readout.textContent = `ERRO DE AUTENTICAÇÃO: ${data.message}`;
+        }
+      }
+    })
+    .catch(err => {
+      if (readout) readout.textContent = "ERRO DE LIGAÇÃO AO NÚCLEO CENTRAL.";
+    });
   }
 }
 
