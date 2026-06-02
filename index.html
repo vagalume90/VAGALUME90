@@ -51,22 +51,23 @@ body::before{
 .neural-eye-img {
   width: 78%; height: 78%; object-fit: contain; border-radius: 50%;
   animation: eyeBreath 4s ease-in-out infinite; transition: all 0.5s;
+  display: block;
 }
 @keyframes eyeBreath {
   0%, 100% { transform: scale(1); opacity: 0.9; }
   50% { transform: scale(1.04); opacity: 1; }
 }
 
-/* Olho de Fallback em CSS Puro (Ativado se a imagem falhar) */
+/* Olho de Fallback em CSS Puro (Ativado se a imagem falhar no Render) */
 .css-eye-fallback {
-  width: 120px; height: 120px; border-radius: 50%;
+  width: 150px; height: 150px; border-radius: 50%;
   border: 2px solid var(--rose); background: rgba(232, 64, 122, 0.1);
   box-shadow: 0 0 30px var(--rose); display: flex; align-items: center; justify-content: center;
-  animation: eyeBreath 4s ease-in-out infinite;
+  animation: eyeBreath 4s ease-in-out infinite; transition: all 0.5s;
 }
 .css-eye-fallback::after {
-  content: ''; width: 40px; height: 40px; border-radius: 50%; background: #fff;
-  box-shadow: 0 0 15px #fff;
+  content: ''; width: 45px; height: 45px; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 20px #fff;
 }
 
 /* ── PAINEL DE SINAL TERMINAL ── */
@@ -129,9 +130,9 @@ body::before{
   <div id="login-card">
     <div id="form-login" class="auth-form">
       <div class="terminal-header" style="color:var(--rose);">// ENTRAR_NO_ECOSSISTEMA (MATRIX/MERCADO/RUAS)</div>
-      <form onsubmit="handleFormSubmit(event, 'login')">
-        <div class="input-group"><input type="text" placeholder="IDENTIFICADOR" required autocomplete="off"></div>
-        <div class="input-group"><input type="password" placeholder="CHAVE NEURAL" required></div>
+      <form action="/login" method="POST" onsubmit="handleFormSubmit(event, 'login')">
+        <div class="input-group"><input type="text" name="username" placeholder="IDENTIFICADOR" required autocomplete="off"></div>
+        <div class="input-group"><input type="password" name="password" placeholder="CHAVE NEURAL" required></div>
         <button type="submit" class="btn-connect" style="background:linear-gradient(135deg, var(--rose), #9d174d);">CONECTAR AO NÚCLEO</button>
       </form>
       <a href="#" class="switch-auth-mode" onclick="toggleAuth('register')" style="color:var(--gold);">Novo no ecossistema? Manifestar Nódua →</a>
@@ -139,10 +140,10 @@ body::before{
 
     <div id="form-register" class="auth-form">
       <div class="terminal-header" style="color:var(--gold);">// MANIFESTAR_NOVO_OPERADOR (NÍVEL: AVENTURIRO)</div>
-      <form onsubmit="handleFormSubmit(event, 'register')">
-        <div class="input-group"><input type="text" placeholder="ESCOLHER IDENTIFICADOR" required autocomplete="off"></div>
-        <div class="input-group"><input type="email" placeholder="ENDEREÇO DE SINAPSE" required autocomplete="off"></div>
-        <div class="input-group"><input type="password" placeholder="GERAR CHAVE CRIPTO-NEURAL" required></div>
+      <form action="/register" method="POST" onsubmit="handleFormSubmit(event, 'register')">
+        <div class="input-group"><input type="text" name="username" placeholder="ESCOLHER IDENTIFICADOR" required autocomplete="off"></div>
+        <div class="input-group"><input type="email" name="email" placeholder="ENDEREÇO DE SINAPSE" required autocomplete="off"></div>
+        <div class="input-group"><input type="password" name="password" placeholder="GERAR CHAVE CRIPTO-NEURAL" required></div>
         <button type="submit" class="btn-connect" style="background:linear-gradient(135deg, var(--gold), #b48608); color:#000; font-weight:bold;">SOLICITAR ENTRADA</button>
       </form>
       <a href="#" class="switch-auth-mode" onclick="toggleAuth('login')" style="color:var(--rose);">Possui uma chave de operador? Autenticar ←</a>
@@ -155,16 +156,17 @@ body::before{
 <div id="readout">VG90 · FRAGMENTO GATEKEEPER · MAPEANDO DISPOSITIVO...</div>
 
 <script>
-const isReturningUser = localStorage.getItem('vg90_returning_operator') === 'true';
+let isReturningUser = localStorage.getItem('vg90_returning_operator') === 'true';
 
-// Ativa olho alternativo em CSS se a imagem não for encontrada no servidor
 function switchToCssEye() {
   const eyeImg = document.getElementById('core-eye');
-  if(eyeImg) {
+  if(eyeImg && eyeImg.tagName === 'IMG') {
     const fallback = document.createElement('div');
     fallback.className = 'css-eye-fallback';
     fallback.id = 'core-eye';
     eyeImg.replaceWith(fallback);
+    // Re-sincroniza a identidade cromática do olho alternativo imediatamente após a troca
+    syncPortalIdentity(isReturningUser);
   }
 }
 
@@ -184,7 +186,16 @@ function syncPortalIdentity(returning) {
     if(card) card.style.borderColor = 'var(--rose)';
     if(orb) orb.style.background = 'rgba(232, 64, 122, 0.05)';
     if(instr) { instr.style.color = 'var(--rose)'; instr.textContent = 'RECONEXÃO REQUERIDA'; }
-    if(eye && eye.tagName === 'IMG') eye.style.filter = 'drop-shadow(0 0 25px rgba(232, 64, 122, 0.5))';
+    
+    if(eye) {
+      if(eye.tagName === 'IMG') {
+        eye.style.filter = 'drop-shadow(0 0 25px rgba(232, 64, 122, 0.5))';
+      } else {
+        eye.style.borderColor = 'var(--rose)';
+        eye.style.boxShadow = '0 0 30px var(--rose)';
+        eye.style.background = 'rgba(232, 64, 122, 0.1)';
+      }
+    }
     if(readout) { readout.style.color = 'var(--rose)'; readout.textContent = "VG90 · OPERADOR ANTIGO LOCALIZADO · INSIRA A CHAVE NEURAL"; }
     rings.forEach(r => r.style.borderColor = 'rgba(232, 64, 122, 0.25)');
   } else {
@@ -193,7 +204,16 @@ function syncPortalIdentity(returning) {
     if(card) card.style.borderColor = 'var(--gold)';
     if(orb) orb.style.background = 'rgba(245, 192, 48, 0.05)';
     if(instr) { instr.style.color = 'var(--gold)'; instr.textContent = 'INICIALIZAR NOVO REGISTO'; }
-    if(eye && eye.tagName === 'IMG') eye.style.filter = 'drop-shadow(0 0 25px rgba(245, 192, 48, 0.4))';
+    
+    if(eye) {
+      if(eye.tagName === 'IMG') {
+        eye.style.filter = 'drop-shadow(0 0 25px rgba(245, 192, 48, 0.4))';
+      } else {
+        eye.style.borderColor = 'var(--gold)';
+        eye.style.boxShadow = '0 0 30px var(--gold)';
+        eye.style.background = 'rgba(245, 192, 48, 0.1)';
+      }
+    }
     if(readout) { readout.style.color = 'var(--gold)'; readout.textContent = "VG90 · SINAL DESCONHECIDO · REQUER MANIFESTAÇÃO DE NÓDULO (RANK: AVENTURIRO)"; }
     rings.forEach(r => r.style.borderColor = 'rgba(245, 192, 48, 0.25)');
   }
@@ -204,7 +224,11 @@ window.onload = () => {
   buildNetworkLines();
 };
 
-function toggleAuth(mode) { syncPortalIdentity(mode === 'login'); }
+function toggleAuth(mode) { 
+  isReturningUser = (mode === 'login');
+  syncPortalIdentity(isReturningUser); 
+  buildNetworkLines();
+}
 
 function openTerminal() {
   document.getElementById('login-card').classList.add('active');
@@ -221,21 +245,29 @@ function closeTerminal(e) {
   document.getElementById('eye-container').style.transform = 'scale(1) translateY(0)';
 }
 
-// INTERCEPTADOR DE SUBMISSÃO SEGURO (Evita quebras de erro 404/500 no clique)
+// INTERCEPTADOR DE SUBMISSÃO BLINDADO (Garante transição local e previne erros no Render)
 function handleFormSubmit(event, type) {
-  event.preventDefault(); // Congela o comportamento de recarga cega da página
+  event.preventDefault(); // Impede a recarga abrupta e fatal da página 
 
   localStorage.setItem('vg90_returning_operator', 'true');
+  isReturningUser = true;
   const readout = document.getElementById('readout');
   
   if(type === 'register') {
-    if (readout) readout.textContent = "NÓDULO MANIFESTADO COM SUCESSO · ATUALIZANDO SINAL...";
+    if (readout) {
+      readout.style.color = 'var(--gold)';
+      readout.textContent = "NÓDULO MANIFESTADO COM SUCESSO · TRANSMITINDO SINAL AO BACKEND...";
+    }
     setTimeout(() => {
-      syncPortalIdentity(true); // Redireciona visualmente para o ecrã de Login
-    }, 1200);
+      syncPortalIdentity(true); // Redireciona a nível visual para o ecrã de Autenticação Rosa
+    }, 1500);
   } else {
-    if (readout) readout.textContent = "CONECTANDO À MATRIX... AGUARDE SINCRO...";
-    // Aqui podes adicionar o redirecionamento real para a VG Dev Zone, ex: window.location.href = "/dashboard";
+    if (readout) {
+      readout.style.color = 'var(--rose)';
+      readout.textContent = "SINAPSE CONFIRMADA · CONECTANDO À MATRIX DA VG DEV ZONE...";
+    }
+    // Opcional: Se já tiveres a rota interna pronta no Flask/FastAPI, descomenta a linha abaixo:
+    // setTimeout(() => { window.location.href = "/dashboard"; }, 1000);
   }
 }
 
@@ -251,7 +283,7 @@ function buildNetworkLines() {
     const targetY = H/2 + Math.sin(angle) * (H * 0.4);
     const d = `M ${W/2} ${H/2} Q ${W/2 + (targetX - W/2)*0.5 + (Math.random()-0.5)*100} ${H/2 + (targetY - H/2)*0.5 + (Math.random()-0.5)*100} ${targetX} ${targetY}`;
     path.setAttribute('d', d); path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', isReturningUser ? 'rgba(232,64,122,0.06)' : 'rgba(245,192,48,0.06)');
+    path.setAttribute('stroke', isReturningUser ? 'rgba(232,64,122,0.08)' : 'rgba(245,192,48,0.08)');
     path.setAttribute('stroke-width', '1.5'); svg.appendChild(path);
   }
 }
