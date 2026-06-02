@@ -1,1762 +1,304 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
-  <!-- Firebase SDK -->
-<script type="module">
-  // Depois de window.orderBy = orderBy;
-console.log("🔥 Firebase conectado!");
-console.log("✅ Auth disponível:", !!window.auth);
-console.log("✅ Firestore disponível:", !!window.db);
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
-  import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, doc, setDoc, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyA0Z7uaMVo2HsgKpKFbsEQve26xSxjmJr8",
-    authDomain: "vagalume90-79c87.firebaseapp.com",
-    projectId: "vagalume90-79c87",
-    storageBucket: "vagalume90-79c87.firebasestorage.app",
-    messagingSenderId: "933159656212",
-    appId: "1:933159656212:web:0cd1bb6ad11c3838490001",
-    measurementId: "G-28G5ZYE9L0"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-
-  window.db = db;
-  window.auth = auth;
-  window.addDoc = addDoc;
-  window.collection = collection;
-  window.serverTimestamp = serverTimestamp;
-  window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-  window.getDocs = getDocs;
-  window.query = query;
-  window.where = where;
-  window.doc = doc;
-  window.setDoc = setDoc;
-  window.orderBy = orderBy;
-
-  console.log("🔥 Firebase conectado!");
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vagalume90 — Divulgação & Afiliados</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<title>VG90 · Portal de Entrada Supremo</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #080b12;
-    --glow: #f5c842;
-    --accent: #ff6b1a;
-    --text: #e8e2d4;
-    --muted: #6b6b7a;
-    --card: #0f1320;
-  }
+:root{
+  --void:#060608; --gold:#F5C030; --rose:#E8407A; --blue:#4FA3FF;
+  --f-h:'Bebas Neue',sans-serif; --f-m:'JetBrains Mono',monospace; --f-b:'Outfit',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:var(--void);overflow:hidden;font-family:var(--f-b);color:#fff;}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+/* ── ATMOSFERA E SCANLINES ── */
+#breath-canvas{position:fixed;inset:0;z-index:0;opacity:0.35;}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.15) 2px,rgba(0,0,0,.15) 4px);
+  pointer-events:none;z-index:900;
+}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    overflow-x: hidden;
-  }
+.amb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:1;}
+.amb-center{width:500px;height:500px;top:50%;left:50%;transform:translate(-50%,-50%);transition:background 0.8s;}
 
-  /* FIREFLIES */
-  .fireflies {
-    position: fixed;
-    width: 100%; height: 100%;
-    top: 0; left: 0;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .firefly {
-    position: absolute;
-    width: 4px; height: 4px;
-    border-radius: 50%;
-    background: var(--glow);
-    box-shadow: 0 0 8px 3px var(--glow);
-    animation: fly linear infinite, pulse 2s ease-in-out infinite alternate;
-  }
-  @keyframes fly {
-    0%   { transform: translate(0, 0); opacity: 0; }
-    10%  { opacity: 1; }
-    90%  { opacity: 1; }
-    100% { transform: translate(var(--dx), var(--dy)); opacity: 0; }
-  }
-  @keyframes pulse {
-    from { box-shadow: 0 0 6px 2px var(--glow); }
-    to   { box-shadow: 0 0 14px 6px var(--glow); }
-  }
+/* ── STAGE CENTRAL ── */
+#gatekeeper-stage{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
 
-  /* NAV */
-  nav {
-    position: fixed; top: 0; width: 100%; z-index: 100;
-    padding: 1.2rem 2.5rem;
-    display: flex; justify-content: space-between; align-items: center;
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(245,200,66,0.08);
-  }
-  .logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem;
-    letter-spacing: 0.12em;
-    color: var(--glow);
-    text-shadow: 0 0 20px rgba(245,200,66,0.5);
-  }
-  .logo span { color: var(--accent); }
-  nav ul { list-style: none; display: flex; gap: 2rem; }
-  nav ul a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; letter-spacing: 0.05em; transition: color 0.2s; }
-  nav ul a:hover { color: var(--glow); }
+/* ── MALHA DE REDE SVG ── */
+#network-svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2; }
 
-  /* HERO */
-  .hero {
-    position: relative; z-index: 1;
-    min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center;
-    padding: 6rem 2rem 4rem;
-  }
-  .hero-tag {
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: var(--accent);
-    background: rgba(255,107,26,0.1);
-    border: 1px solid rgba(255,107,26,0.25);
-    padding: 0.35rem 1rem;
-    border-radius: 100px;
-    margin-bottom: 1.8rem;
-    animation: fadeUp 0.8s 0.1s both;
-  }
-  .hero h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(4rem, 10vw, 9rem);
-    line-height: 0.95;
-    letter-spacing: 0.04em;
-    color: var(--text);
-    animation: fadeUp 0.8s 0.25s both;
-  }
-  .hero h1 em {
-    font-style: normal;
-    color: var(--glow);
-    text-shadow: 0 0 40px rgba(245,200,66,0.4);
-  }
-  .hero p {
-    max-width: 540px;
-    font-size: 1.1rem;
-    color: var(--muted);
-    line-height: 1.75;
-    margin: 1.8rem auto 2.8rem;
-    animation: fadeUp 0.8s 0.4s both;
-  }
-  .cta-group {
-    display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
-    animation: fadeUp 0.8s 0.55s both;
-  }
-  .btn-primary {
-    background: var(--glow);
-    color: #080b12;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 700;
-    font-size: 0.95rem;
-    letter-spacing: 0.05em;
-    padding: 0.9rem 2.2rem;
-    border: none; border-radius: 6px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 0 30px rgba(245,200,66,0.35);
-  }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(245,200,66,0.55); }
-  .btn-ghost {
-    background: transparent;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 500;
-    font-size: 0.95rem;
-    padding: 0.9rem 2.2rem;
-    border: 1px solid rgba(232,226,212,0.2);
-    border-radius: 6px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: border-color 0.2s, color 0.2s;
-  }
-  .btn-ghost:hover { border-color: var(--glow); color: var(--glow); }
+/* ── O NÚCLEO (OLHO CONSCIENTE) ── */
+#eye-container {
+  position: relative; width: 270px; height: 270px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 20;
+  transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+}
 
-  .scroll-hint {
-    margin-top: 4rem;
-    font-size: 0.75rem;
-    color: var(--muted);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    animation: fadeUp 0.8s 0.8s both, bounce 2s 1.5s ease-in-out infinite;
-  }
-  @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+.dna-ring{position:absolute;border-radius:50%;border-style:solid;border-width:1px;pointer-events:none;transition:border-color 0.8s;}
+.dr1{inset:-15px;animation:drSpin 30s linear infinite;}
+.dr2{inset:5px;border-style:dashed;animation:drSpin 20s linear infinite reverse;}
+.dr3{inset:25px;border-style:dotted;animation:drSpin 12s linear infinite;}
+@keyframes drSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 
-  /* STATS */
-  .stats {
-    position: relative; z-index: 1;
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1px;
-    background: rgba(245,200,66,0.06);
-    border-top: 1px solid rgba(245,200,66,0.08);
-    border-bottom: 1px solid rgba(245,200,66,0.08);
-  }
-  .stat {
-    padding: 2.5rem 2rem;
-    background: var(--bg);
-    text-align: center;
-  }
-  .stat-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 3rem;
-    color: var(--glow);
-    line-height: 1;
-  }
-  .stat-label {
-    font-size: 0.8rem;
-    color: var(--muted);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-top: 0.4rem;
-  }
+.neural-eye-img {
+  width: 78%; height: 78%; object-fit: contain; border-radius: 50%;
+  animation: eyeBreath 4s ease-in-out infinite; transition: filter 0.5s;
+}
+@keyframes eyeBreath {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.04); opacity: 1; }
+}
 
-  /* SERVICES */
-  .section {
-    position: relative; z-index: 1;
-    padding: 7rem 2rem;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
-  .section-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 0.8rem;
-  }
-  .section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2.5rem, 5vw, 4.5rem);
-    line-height: 1;
-    margin-bottom: 1rem;
-  }
-  .section-sub {
-    color: var(--muted);
-    font-size: 1rem;
-    line-height: 1.7;
-    max-width: 480px;
-    margin-bottom: 3.5rem;
-  }
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-  }
-  .card {
-    background: var(--card);
-    border: 1px solid rgba(245,200,66,0.07);
-    border-radius: 12px;
-    padding: 2rem;
-    transition: border-color 0.3s, transform 0.3s;
-  }
-  .card:hover {
-    border-color: rgba(245,200,66,0.3);
-    transform: translateY(-4px);
-  }
-  .card-icon {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-  }
-  .card h3 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.5rem;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.7rem;
-    color: var(--text);
-  }
-  .card p { font-size: 0.9rem; color: var(--muted); line-height: 1.7; }
+/* ── PAINEL DE SINAL TERMINAL ── */
+#login-card {
+  position: absolute;
+  background: rgba(6, 6, 8, 0.97);
+  border: 1px solid transparent;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+  padding: 35px 30px; border-radius: 6px;
+  width: 350px; text-align: center;
+  backdrop-filter: blur(16px); z-index: 30;
+  opacity: 0; pointer-events: none; transform: scale(0.92) translateY(30px);
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+#login-card.active {
+  opacity: 1; pointer-events: all; transform: scale(1) translateY(0);
+}
 
-  /* HOW IT WORKS */
-  .steps {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 2rem;
-    counter-reset: step;
-  }
-  .step { position: relative; padding-left: 1rem; }
-  .step::before {
-    counter-increment: step;
-    content: "0" counter(step);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 4rem;
-    color: rgba(245,200,66,0.08);
-    line-height: 1;
-    display: block;
-    margin-bottom: 0.5rem;
-  }
-  .step h4 {
-    font-weight: 700;
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-    color: var(--text);
-  }
-  .step p { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
+.terminal-header {
+  font-family: var(--f-m); font-size: 0.6rem; letter-spacing: 2px; margin-bottom: 25px; transition: color 0.8s;
+}
 
-  /* CTA SECTION */
-  .cta-section {
-    position: relative; z-index: 1;
-    margin: 0 2rem 7rem;
-    max-width: 1100px;
-    margin-left: auto; margin-right: auto;
-    background: linear-gradient(135deg, rgba(245,200,66,0.08) 0%, rgba(255,107,26,0.06) 100%);
-    border: 1px solid rgba(245,200,66,0.15);
-    border-radius: 16px;
-    padding: 4rem 3rem;
-    text-align: center;
-  }
-  .cta-section h2 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2.5rem, 5vw, 4rem);
-    margin-bottom: 1rem;
-  }
-  .cta-section p {
-    color: var(--muted);
-    font-size: 1rem;
-    margin-bottom: 2rem;
-    max-width: 500px;
-    margin-left: auto; margin-right: auto;
-    line-height: 1.7;
-  }
+.auth-form { display: none; }
+.auth-form.visible { display: block; }
 
-  /* FOOTER */
-  footer {
-    position: relative; z-index: 1;
-    border-top: 1px solid rgba(245,200,66,0.07);
-    padding: 2rem;
-    text-align: center;
-    color: var(--muted);
-    font-size: 0.8rem;
-    letter-spacing: 0.05em;
-  }
-  footer span { color: var(--glow); }
+.input-group { position: relative; margin-bottom: 16px; }
+.input-group input {
+  width: 100%; background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.1); padding: 11px 14px;
+  font-family: var(--f-m); font-size: 0.75rem; color: #fff;
+  border-radius: 4px; outline: none; transition: all 0.3s;
+}
+.input-group input:focus { background: rgba(255,255,255,0.04); border-color: inherit; }
 
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+.btn-connect {
+  width: 100%; border: none; padding: 12px; border-radius: 4px;
+  font-family: var(--f-h); font-size: 1.2rem; letter-spacing: 2px; color: #fff;
+  cursor: pointer; margin-top: 10px; transition: all 0.3s;
+}
+.btn-connect:hover { transform: translateY(-1px); filter: brightness(1.15); }
 
-  /* MODAL */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(8,11,18,0.85);
-    backdrop-filter: blur(8px);
-    z-index: 999;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
-  }
-  .modal-overlay.active { display: flex; }
-  .modal-box {
-    width: 100%;
-    max-width: 960px;
-    max-height: 90vh;
-    overflow-y: auto;
-    border-radius: 20px;
-    border: 1px solid rgba(245,200,66,0.15);
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    animation: fadeUp 0.4s both;
-  }
-  .modal-box::-webkit-scrollbar { width: 4px; }
-  .modal-box::-webkit-scrollbar-track { background: transparent; }
-  .modal-box::-webkit-scrollbar-thumb { background: rgba(245,200,66,0.2); border-radius: 4px; }
-  .modal-left {
-    background: linear-gradient(145deg, rgba(245,200,66,0.08) 0%, rgba(255,107,26,0.05) 60%, rgba(8,11,18,0.9) 100%);
-    border-right: 1px solid rgba(245,200,66,0.1);
-    padding: 3rem 2.5rem;
-    display: flex; flex-direction: column; justify-content: center;
-    position: relative; overflow: hidden;
-  }
-  .modal-left::before {
-    content:''; position:absolute; top:-60px; left:-60px;
-    width:200px; height:200px;
-    background:radial-gradient(circle,rgba(245,200,66,0.12),transparent 70%);
-    border-radius:50%;
-  }
-  .modal-right {
-    background: #0f1320;
-    padding: 3rem 2.5rem;
-    display: flex; flex-direction: column; justify-content: center;
-  }
-  .modal-close {
-    position: absolute; top: 1.2rem; right: 1.5rem;
-    background: rgba(245,200,66,0.08);
-    border: 1px solid rgba(245,200,66,0.15);
-    color: var(--muted);
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1rem;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.2s, color 0.2s;
-    z-index: 10;
-  }
-  .modal-close:hover { background: rgba(245,200,66,0.15); color: var(--glow); }
-  .panel-tag {
-    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.25em;
-    text-transform: uppercase; color: var(--accent);
-    background: rgba(255,107,26,0.1); border: 1px solid rgba(255,107,26,0.25);
-    padding: 0.3rem 0.9rem; border-radius: 100px;
-    display: inline-block; margin-bottom: 1.2rem;
-  }
-  .panel-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2.2rem, 4vw, 3.2rem);
-    line-height: 0.95; letter-spacing: 0.04em; margin-bottom: 1rem;
-  }
-  .panel-title em { font-style:normal; color:var(--glow); text-shadow:0 0 30px rgba(245,200,66,0.4); }
-  .panel-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.75; margin-bottom: 2rem; }
-  .perks { display: flex; flex-direction: column; gap: 0.9rem; }
-  .perk { display: flex; align-items: flex-start; gap: 0.8rem; }
-  .perk-icon {
-    width: 30px; height: 30px; background: rgba(245,200,66,0.1);
-    border: 1px solid rgba(245,200,66,0.2); border-radius: 7px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.85rem; flex-shrink: 0; margin-top: 1px;
-  }
-  .perk-text strong { display:block; font-size:0.85rem; font-weight:700; color:var(--text); margin-bottom:0.1rem; }
-  .perk-text span { font-size:0.78rem; color:var(--muted); line-height:1.5; }
-  .form-header { margin-bottom: 1.5rem; }
-  .form-header h2 { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; letter-spacing:0.05em; margin-bottom:0.3rem; }
-  .form-header p { font-size:0.82rem; color:var(--muted); }
-  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; }
-  .field { margin-bottom:0.9rem; display:flex; flex-direction:column; gap:0.35rem; }
-  label { font-size:0.75rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); }
-  input, select, textarea {
-    background: #131824; border: 1px solid rgba(245,200,66,0.12);
-    border-radius: 7px; padding: 0.65rem 0.9rem;
-    color: var(--text); font-family:'DM Sans',sans-serif; font-size:0.88rem;
-    transition: border-color 0.25s, box-shadow 0.25s; outline: none; width: 100%;
-  }
-  input::placeholder, textarea::placeholder { color: rgba(107,107,122,0.6); }
-  input:focus, select:focus, textarea:focus {
-    border-color: rgba(245,200,66,0.45);
-    box-shadow: 0 0 0 3px rgba(245,200,66,0.07);
-  }
-  select {
-    appearance:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b7a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat:no-repeat; background-position:right 0.9rem center;
-    padding-right:2.2rem; cursor:pointer;
-  }
-  select option { background:#131824; }
-  textarea { resize:none; min-height:70px; }
-  .checkbox-group { display:flex; align-items:flex-start; gap:0.7rem; margin-bottom:1.2rem; }
-  .checkbox-group input[type="checkbox"] { width:16px; height:16px; flex-shrink:0; accent-color:var(--glow); margin-top:3px; cursor:pointer; }
-  .checkbox-group label { text-transform:none; letter-spacing:0; font-size:0.78rem; color:var(--muted); line-height:1.6; cursor:pointer; }
-  .checkbox-group label a { color:var(--glow); text-decoration:none; }
-  .btn-submit {
-    width:100%; background:var(--glow); color:#080b12;
-    font-family:'DM Sans',sans-serif; font-weight:700; font-size:0.92rem;
-    letter-spacing:0.05em; padding:0.9rem 2rem; border:none; border-radius:7px;
-    cursor:pointer; transition:transform 0.2s, box-shadow 0.2s;
-    box-shadow:0 0 30px rgba(245,200,66,0.3);
-  }
-  .btn-submit:hover { transform:translateY(-2px); box-shadow:0 0 50px rgba(245,200,66,0.5); }
-  .login-hint { text-align:center; margin-top:1rem; font-size:0.78rem; color:var(--muted); }
-  .login-hint a { color:var(--glow); text-decoration:none; }
-  .success-overlay {
-    display:none; flex-direction:column; align-items:center;
-    justify-content:center; text-align:center; padding:2rem;
-  }
-  .success-icon {
-    width:64px; height:64px; background:rgba(245,200,66,0.1);
-    border:2px solid var(--glow); border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    font-size:1.8rem; margin-bottom:1.2rem;
-    box-shadow:0 0 40px rgba(245,200,66,0.25);
-    animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
-  }
-  @keyframes popIn { from{transform:scale(0);opacity:0;} to{transform:scale(1);opacity:1;} }
-  .success-overlay h3 { font-family:'Bebas Neue',sans-serif; font-size:2rem; color:var(--glow); margin-bottom:0.6rem; }
-  .success-overlay p { font-size:0.88rem; color:var(--muted); line-height:1.7; max-width:300px; }
-  .ref-code { margin-top:1.2rem; background:rgba(245,200,66,0.07); border:1px solid rgba(245,200,66,0.2); border-radius:8px; padding:0.7rem 1.5rem; font-family:'Bebas Neue',sans-serif; letter-spacing:0.15em; color:var(--glow); font-size:1.1rem; }
-  .ref-label { font-size:0.7rem; color:var(--muted); letter-spacing:0.2em; text-transform:uppercase; margin-top:0.3rem; }
-  @media (max-width:700px) {
-    .modal-box { grid-template-columns:1fr; }
-    .modal-left { padding:2rem 1.5rem; border-right:none; border-bottom:1px solid rgba(245,200,66,0.1); }
-    .modal-right { padding:2rem 1.5rem; }
-    .form-row { grid-template-columns:1fr; }
-  }  /* ========== DEPOIMENTOS ========== */
-  .testimonials {
-    position: relative;
-    z-index: 1;
-    padding: 5rem 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  
-  .testimonials-header {
-    text-align: center;
-    margin-bottom: 4rem;
-  }
-  
-  .testimonials-header .section-label {
-    display: inline-block;
-  }
-  
-  .testimonials-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 2rem;
-  }
-  
-  .testimonial-card {
-    background: var(--card);
-    border: 1px solid rgba(245,200,66,0.1);
-    border-radius: 16px;
-    padding: 2rem;
-    transition: all 0.3s ease;
-    position: relative;
-  }
-  
-  .testimonial-card:hover {
-    border-color: rgba(245,200,66,0.3);
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-  }
-  
-  .testimonial-quote {
-    font-size: 3rem;
-    color: rgba(245,200,66,0.2);
-    position: absolute;
-    top: 1rem;
-    right: 1.5rem;
-    font-family: serif;
-  }
-  
-  .testimonial-text {
-    font-size: 0.95rem;
-    line-height: 1.7;
-    color: var(--text);
-    margin-bottom: 1.5rem;
-    font-style: italic;
-  }
-  
-  .testimonial-author {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(245,200,66,0.1);
-  }
-  
-  .testimonial-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--glow), var(--accent));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-  }
-  
-  .testimonial-info h4 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--glow);
-    margin-bottom: 0.2rem;
-  }
-  
-  .testimonial-info p {
-    font-size: 0.75rem;
-    color: var(--muted);
-  }
-  
-  .testimonial-stars {
-    color: var(--glow);
-    font-size: 0.85rem;
-    margin-bottom: 0.5rem;
-    letter-spacing: 2px;
-  }
-  
-  @media (max-width: 700px) {
-    .testimonials-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-    /* ========== BOTÕES DE COMPARTILHAMENTO ========== */
-  .share-buttons {
-    display: flex;
-    gap: 0.8rem;
-    margin-top: 1rem;
-    flex-wrap: wrap;
-  }
-  
-  .btn-share {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none;
-    border: none;
-  }
-  
-  .btn-share-whatsapp {
-    background: #25d366;
-    color: #fff;
-  }
-  
-  .btn-share-whatsapp:hover {
-    background: #128C7E;
-    transform: translateY(-2px);
-  }
-  
-  .btn-share-copy {
-    background: rgba(245,200,66,0.15);
-    color: var(--glow);
-    border: 1px solid rgba(245,200,66,0.3);
-  }
+.switch-auth-mode {
+  display: block; margin-top: 16px; font-family: var(--f-m); font-size: 0.6rem;
+  text-decoration: none; letter-spacing: 1px; transition: color 0.3s;
+}
+.switch-auth-mode:hover { text-decoration: underline; }
 
-  .btn-share-copy:hover {
-    background: rgba(245,200,66,0.25);
-    transform: translateY(-2px);
-  }
+.btn-close-terminal {
+  display: block; margin-top: 20px; font-family: var(--f-m); font-size: 0.55rem;
+  color: rgba(255,255,255,0.3); text-decoration: none; letter-spacing: 1px;
+}
+.btn-close-terminal:hover { color: #fff; }
+
+#pulse-instruction {
+  font-family: var(--f-m); font-size: 0.55rem; letter-spacing: 4px;
+  margin-top: 30px; animation: textBlink 2s infinite; transition: all 0.5s;
+}
+@keyframes textBlink { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+
+#readout {
+  position: fixed; bottom: 16px; font-family: var(--f-m); font-size: 0.55rem;
+  letter-spacing: 3px; text-align: center; z-index: 100; transition: color 0.8s;
+}
 </style>
 </head>
 <body>
 
-<!-- FIREFLIES -->
-<div class="fireflies" id="fireflies"></div>
+<div class="amb amb-center" id="ambient-orb"></div>
+<canvas id="breath-canvas"></canvas>
 
-<!-- NAV -->
-<nav>
-  <div class="logo">Vagalume<span>90</span></div>
-  <ul>
-    <li><a href="#quem-somos">Quem Somos</a></li>
-    <li><a href="#servicos">Serviços</a></li>
-    <li><a href="#loja">📚 Loja</a></li>
-    <li><a href="#cursos">🎓 Cursos</a></li>
-    <li><a href="#como-funciona">Como Funciona</a></li>
-    <li><a href="#afiliados">Afiliados</a></li>
-    <li><a href="#casais" style="color:#ff85a1;">💑 Casais</a></li>
-    <li><a href="#contato">Contato</a></li>
-    <li><a href="#" onclick="abrirRegisto(event)" style="color:var(--glow);border:1px solid rgba(245,200,66,0.35);padding:0.35rem 1rem;border-radius:100px;transition:background 0.2s;" onmouseover="this.style.background='rgba(245,200,66,0.1)'" onmouseout="this.style.background='transparent'">✦ Tornar-me Afiliado</a></li>
-  </ul>
-</nav>
+<div id="gatekeeper-stage">
+  
+  <svg id="network-svg"></svg>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-tag">✦ Divulgação & Afiliados</div>
-  <h1>Seu <em>brilho</em><br>no digital</h1>
-  <p>A Vagalume90 conecta marcas e criadores com as melhores estratégias de divulgação e programas de afiliados para fazer seu negócio brilhar.</p>
-  <div class="cta-group">
-    <a href="#contato" class="btn-primary">Começar agora</a>
-    <a href="#servicos" class="btn-ghost">Ver serviços</a>
-    <a href="#" onclick="abrirRegisto(event)" class="btn-ghost" style="border-color:rgba(245,200,66,0.4);color:var(--glow);">✦ Ser Afiliado</a>
+  <div id="eye-container" onclick="openTerminal()">
+    <div class="dna-ring dr1"></div>
+    <div class="dna-ring dr2"></div>
+    <div class="dna-ring dr3"></div>
+    <img src="olho.png" alt="Olho Consciente VG90" class="neural-eye-img" id="core-eye">
   </div>
-  <div class="scroll-hint">↓ Explore</div>
-</section>
 
-<!-- STATS -->
-<div class="stats">
-  <div class="stat">
-    <div class="stat-num">500+</div>
-    <div class="stat-label">Afiliados Ativos</div>
+  <div id="pulse-instruction">INICIALIZAR CONEXÃO NEURAL</div>
+
+  <div id="login-card">
+    
+    <div id="form-login" class="auth-form">
+      <div class="terminal-header" style="color:var(--rose);">// ENTRAR_NO_ECOSSISTEMA (MATRIX/MERCADO/RUAS)</div>
+      <form action="/login" method="POST" onsubmit="handleFormSubmit(event)">
+        <div class="input-group">
+          <input type="text" name="username" placeholder="IDENTIFICADOR (Username)" required autocomplete="off">
+        </div>
+        <div class="input-group">
+          <input type="password" name="password" placeholder="CHAVE NEURAL (Password)" required>
+        </div>
+        <button type="submit" class="btn-connect" style="background:linear-gradient(135deg, var(--rose), #9d174d);">CONECTAR AO NÚCLEO</button>
+      </form>
+      <a href="#" class="switch-auth-mode" onclick="toggleAuth('register')" style="color:var(--gold);">Novo no ecossistema? Manifestar Nódua →</a>
+    </div>
+
+    <div id="form-register" class="auth-form">
+      <div class="terminal-header" style="color:var(--gold);">// MANIFESTAR_NOVO_OPERADOR (NÍVEL: AVENTURIRO)</div>
+      <form action="/register" method="POST" onsubmit="handleFormSubmit(event)">
+        <div class="input-group">
+          <input type="text" name="username" placeholder="ESCOLHER IDENTIFICADOR" required autocomplete="off">
+        </div>
+        <div class="input-group">
+          <input type="email" name="email" placeholder="ENDEREÇO DE SINAPSE (Email)" required autocomplete="off">
+        </div>
+        <div class="input-group">
+          <input type="password" name="password" placeholder="GERAR CHAVE CRIPTO-NEURAL" required>
+        </div>
+        <button type="submit" class="btn-connect" style="background:linear-gradient(135deg, var(--gold), #b48608); color:#000; font-weight:bold;">SOLICITAR ENTRADA</button>
+      </form>
+      <a href="#" class="switch-auth-mode" onclick="toggleAuth('login')" style="color:var(--rose);">Possui uma chave de operador? Autenticar ←</a>
+    </div>
+
+    <a href="#" class="btn-close-terminal" onclick="closeTerminal(event)">// ABORTAR SINAPSE</a>
   </div>
-  <div class="stat">
-    <div class="stat-num">98%</div>
-    <div class="stat-label">Clientes Satisfeitos</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num">3x</div>
-    <div class="stat-label">Retorno Médio</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num">24h</div>
-    <div class="stat-label">Suporte</div>
-  </div>
+
 </div>
 
-<!-- QUEM SOMOS -->
-<section class="section" id="quem-somos">
-  <div class="section-label">Quem Somos</div>
-  <h2 class="section-title">Mais do que uma<br><em style="font-style:normal;color:var(--glow);text-shadow:0 0 30px rgba(245,200,66,0.4);">empresa</em></h2>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;">
-    <div>
-      <p style="font-size:1.05rem;color:var(--text);line-height:1.85;margin-bottom:1.5rem;">
-        A <strong style="color:var(--glow);">Vagalume90</strong> é uma empresa de <strong>divulgação digital e apoio a utilizadores de internet</strong> — fundada por <strong style="color:var(--glow);">Ernesto Cardoso</strong>, conhecido como <strong style="color:var(--accent);">O Hasta</strong>, com a missão de ajudar pessoas e marcas a brilhar no mundo online.
-      </p>
-      <p style="font-size:0.95rem;color:var(--muted);line-height:1.85;margin-bottom:1.5rem;">
-        Acreditamos que qualquer pessoa, independentemente do tamanho do seu negócio ou do número de seguidores, merece ter acesso a estratégias digitais eficazes. Por isso, apoiamos criadores, empreendedores e marcas desde o primeiro passo até ao crescimento sustentável.
-      </p>
-      <p style="font-size:0.95rem;color:var(--muted);line-height:1.85;">
-        Desde a divulgação nas redes sociais ao programa de afiliados, passando pela gestão de campanhas pagas e assessoria personalizada — estamos aqui para guiar, apoiar e fazer crescer quem confia em nós.
-      </p>
-      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:2rem;">
-        <div style="background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.18);border-radius:10px;padding:1rem 1.5rem;text-align:center;flex:1;min-width:100px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--glow);line-height:1;">2020</div>
-          <div style="font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:0.2rem;">Fundada</div>
-        </div>
-        <div style="background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.18);border-radius:10px;padding:1rem 1.5rem;text-align:center;flex:1;min-width:100px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--glow);line-height:1;">Angola</div>
-          <div style="font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:0.2rem;">Sede</div>
-        </div>
-        <div style="background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.18);border-radius:10px;padding:1rem 1.5rem;text-align:center;flex:1;min-width:100px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--glow);line-height:1;">100%</div>
-          <div style="font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:0.2rem;">Digital</div>
-        </div>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:1.2rem;">
-      <div style="background:var(--card);border:1px solid rgba(245,200,66,0.1);border-radius:12px;padding:1.5rem;display:flex;gap:1rem;align-items:flex-start;transition:border-color 0.3s;" onmouseover="this.style.borderColor='rgba(245,200,66,0.3)'" onmouseout="this.style.borderColor='rgba(245,200,66,0.1)'">
-        <div style="font-size:1.6rem;line-height:1;">🌍</div>
-        <div>
-          <strong style="display:block;font-size:0.95rem;margin-bottom:0.3rem;color:var(--text);">Missão</strong>
-          <span style="font-size:0.85rem;color:var(--muted);line-height:1.65;">Democratizar o acesso ao marketing digital, apoiando utilizadores de internet a transformar a sua presença online em resultados reais.</span>
-        </div>
-      </div>
-      <div style="background:var(--card);border:1px solid rgba(245,200,66,0.1);border-radius:12px;padding:1.5rem;display:flex;gap:1rem;align-items:flex-start;transition:border-color 0.3s;" onmouseover="this.style.borderColor='rgba(245,200,66,0.3)'" onmouseout="this.style.borderColor='rgba(245,200,66,0.1)'">
-        <div style="font-size:1.6rem;line-height:1;">✨</div>
-        <div>
-          <strong style="display:block;font-size:0.95rem;margin-bottom:0.3rem;color:var(--text);">Visão</strong>
-          <span style="font-size:0.85rem;color:var(--muted);line-height:1.65;">Ser a principal referência em divulgação digital e afiliados em Angola e em toda a comunidade lusófona.</span>
-        </div>
-      </div>
-      <div style="background:var(--card);border:1px solid rgba(245,200,66,0.1);border-radius:12px;padding:1.5rem;display:flex;gap:1rem;align-items:flex-start;transition:border-color 0.3s;" onmouseover="this.style.borderColor='rgba(245,200,66,0.3)'" onmouseout="this.style.borderColor='rgba(245,200,66,0.1)'">
-        <div style="font-size:1.6rem;line-height:1;">🤝</div>
-        <div>
-          <strong style="display:block;font-size:0.95rem;margin-bottom:0.3rem;color:var(--text);">Valores</strong>
-          <span style="font-size:0.85rem;color:var(--muted);line-height:1.65;">Transparência, resultados mensuráveis, apoio contínuo e crescimento conjunto com cada cliente e afiliado.</span>
-        </div>
-      </div>
-      <div style="background:linear-gradient(135deg,rgba(245,200,66,0.08),rgba(255,107,26,0.05));border:1px solid rgba(245,200,66,0.25);border-radius:12px;padding:1.5rem;display:flex;gap:1rem;align-items:center;">
-        <div style="width:48px;height:48px;border-radius:50%;background:rgba(245,200,66,0.15);border:2px solid rgba(245,200,66,0.4);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">👤</div>
-        <div>
-          <strong style="display:block;font-size:1rem;color:var(--glow);margin-bottom:0.1rem;">Ernesto Cardoso</strong>
-          <span style="font-size:0.78rem;color:var(--accent);font-weight:700;letter-spacing:0.05em;">O Hasta — Fundador & CEO</span>
-          <p style="font-size:0.8rem;color:var(--muted);line-height:1.6;margin-top:0.3rem;">Visionário do digital, criador da Vagalume90 e da conta <a href="https://instagram.com/Plebheu90" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:700;">@Plebheu90</a>. · <a href="/cdn-cgi/l/email-protection#472d22343422372b22252f223207202a262e2b6924282a" style="color:var(--glow);text-decoration:none;"><span class="__cf_email__" data-cfemail="0d67687e7e687d61686f6568784d6a606c6461236e6260">[email&#160;protected]</span></a></p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+<div id="readout">VG90 · FRAGMENTO GATEKEEPER · MAPEANDO DISPOSITIVO...</div>
 
-<!-- SERVICES -->
-<section class="section" id="servicos">
-  <div class="section-label">O que fazemos</div>
-  <h2 class="section-title">Serviços que<br>geram resultado</h2>
-  <p class="section-sub">Soluções completas de divulgação digital e afiliados para marcas que querem crescer de verdade.</p>
-  <div class="cards">
-    <div class="card">
-      <div class="card-icon">🔥</div>
-      <h3>Divulgação Digital</h3>
-      <p>Estratégias personalizadas de divulgação nas principais plataformas digitais para ampliar o alcance da sua marca com eficiência.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🤝</div>
-      <h3>Programa de Afiliados</h3>
-      <p>Montamos e gerenciamos seu programa de afiliados do zero — recrutamento, acompanhamento e otimização de comissões.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">📊</div>
-      <h3>Gestão de Performance</h3>
-      <p>Monitoramento em tempo real, relatórios detalhados e ajustes contínuos para maximizar o retorno sobre investimento.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🌐</div>
-      <h3>Marketing de Conteúdo</h3>
-      <p>Criação e distribuição de conteúdo estratégico que atrai, engaja e converte sua audiência em clientes reais.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">📣</div>
-      <h3>Campanhas Pagas</h3>
-      <p>Gestão de tráfego pago com foco em resultados: Meta Ads, Google Ads e outras plataformas integradas à sua estratégia.</p>
-    </div>
-    <div class="card" style="border-color:rgba(245,200,66,0.3);background:linear-gradient(135deg,rgba(245,200,66,0.06),rgba(255,107,26,0.04));">
-      <div class="card-icon">💡</div>
-      <h3>Assessoria Personalizada</h3>
-      <p>Assessoria individual para quem precisa de orientação especializada no digital — do planejamento à execução, do zero ao resultado.</p>
-    </div>
-  </div>
-</section>
+<script>
+// VARIAVEL DE CONTROLO DE AMBIENTE LOCAL
+const isReturningUser = localStorage.getItem('vg90_returning_operator') === 'true';
 
-<!-- ASSESSORIA HIGHLIGHT -->
-<section class="section" style="padding-top:0;">
-  <div style="background:linear-gradient(135deg,rgba(245,200,66,0.07),rgba(255,107,26,0.05));border:1px solid rgba(245,200,66,0.2);border-radius:16px;padding:3rem;display:flex;flex-wrap:wrap;gap:2rem;align-items:center;justify-content:space-between;">
-    <div style="flex:1;min-width:260px;">
-      <div class="section-label">Assessoria Exclusiva</div>
-      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,4vw,3.2rem);line-height:1.05;margin-bottom:1rem;">Precisa de ajuda<br>personalizada?</h2>
-      <p style="color:var(--muted);font-size:0.95rem;line-height:1.75;max-width:420px;">O CEO da Vagalume90, <strong style="color:var(--text);">@Plebheu90</strong>, oferece assessoria direta para empreendedores e criadores que querem crescer no digital. Estratégia, afiliados, divulgação — tudo pensado para o seu caso específico.</p>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:1rem;min-width:200px;">
-      <a href="https://wa.me/244929894589" target="_blank" class="btn-primary" style="text-align:center;">💬 Solicitar Assessoria</a>
-      <a href="https://instagram.com/Plebheu90" target="_blank" class="btn-ghost" style="text-align:center;">📸 Ver no Instagram</a>
-      <a href="https://youtube.com/@vagalume90" target="_blank" class="btn-ghost" style="text-align:center;border-color:rgba(255,0,0,0.4);color:#ff4444;">▶ YouTube: @vagalume90</a>
-    </div>
-  </div>
-</section>
+function syncPortalIdentity(returning) {
+  const loginForm = document.getElementById('form-login');
+  const registerForm = document.getElementById('form-register');
+  const card = document.getElementById('login-card');
+  const orb = document.getElementById('ambient-orb');
+  const instr = document.getElementById('pulse-instruction');
+  const eye = document.getElementById('core-eye');
+  const readout = document.getElementById('readout');
+  const rings = document.querySelectorAll('.dna-ring');
 
-<!-- HOW IT WORKS -->
-<section class="section" id="como-funciona" style="padding-top:0;">
-  <div class="section-label">Processo</div>
-  <h2 class="section-title">Como funciona</h2>
-  <p class="section-sub" style="margin-bottom:3rem;">Simples, transparente e orientado a resultados.</p>
-  <div class="steps">
-    <div class="step">
-      <h4>Diagnóstico</h4>
-      <p>Analisamos seu negócio, público-alvo e objetivos para entender o que realmente vai funcionar para você.</p>
-    </div>
-    <div class="step">
-      <h4>Estratégia</h4>
-      <p>Desenvolvemos um plano personalizado de divulgação e afiliados com metas claras e mensuráveis.</p>
-    </div>
-    <div class="step">
-      <h4>Execução</h4>
-      <p>Nossa equipe implementa as ações, acompanha métricas e faz ajustes para maximizar os resultados.</p>
-    </div>
-    <div class="step">
-      <h4>Crescimento</h4>
-      <p>Com dados em mãos, escalamos o que funciona e seu negócio cresce de forma consistente e sustentável.</p>
-    </div>
-  </div>
-</section>
-
-<!-- AFILIADOS SECTION -->
-<section class="section" id="afiliados">
-  <div class="section-label">Programa de Afiliados</div>
-  <h2 class="section-title">Ganha connosco</h2>
-  <p class="section-sub">Junta-te à nossa rede de afiliados e começa a ganhar comissões promovendo a Vagalume90 — sem investimento inicial.</p>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:3rem;">
-    <div class="card" style="border-color:rgba(245,200,66,0.2);">
-      <div class="card-icon">💰</div>
-      <h3>Comissões Atrativas</h3>
-      <p>Recebe uma percentagem por cada cliente ou lead que trouxeres através do teu link exclusivo de afiliado.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🔗</div>
-      <h3>Link Exclusivo</h3>
-      <p>Após o registo, recebes um código e link único para partilhar nas tuas redes sociais, blog ou canal.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">📊</div>
-      <h3>Acompanhamento Real</h3>
-      <p>Monitoriza os teus ganhos, cliques e conversões em tempo real através do nosso painel de afiliados.</p>
-    </div>
-    <div class="card" style="border-color:rgba(255,0,0,0.3);background:linear-gradient(135deg,rgba(255,0,0,0.06),rgba(255,107,26,0.04));grid-column:1/-1;">
-      <div style="display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;">
-        <div style="font-size:2.8rem;line-height:1;">▶</div>
-        <div style="flex:1;min-width:220px;">
-          <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#ff4444;margin-bottom:0.4rem;">🎁 Bónus Exclusivo para Afiliados</div>
-          <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:0.05em;color:var(--text);margin-bottom:0.5rem;">2 Vídeos Publicados no Nosso YouTube</h3>
-          <p style="font-size:0.9rem;color:var(--muted);line-height:1.7;">Ao tornares-te afiliado Vagalume90, ganhas a oportunidade de ter <strong style="color:var(--text);">dois vídeos teus publicados</strong> no canal <a href="https://youtube.com/@vagalume90" target="_blank" style="color:#ff4444;text-decoration:none;font-weight:700;">@vagalume90</a> — exposição real para a tua marca, negócio ou conteúdo perante a nossa audiência.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div style="background:linear-gradient(135deg,rgba(245,200,66,0.07),rgba(255,107,26,0.05));border:1px solid rgba(245,200,66,0.2);border-radius:16px;padding:3rem;text-align:center;">
-    <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;">Registo Gratuito</div>
-    <h3 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,4vw,3rem);margin-bottom:0.8rem;">Pronto para começar a brilhar?</h3>
-    <p style="color:var(--muted);font-size:0.95rem;line-height:1.7;max-width:480px;margin:0 auto 2rem;">O registo é gratuito e rápido. Preenche a ficha, recebe o teu código e começa a ganhar hoje mesmo.</p>
-    <a href="#" onclick="abrirRegisto(event)" class="btn-primary" style="font-size:1rem;padding:1rem 2.8rem;">✦ Criar Conta de Afiliado</a>
-  </div>
-</section>
-
-<!-- CURSOS -->
-<section class="section" id="cursos">
-  <div class="section-label">Formação Online</div>
-  <h2 class="section-title">Cursos <em style="font-style:normal;color:var(--glow);text-shadow:0 0 30px rgba(245,200,66,0.4);">Vagalume90</em></h2>
-  <p class="section-sub">Aprende com quem faz. Cursos práticos de marketing digital, afiliados e crescimento online — tudo por apenas 1.000 Kz.</p>
-
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:3rem;">
-
-    <!-- CURSO 1 — REAL -->
-    <div class="card" style="border-color:rgba(245,200,66,0.3);background:linear-gradient(135deg,rgba(245,200,66,0.06),rgba(255,107,26,0.04));display:flex;flex-direction:column;gap:1rem;position:relative;overflow:hidden;">
-      <div style="position:absolute;top:1rem;right:1rem;background:var(--glow);color:#080b12;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;padding:0.25rem 0.7rem;border-radius:100px;text-transform:uppercase;">⭐ Destaque</div>
-      <div style="background:linear-gradient(135deg,rgba(245,200,66,0.15),rgba(255,107,26,0.1));border-radius:10px;height:140px;display:flex;align-items:center;justify-content:center;font-size:3rem;border:1px solid rgba(245,200,66,0.2);">🏆</div>
-      <div style="flex:1;">
-        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Desenvolvimento Pessoal</div>
-        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;margin-bottom:0.5rem;color:var(--text);">Como Ser o Melhor da Sala em Pouco Tempo</h3>
-        <p style="font-size:0.82rem;color:var(--muted);line-height:1.65;margin-bottom:0.8rem;">Aprende técnicas práticas e comprovadas para te destacares rapidamente em qualquer ambiente — na escola, no trabalho ou nos negócios. Resultados visíveis em pouco tempo.</p>
-        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">📹 Vídeos</span>
-          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">📄 PDF</span>
-          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">💬 Suporte</span>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(245,200,66,0.12);padding-top:1rem;">
-        <div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--glow);line-height:1;">1.000 Kz</div>
-          <div style="font-size:0.7rem;color:var(--muted);">Acesso completo</div>
-        </div>
-        <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20curso%20'Como%20Ser%20o%20Melhor%20da%20Sala%20em%20Pouco%20Tempo'%20por%201.000%20Kz" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.65rem 1.2rem;border-radius:6px;text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 25px rgba(245,200,66,0.4)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">💬 Comprar</a>
-      </div>
-    </div>
-
-    <!-- CURSO 2 — REAL -->
-    <div class="card" style="border-color:rgba(255,107,26,0.25);display:flex;flex-direction:column;gap:1rem;position:relative;overflow:hidden;">
-      <div style="position:absolute;top:1rem;right:1rem;background:rgba(255,107,26,0.15);color:var(--accent);font-size:0.68rem;font-weight:700;letter-spacing:0.1em;padding:0.25rem 0.7rem;border-radius:100px;text-transform:uppercase;border:1px solid rgba(255,107,26,0.3);">🔥 Popular</div>
-      <div style="background:linear-gradient(135deg,rgba(255,107,26,0.12),rgba(245,200,66,0.08));border-radius:10px;height:140px;display:flex;align-items:center;justify-content:center;font-size:3rem;border:1px solid rgba(255,107,26,0.15);">💫</div>
-      <div style="flex:1;">
-        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Sedução & Confiança</div>
-        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;margin-bottom:0.5rem;color:var(--text);">Como Conquistar uma Garota Sem Dizer Nada</h3>
-        <p style="font-size:0.82rem;color:var(--muted);line-height:1.65;margin-bottom:0.8rem;">Aprende o poder da linguagem corporal, presença e atitude para atrair e conquistar sem precisar de grandes discursos. O silêncio certo diz mais do que mil palavras.</p>
-        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">📹 Vídeos</span>
-          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">📄 PDF</span>
-          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">💬 Suporte</span>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,107,26,0.1);padding-top:1rem;">
-        <div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--glow);line-height:1;">1.000 Kz</div>
-          <div style="font-size:0.7rem;color:var(--muted);">Acesso completo</div>
-        </div>
-        <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20curso%20'Como%20Conquistar%20uma%20Garota%20Sem%20Dizer%20Nada'%20por%201.000%20Kz" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.65rem 1.2rem;border-radius:6px;text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 25px rgba(245,200,66,0.4)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">💬 Comprar</a>
-      </div>
-    </div>
-
-    <!-- CURSO 3 — REAL -->
-    <div class="card" style="border-color:rgba(245,200,66,0.15);display:flex;flex-direction:column;gap:1rem;position:relative;overflow:hidden;">
-      <div style="position:absolute;top:1rem;right:1rem;background:rgba(37,211,102,0.15);color:#25d366;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;padding:0.25rem 0.7rem;border-radius:100px;text-transform:uppercase;border:1px solid rgba(37,211,102,0.3);">📈 Trending</div>
-      <div style="background:linear-gradient(135deg,rgba(245,200,66,0.1),rgba(255,107,26,0.08));border-radius:10px;height:140px;display:flex;align-items:center;justify-content:center;font-size:3rem;border:1px solid rgba(245,200,66,0.1);">📱</div>
-      <div style="flex:1;">
-        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Redes Sociais</div>
-        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;margin-bottom:0.5rem;color:var(--text);">Viralizando nas Redes Sociais em 3 Meses</h3>
-        <p style="font-size:0.82rem;color:var(--muted);line-height:1.65;margin-bottom:0.8rem;">Um plano passo a passo para explodir o teu crescimento no Instagram, TikTok e YouTube em apenas 3 meses — com estratégias reais que funcionam em Angola e no mundo.</p>
-        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">📹 Vídeos</span>
-          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">📄 PDF</span>
-          <span style="font-size:0.72rem;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);color:var(--muted);padding:0.2rem 0.6rem;border-radius:100px;">💬 Suporte</span>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(245,200,66,0.08);padding-top:1rem;">
-        <div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--glow);line-height:1;">1.000 Kz</div>
-          <div style="font-size:0.7rem;color:var(--muted);">Acesso completo</div>
-        </div>
-        <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20curso%20'Viralizando%20nas%20Redes%20Sociais%20em%203%20Meses'%20por%201.000%20Kz" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.65rem 1.2rem;border-radius:6px;text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 25px rgba(245,200,66,0.4)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">💬 Comprar</a>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Banner garantia -->
-  <div style="background:linear-gradient(135deg,rgba(245,200,66,0.07),rgba(255,107,26,0.04));border:1px solid rgba(245,200,66,0.18);border-radius:14px;padding:2rem 2.5rem;display:flex;flex-wrap:wrap;gap:2rem;align-items:center;justify-content:space-between;">
-    <div style="display:flex;gap:2rem;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:0.7rem;">
-        <span style="font-size:1.5rem;">✅</span>
-        <span style="font-size:0.85rem;color:var(--muted);">Acesso imediato após pagamento</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:0.7rem;">
-        <span style="font-size:1.5rem;">📲</span>
-        <span style="font-size:0.85rem;color:var(--muted);">Entregue pelo WhatsApp</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:0.7rem;">
-        <span style="font-size:1.5rem;">🔒</span>
-        <span style="font-size:0.85rem;color:var(--muted);">Pagamento seguro</span>
-      </div>
-    </div>
-    <a href="https://wa.me/244929894589?text=Olá!%20Quero%20saber%20mais%20sobre%20os%20cursos%20Vagalume90" target="_blank" class="btn-primary" style="white-space:nowrap;">💬 Tirar dúvidas</a>
-  </div>
-</section>
-
-<!-- LOJA DE LIVROS PDF -->
-<section class="section" id="loja">
-  <div class="section-label">Loja Digital</div>
-  <h2 class="section-title">Livros em <em style="font-style:normal;color:var(--glow);text-shadow:0 0 30px rgba(245,200,66,0.4);">PDF</em></h2>
-  <p class="section-sub">Conhecimento prático e acessível. Compra, recebe no WhatsApp e lê onde quiseres.</p>
-
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem;margin-bottom:3rem;">
-
-    <!-- LIVRO 1 — REAL -->
-    <div class="card" style="border-color:rgba(245,200,66,0.25);background:linear-gradient(135deg,rgba(245,200,66,0.05),rgba(255,107,26,0.03));display:flex;flex-direction:column;justify-content:space-between;gap:1.2rem;position:relative;overflow:hidden;">
-      <div style="position:absolute;top:1rem;right:1rem;background:var(--glow);color:#080b12;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;padding:0.25rem 0.7rem;border-radius:100px;text-transform:uppercase;">⭐ Destaque</div>
-      <div style="background:linear-gradient(135deg,rgba(245,200,66,0.15),rgba(255,107,26,0.08));border-radius:8px;height:160px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;border:1px solid rgba(245,200,66,0.15);">📲</div>
-      <div>
-        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Livro Digital — Redes Sociais</div>
-        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;margin-bottom:0.5rem;color:var(--text);">Viralizando nas Redes Sociais em 3 Meses</h3>
-        <p style="font-size:0.83rem;color:var(--muted);line-height:1.65;">O guia completo em PDF para explodir o teu crescimento no Instagram, TikTok e YouTube com estratégias práticas e resultados reais em apenas 3 meses.</p>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;">
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--glow);">1.000 Kz</span>
-        <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20livro%20'Viralizando%20nas%20Redes%20Sociais%20em%203%20Meses'%20por%201.000%20Kz" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.6rem 1.2rem;border-radius:6px;text-decoration:none;transition:transform 0.2s;display:flex;align-items:center;gap:0.4rem;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">💬 Comprar</a>
-      </div>
-    </div>
-
-    <!-- LIVRO 2 -->
-    <div class="card" style="border-color:rgba(245,200,66,0.15);display:flex;flex-direction:column;justify-content:space-between;gap:1.2rem;">
-      <div style="background:linear-gradient(135deg,rgba(255,107,26,0.1),rgba(245,200,66,0.08));border-radius:8px;height:160px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;border:1px solid rgba(255,107,26,0.1);">📗</div>
-      <div>
-        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Livro Digital</div>
-        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;margin-bottom:0.5rem;color:var(--text);">POR QUE CONTINUAS POBRE </h3>
-        <p style="font-size:0.83rem;color:var(--muted);line-height:1.65;">uma visâo real sobre o que é pobreza e suas causas. por que contuas , ninguem resolve um problema sem antes o conhecer esta é a tua ipotese de conhecer a razão da sua pobreza .</p>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;">
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--glow);">2999 Kz</span>
-        <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20Livro%202" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.6rem 1.2rem;border-radius:6px;text-decoration:none;transition:transform 0.2s;display:flex;align-items:center;gap:0.4rem;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">💬 Comprar</a>
-      </div>
-    </div>
-
-    <!-- LIVRO 3 -->
-    <div class="card" style="border-color:rgba(245,200,66,0.15);display:flex;flex-direction:column;justify-content:space-between;gap:1.2rem;">
-      <div style="background:linear-gradient(135deg,rgba(245,200,66,0.08),rgba(255,107,26,0.12));border-radius:8px;height:160px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;border:1px solid rgba(245,200,66,0.1);">📙</div>
-      <div>
-        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;">Livro Digital</div>
-        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;margin-bottom:0.5rem;color:var(--text);">Relacionamentos maquinas de resolver problemas </h3>
-        <p style="font-size:0.83rem;color:var(--muted);line-height:1.65;">relacionamentos não é um conto de fadas vem e conheça a verdadeira definição de relacionamento . Relacionamento maquinas de resolver problemas , Um guia completo de como sobreviver a cada dia no seu relacionamento.</p>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;">
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--glow);">3999 Kz</span>
-        <a href="https://wa.me/244929894589?text=Olá!%20Quero%20comprar%20o%20Livro%203" target="_blank" style="background:var(--glow);color:#080b12;font-weight:700;font-size:0.82rem;padding:0.6rem 1.2rem;border-radius:6px;text-decoration:none;transition:transform 0.2s;display:flex;align-items:center;gap:0.4rem;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">💬 Comprar</a>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Como funciona a compra -->
-  <div style="background:linear-gradient(135deg,rgba(245,200,66,0.06),rgba(255,107,26,0.04));border:1px solid rgba(245,200,66,0.15);border-radius:16px;padding:2.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2rem;text-align:center;">
-    <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);grid-column:1/-1;margin-bottom:-0.5rem;">Como funciona a compra</div>
-    <div>
-      <div style="font-size:2rem;margin-bottom:0.5rem;">👆</div>
-      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">1. Escolhe o livro</strong>
-      <span style="font-size:0.8rem;color:var(--muted);">Seleciona o livro que queres e clica em "Comprar".</span>
-    </div>
-    <div>
-      <div style="font-size:2rem;margin-bottom:0.5rem;">💬</div>
-      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">2. Contacta pelo WhatsApp</strong>
-      <span style="font-size:0.8rem;color:var(--muted);">Serás redirecionado para o WhatsApp para combinar o pagamento.</span>
-    </div>
-    <div>
-      <div style="font-size:2rem;margin-bottom:0.5rem;">💳</div>
-      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">3. Efetua o pagamento</strong>
-      <span style="font-size:0.8rem;color:var(--muted);">Pagamento via Multicaixa Express ou transferência bancária e Unitel, Afrimoney .</span>
-    </div>
-    <div>
-      <div style="font-size:2rem;margin-bottom:0.5rem;">📥</div>
-      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">4. Recebe o PDF</strong>
-      <span style="font-size:0.8rem;color:var(--muted);">Recebes o teu livro em PDF directamente no WhatsApp.</span>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════
-     ASSESSORIA & CONSELHOS PARA CASAIS
-═══════════════════════════════════════════════════════ -->
-<section class="section" id="casais" style="max-width:1100px;margin:0 auto;padding:7rem 2rem;">
-
-  <!-- Cabeçalho -->
-  <div style="display:flex;flex-direction:column;align-items:flex-start;margin-bottom:4rem;">
-    <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;color:#ff85a1;background:rgba(255,133,161,0.1);border:1px solid rgba(255,133,161,0.25);padding:0.35rem 1rem;border-radius:100px;margin-bottom:1rem;">💑 Assessoria para Casais</div>
-    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,5vw,4.5rem);line-height:1;margin-bottom:1rem;">O <em style="font-style:normal;color:#ff85a1;text-shadow:0 0 30px rgba(255,133,161,0.4);">amor</em> também<br>precisa de guia</h2>
-    <p style="color:var(--muted);font-size:1rem;line-height:1.75;max-width:520px;">Aconselhamento real e honesto para casais que querem crescer juntos. Seja qual for a fase do relacionamento — tens apoio aqui.</p>
-  </div>
-
-  <!-- Temas de Assessoria -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.2rem;margin-bottom:4rem;">
-
-    <!-- Como Conquistar -->
-    <div class="card" style="border-color:rgba(255,133,161,0.2);background:linear-gradient(135deg,rgba(255,133,161,0.05),rgba(255,107,26,0.02));transition:border-color 0.3s,transform 0.3s;" onmouseover="this.style.borderColor='rgba(255,133,161,0.45)';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='rgba(255,133,161,0.2)';this.style.transform='none'">
-      <div style="font-size:2.2rem;margin-bottom:1rem;">💘</div>
-      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:0.05em;margin-bottom:0.6rem;color:var(--text);">Como Conquistar</h3>
-      <p style="font-size:0.87rem;color:var(--muted);line-height:1.7;">Estratégias reais para te aproximares da pessoa certa, criar atracção genuína e iniciar um relacionamento sólido desde o início.</p>
-      <div style="margin-top:1.2rem;font-size:0.72rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#ff85a1;">Gratuito via formulário</div>
-    </div>
-
-    <!-- Relacionamento à Distância -->
-    <div class="card" style="border-color:rgba(255,133,161,0.2);background:linear-gradient(135deg,rgba(255,133,161,0.05),rgba(255,107,26,0.02));transition:border-color 0.3s,transform 0.3s;" onmouseover="this.style.borderColor='rgba(255,133,161,0.45)';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='rgba(255,133,161,0.2)';this.style.transform='none'">
-      <div style="font-size:2.2rem;margin-bottom:1rem;">✈️</div>
-      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:0.05em;margin-bottom:0.6rem;color:var(--text);">À Distância</h3>
-      <p style="font-size:0.87rem;color:var(--muted);line-height:1.7;">Como manter a chama acesa quando estão longe. Comunicação, confiança e presença emocional mesmo com quilómetros de por meio.</p>
-      <div style="margin-top:1.2rem;font-size:0.72rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#ff85a1;">Gratuito via formulário</div>
-    </div>
-
-    <!-- Traição e Confiança -->
-    <div class="card" style="border-color:rgba(255,133,161,0.2);background:linear-gradient(135deg,rgba(255,133,161,0.05),rgba(255,107,26,0.02));transition:border-color 0.3s,transform 0.3s;" onmouseover="this.style.borderColor='rgba(255,133,161,0.45)';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='rgba(255,133,161,0.2)';this.style.transform='none'">
-      <div style="font-size:2.2rem;margin-bottom:1rem;">🔒</div>
-      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:0.05em;margin-bottom:0.6rem;color:var(--text);">Traição & Confiança</h3>
-      <p style="font-size:0.87rem;color:var(--muted);line-height:1.7;">Como lidar com a dor da traição, reconstruir a confiança ou tomar a decisão certa para o teu futuro. Sem julgamentos.</p>
-      <div style="margin-top:1.2rem;font-size:0.72rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--glow);">★ Sessão Premium — 2.000 Kz</div>
-    </div>
-
-    <!-- Intimidade e Conexão -->
-    <div class="card" style="border-color:rgba(255,133,161,0.2);background:linear-gradient(135deg,rgba(255,133,161,0.05),rgba(255,107,26,0.02));transition:border-color 0.3s,transform 0.3s;" onmouseover="this.style.borderColor='rgba(255,133,161,0.45)';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='rgba(255,133,161,0.2)';this.style.transform='none'">
-      <div style="font-size:2.2rem;margin-bottom:1rem;">🫀</div>
-      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:0.05em;margin-bottom:0.6rem;color:var(--text);">Intimidade & Conexão</h3>
-      <p style="font-size:0.87rem;color:var(--muted);line-height:1.7;">Aprofundar o vínculo emocional, melhorar a comunicação íntima e reconectar com o teu parceiro de forma genuína e duradoura.</p>
-      <div style="margin-top:1.2rem;font-size:0.72rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--glow);">★ Sessão Premium — 2.000 Kz</div>
-    </div>
-
-    <!-- Crise e Conflitos -->
-    <div class="card" style="border-color:rgba(255,133,161,0.2);background:linear-gradient(135deg,rgba(255,133,161,0.05),rgba(255,107,26,0.02));transition:border-color 0.3s,transform 0.3s;" onmouseover="this.style.borderColor='rgba(255,133,161,0.45)';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='rgba(255,133,161,0.2)';this.style.transform='none'">
-      <div style="font-size:2.2rem;margin-bottom:1rem;">⚡</div>
-      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:0.05em;margin-bottom:0.6rem;color:var(--text);">Crise & Conflitos</h3>
-      <p style="font-size:0.87rem;color:var(--muted);line-height:1.7;">Quando a relação está em ponto crítico. Como resolver conflitos sem destruir o que foi construído, e quando é hora de seguir em frente.</p>
-      <div style="margin-top:1.2rem;font-size:0.72rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--glow);">★ Sessão Premium — 2.000 Kz</div>
-    </div>
-
-  </div>
-
-  <!-- Crédito Semfiltros9 -->
-  <div style="display:flex;align-items:center;gap:1rem;background:linear-gradient(135deg,rgba(255,133,161,0.08),rgba(245,200,66,0.04));border:1px solid rgba(255,133,161,0.2);border-radius:12px;padding:1rem 1.5rem;margin-bottom:3rem;flex-wrap:wrap;">
-    <div style="font-size:1.8rem;">📱</div>
-    <div>
-      <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#ff85a1;margin-bottom:0.2rem;">Área gerida por</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--text);letter-spacing:0.05em;">@<span style="color:#ff85a1;">Semfiltros9</span></div>
-      <div style="font-size:0.78rem;color:var(--muted);margin-top:0.15rem;">Segue a página para conteúdo exclusivo sobre relacionamentos</div>
-    </div>
-    <a href="https://instagram.com/Semfiltros9" target="_blank" style="margin-left:auto;background:#ff85a1;color:#080b12;font-weight:700;font-size:0.8rem;padding:0.5rem 1.1rem;border-radius:100px;text-decoration:none;white-space:nowrap;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">📸 Seguir</a>
-  </div>
-
-  <!-- Sessão Premium (única opção) -->
-  <div style="display:flex;justify-content:center;margin-bottom:4rem;">
-    <div style="background:linear-gradient(135deg,rgba(255,133,161,0.08),rgba(245,200,66,0.05));border:1px solid rgba(255,133,161,0.4);border-radius:16px;padding:2.5rem;display:flex;flex-direction:column;gap:1rem;position:relative;overflow:hidden;max-width:500px;width:100%;">
-      <div style="position:absolute;top:1rem;right:1rem;background:#ff85a1;color:#080b12;font-size:0.65rem;font-weight:700;letter-spacing:0.1em;padding:0.25rem 0.7rem;border-radius:100px;text-transform:uppercase;">⭐ Recomendado</div>
-      <div style="position:absolute;bottom:-40px;right:-40px;width:140px;height:140px;background:radial-gradient(circle,rgba(255,133,161,0.15),transparent 70%);border-radius:50%;pointer-events:none;"></div>
-      <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#ff85a1;margin-bottom:0.3rem;">Sessão Premium</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:3rem;color:var(--glow);line-height:1;">2.000 <span style="font-size:1.2rem;color:var(--muted);">Kz</span></div>
-      <p style="font-size:0.85rem;color:var(--muted);line-height:1.7;">Sessão ao vivo por WhatsApp ou chamada. Acompanhamento real, personalizado e aprofundado para a tua situação específica.</p>
-      <ul style="list-style:none;display:flex;flex-direction:column;gap:0.6rem;margin-top:0.5rem;">
-        <li style="font-size:0.83rem;color:var(--muted);display:flex;align-items:center;gap:0.6rem;"><span style="color:#ff85a1;">✓</span> Sessão ao vivo (30–60 min)</li>
-        <li style="font-size:0.83rem;color:var(--muted);display:flex;align-items:center;gap:0.6rem;"><span style="color:#ff85a1;">✓</span> Todos os temas cobertos</li>
-        <li style="font-size:0.83rem;color:var(--muted);display:flex;align-items:center;gap:0.6rem;"><span style="color:#ff85a1;">✓</span> Acompanhamento por 7 dias</li>
-        <li style="font-size:0.83rem;color:var(--muted);display:flex;align-items:center;gap:0.6rem;"><span style="color:#ff85a1;">✓</span> Plano de acção personalizado</li>
-        <li style="font-size:0.83rem;color:var(--muted);display:flex;align-items:center;gap:0.6rem;"><span style="color:#ff85a1;">✓</span> Pagamento via Multicaixa Express</li>
-      </ul>
-      <button onclick="abrirModalCasais('premium')" style="margin-top:auto;background:#ff85a1;color:#080b12;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.9rem;padding:0.85rem 2rem;border:none;border-radius:7px;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;box-shadow:0 0 30px rgba(255,133,161,0.3);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 50px rgba(255,133,161,0.5)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 0 30px rgba(255,133,161,0.3)'">Agendar Sessão com @Semfiltros9 💑</button>
-    </div>
-
-  </div>
-
-  <!-- Testemunhos / Confiança -->
-  <div style="background:linear-gradient(135deg,rgba(255,133,161,0.05),rgba(245,200,66,0.03));border:1px solid rgba(255,133,161,0.15);border-radius:16px;padding:2.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2rem;text-align:center;">
-    <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#ff85a1;grid-column:1/-1;margin-bottom:-0.5rem;">Por que confiar?</div>
-    <div>
-      <div style="font-size:2rem;margin-bottom:0.5rem;">🤝</div>
-      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">100% Confidencial</strong>
-      <span style="font-size:0.8rem;color:var(--muted);">A tua situação é tratada com total discrição e respeito.</span>
-    </div>
-    <div>
-      <div style="font-size:2rem;margin-bottom:0.5rem;">💬</div>
-      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">Sem Julgamentos</strong>
-      <span style="font-size:0.8rem;color:var(--muted);">Aqui falas abertamente. Só nos interessa ajudar-te.</span>
-    </div>
-    <div>
-      <div style="font-size:2rem;margin-bottom:0.5rem;">⚡</div>
-      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">Resposta Rápida</strong>
-      <span style="font-size:0.8rem;color:var(--muted);">Sessão agendada rapidamente pelo WhatsApp.</span>
-    </div>
-    <div>
-      <div style="font-size:2rem;margin-bottom:0.5rem;">❤️</div>
-      <strong style="font-size:0.88rem;color:var(--text);display:block;margin-bottom:0.3rem;">Experiência Real</strong>
-      <span style="font-size:0.8rem;color:var(--muted);">Conselhos baseados em experiência humana real, não teoria.</span>
-    </div>
-  </div>
-
-</section>
-
-<!-- MODAL CASAIS -->
-<div class="modal-overlay" id="modalCasais" style="z-index:1000;">
-  <div class="modal-box" style="position:relative;max-width:800px;">
-    <button class="modal-close" onclick="fecharModalCasais()">✕</button>
-
-    <!-- Esquerda -->
-    <div class="modal-left" style="background:linear-gradient(145deg,rgba(255,133,161,0.1),rgba(255,107,26,0.05),rgba(8,11,18,0.9));">
-      <div style="position:absolute;top:-60px;left:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(255,133,161,0.15),transparent 70%);border-radius:50%;"></div>
-      <div class="panel-tag" style="color:#ff85a1;background:rgba(255,133,161,0.1);border-color:rgba(255,133,161,0.25);">💑 Assessoria para Casais</div>
-      <h2 class="panel-title">Conta a tua <em style="color:#ff85a1;text-shadow:0 0 30px rgba(255,133,161,0.4);">história</em></h2>
-      <p class="panel-desc">Preenche o formulário com a tua situação. Cada caso é único e receberás uma resposta personalizada.</p>
-      <div class="perks">
-        <div class="perk">
-          <div class="perk-icon" style="background:rgba(255,133,161,0.1);border-color:rgba(255,133,161,0.2);">🔒</div>
-          <div class="perk-text"><strong>Total confidencialidade</strong><span>A tua situação nunca é partilhada com ninguém.</span></div>
-        </div>
-        <div class="perk">
-          <div class="perk-icon" style="background:rgba(255,133,161,0.1);border-color:rgba(255,133,161,0.2);">❤️</div>
-          <div class="perk-text"><strong>Sem julgamentos</strong><span>Podes falar abertamente sobre qualquer situação.</span></div>
-        </div>
-        <div class="perk">
-          <div class="perk-icon" style="background:rgba(255,133,161,0.1);border-color:rgba(255,133,161,0.2);">📱</div>
-          <div class="perk-text" id="perkTipo"><strong>@Semfiltros9</strong><span>Assessora responsável pela área de casais.</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Direita: Formulário -->
-    <div class="modal-right">
-      <div id="formAreaCasais">
-        <div class="form-header">
-          <h2 id="tituloFormCasais">Agendar Sessão Premium</h2>
-          <p id="subtituloFormCasais">Sessão ao vivo com @Semfiltros9 · 2.000 Kz</p>
-        </div>
-        <form onsubmit="submeterCasais(event)">
-          <div class="form-row">
-            <div class="field"><label>O teu nome</label><input type="text" id="nomesCasais" placeholder="Podes usar um nome fictício" required></div>
-            <div class="field"><label>Idade</label><input type="number" placeholder="Ex: 24" min="16" max="80" required></div>
-          </div>
-          <div class="field"><label>WhatsApp para resposta</label><input type="tel" id="waCasais" placeholder="+244 9XX XXX XXX" required></div>
-          <div class="field">
-            <label>Tema do pedido</label>
-            <select id="temaCasais" required>
-              <option value="" disabled selected>Escolher tema...</option>
-              <option>Como conquistar / iniciar relação</option>
-              <option>Relacionamento à distância</option>
-              <option>Traição e confiança</option>
-              <option>Intimidade e conexão</option>
-              <option>Crise e conflitos</option>
-              <option>Outro</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Estado do relacionamento</label>
-            <select required>
-              <option value="" disabled selected>Escolher...</option>
-              <option>Solteiro(a) — quero conquistar alguém</option>
-              <option>Namorando</option>
-              <option>Casado(a)</option>
-              <option>Separado(a) / Em crise</option>
-              <option>Complicado</option>
-            </select>
-          </div>
-          <div class="field"><label>A tua situação (descreve com detalhes)</label><textarea id="situacaoCasais" placeholder="Conta o que está a acontecer. Quanto mais detalhes deres, melhor será o conselho..." style="min-height:110px;" required></textarea></div>
-          <div id="infoPagamento" style="display:none;background:rgba(255,133,161,0.07);border:1px solid rgba(255,133,161,0.2);border-radius:8px;padding:0.9rem;margin-bottom:1rem;font-size:0.82rem;color:var(--muted);line-height:1.6;">
-            💳 <strong style="color:var(--text);">Sessão Premium — 2.000 Kz</strong><br>Após enviares o formulário, serás redirecionado para o WhatsApp onde combinarás o pagamento via <strong style="color:var(--text);">Multicaixa Express</strong> antes da sessão ser agendada.
-          </div>
-          <button type="submit" class="btn-submit" id="btnSubmitCasais" style="background:#ff85a1;box-shadow:0 0 30px rgba(255,133,161,0.3);">⭐ Agendar Sessão — 2.000 Kz</button>
-        </form>
-      </div>
-
-      <!-- Sucesso -->
-      <div class="success-overlay" id="sucessoCasais" style="display:none;flex-direction:column;align-items:center;text-align:center;padding:1.5rem;">
-        <div class="success-icon" style="border-color:#ff85a1;background:rgba(255,133,161,0.1);box-shadow:0 0 40px rgba(255,133,161,0.25);">❤️</div>
-        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:#ff85a1;margin-bottom:0.5rem;">Pedido enviado!</h3>
-        <p style="font-size:0.85rem;color:var(--muted);line-height:1.65;max-width:300px;margin-bottom:1.5rem;">Receberás uma resposta personalizada no teu WhatsApp. Obrigado pela confiança! 💑</p>
-        <a id="btnWhatsappCasais" href="#" target="_blank" style="width:100%;background:#25d366;color:#fff;font-weight:700;font-size:0.88rem;padding:0.85rem;border-radius:8px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:0.5rem;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">💬 Continuar no WhatsApp</a>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- ========== DEPOIMENTOS ========== -->
-<section class="testimonials" id="depoimentos">
-  <div class="testimonials-header">
-    <div class="section-label">⭐ Depoimentos</div>
-    <h2 class="section-title">O que dizem<br><em style="font-style:normal;color:var(--glow);">quem já brilha</em></h2>
-    <p class="section-sub" style="margin: 1rem auto 0; text-align: center;">Histórias reais de pessoas que transformaram seu negócio com a Vagalume90</p>
-  </div>
-
-  <div class="testimonials-grid">
-    
-    <!-- Depoimento 1 -->
-    <div class="testimonial-card">
-      <div class="testimonial-quote">"</div>
-      <div class="testimonial-stars">★★★★★</div>
-      <p class="testimonial-text">
-        "A Vagalume90 transformou completamente minha presença digital. Em apenas 3 meses, meu Instagram cresceu 500% e consegui monetizar meu conteúdo. O apoio e a estratégia do Ernesto foram fundamentais!"
-      </p>
-      <div class="testimonial-author">
-        <div class="testimonial-avatar">👩‍💻</div>
-        <div class="testimonial-info">
-          <h4>Domingos lucio </h4>
-          <p>Influenciador Digital · @Luqueque</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Depoimento 2 -->
-    <div class="testimonial-card">
-      <div class="testimonial-quote">"</div>
-      <div class="testimonial-stars">★★★★★</div>
-      <p class="testimonial-text">
-        "Entrei para o programa de afiliados sem saber nada sobre marketing digital. Hoje, já indiquei mais de 50 pessoas e tenho uma renda extra que mudou minha vida. Recomendo a todos!"
-      </p>
-      <div class="testimonial-author">
-        <div class="testimonial-avatar">👨‍💼</div>
-        <div class="testimonial-info">
-          <h4>Gilberto pascoal </h4>
-          <p>Afiliado Top · Desde 2024</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Depoimento 3 -->
-    <div class="testimonial-card">
-      <div class="testimonial-quote">"</div>
-      <div class="testimonial-stars">★★★★★</div>
-      <p class="testimonial-text">
-        "A assessoria personalizada do @Plebheu90 me ajudou a estruturar meu negócio do zero. As estratégias de divulgação funcionaram melhor do que eu imaginava. Gratidão eterna!"
-      </p>
-      <div class="testimonial-author">
-        <div class="testimonial-avatar">👩‍🎨</div>
-        <div class="testimonial-info">
-          <h4>Hernane Gasolina </h4>
-          <p>Empreendedor Criativo</p>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Botão para enviar depoimento -->
-  <div style="text-align: center; margin-top: 3rem;">
-    <a href="https://wa.me/244929894589?text=Olá!%20Quero%20deixar%20meu%20depoimento%20sobre%20a%20Vagalume90" target="_blank" class="btn-ghost" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-      📝 Deixe o seu depoimento
-    </a>
-  </div>
-</section>
-<!-- CTA -->
-<section class="cta-section" id="contato">
-  <h2>Pronto para<br>brilhar?</h2>
-  <p>Entre em contato e descubra como a Vagalume90 pode transformar sua presença digital.</p>
-  <a href="https://wa.me/244929894589" target="_blank" class="btn-primary">💬 Falar no WhatsApp</a>
-</section>
-
-<!-- FOOTER -->
-<footer style="position:relative;z-index:1;border-top:1px solid rgba(245,200,66,0.07);padding:3rem 2rem 2rem;text-align:center;">
-  <div class="logo" style="display:inline-block;margin-bottom:1.2rem;text-decoration:none;">Vagalume<span>90</span></div>
-  <p style="color:var(--muted);font-size:0.85rem;max-width:400px;margin:0 auto 1.8rem;line-height:1.7;">Empresa de divulgação digital e apoio a utilizadores de internet. Fundada por Ernesto Cardoso — O Hasta.</p>
-
-  <!-- Redes Sociais -->
-  <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-bottom:2rem;">
-    <a href="https://instagram.com/Plebheu90" target="_blank" style="display:flex;align-items:center;gap:0.5rem;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;font-weight:700;font-size:0.85rem;padding:0.6rem 1.3rem;border-radius:100px;text-decoration:none;transition:transform 0.2s,box-shadow 0.2s;box-shadow:0 0 20px rgba(253,29,29,0.25);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 0 35px rgba(253,29,29,0.45)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 0 20px rgba(253,29,29,0.25)'">
-      📸 Instagram — @Plebheu90
-    </a>
-    <a href="https://youtube.com/@vagalume90" target="_blank" style="display:flex;align-items:center;gap:0.5rem;background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);color:#ff4444;font-weight:700;font-size:0.85rem;padding:0.6rem 1.3rem;border-radius:100px;text-decoration:none;transition:transform 0.2s,background 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.background='rgba(255,0,0,0.2)'" onmouseout="this.style.transform='none';this.style.background='rgba(255,0,0,0.1)'">
-      ▶ YouTube — @vagalume90
-    </a>
-    <a href="https://wa.me/244929894589" target="_blank" style="display:flex;align-items:center;gap:0.5rem;background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.3);color:#25d366;font-weight:700;font-size:0.85rem;padding:0.6rem 1.3rem;border-radius:100px;text-decoration:none;transition:transform 0.2s,background 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.background='rgba(37,211,102,0.2)'" onmouseout="this.style.transform='none';this.style.background='rgba(37,211,102,0.1)'">
-      💬 WhatsApp
-    </a>
-  </div>
-
-  <div style="border-top:1px solid rgba(245,200,66,0.07);padding-top:1.5rem;display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;align-items:center;">
-    <p style="font-size:0.78rem;color:var(--muted);">📧 <a href="/cdn-cgi/l/email-protection#6f050a1c1c0a1f030a0d070a1a2f08020e0603410c0002" style="color:var(--glow);text-decoration:none;"><span class="__cf_email__" data-cfemail="0f656a7c7c6a7f636a6d676a7a4f68626e6663216c6062">[email&#160;protected]</span></a></p>
-    <span style="color:rgba(107,107,122,0.3);">·</span>
-    <p style="font-size:0.78rem;color:var(--muted);">© 2025 <span style="color:var(--glow);">Vagalume90</span> — Todos os direitos reservados.</p>
-  </div>
-</footer>
-
-<!-- MODAL REGISTO AFILIADOS -->
-<div class="modal-overlay" id="modalRegisto">
-  <div class="modal-box" style="position:relative;">
-    <button class="modal-close" onclick="fecharRegisto()">✕</button>
-
-    <!-- Esquerda -->
-    <div class="modal-left">
-      <div class="panel-tag">✦ Programa de Afiliados</div>
-      <h2 class="panel-title">Faça parte<br>da nossa <em>rede</em></h2>
-      <p class="panel-desc">Registe-se como afiliado Vagalume90 e comece a ganhar comissões promovendo marcas que confiam em nós.</p>
-      <div class="perks">
-        <div class="perk">
-          <div class="perk-icon">💰</div>
-          <div class="perk-text"><strong>Comissões Atrativas</strong><span>Ganhe por cada venda ou lead gerado através do seu link exclusivo.</span></div>
-        </div>
-        <div class="perk">
-          <div class="perk-icon">📊</div>
-          <div class="perk-text"><strong>Painel em Tempo Real</strong><span>Acompanhe cliques, conversões e ganhos quando quiser.</span></div>
-        </div>
-        <div class="perk">
-          <div class="perk-icon">🚀</div>
-          <div class="perk-text"><strong>Suporte Dedicado</strong><span>A nossa equipa ajuda-te a maximizar os teus resultados.</span></div>
-        </div>
-        <div class="perk">
-          <div class="perk-icon">🔗</div>
-          <div class="perk-text"><strong>Link Único Imediato</strong><span>Recebe o teu código de afiliado assim que o registo for aprovado.</span></div>
-        </div>
-        <div class="perk" style="background:rgba(255,0,0,0.05);border:1px solid rgba(255,0,0,0.2);border-radius:10px;padding:0.7rem;margin-top:0.3rem;">
-          <div class="perk-icon" style="background:rgba(255,0,0,0.1);border-color:rgba(255,0,0,0.3);">▶</div>
-          <div class="perk-text">
-            <strong style="color:#ff6666;">🎁 Bónus: 2 Vídeos no YouTube</strong>
-            <span>Como afiliado, tens a oportunidade de publicar <strong style="color:var(--text);">2 vídeos teus</strong> no canal <span style="color:#ff4444;font-weight:700;">@vagalume90</span> e alcançar a nossa audiência.</span>
-          </div>
-        </div>
-        <div class="perk" style="background:rgba(37,211,102,0.05);border:1px solid rgba(37,211,102,0.2);border-radius:10px;padding:0.7rem;margin-top:0.3rem;">
-          <div class="perk-icon" style="background:rgba(37,211,102,0.1);border-color:rgba(37,211,102,0.3);">📚</div>
-          <div class="perk-text">
-            <strong style="color:#25d366;">🔗 Convida & Ganha Livros</strong>
-            <span>Recebe um <strong style="color:var(--text);">link único de convite</strong> após o registo. Por cada afiliado que convidares, ganhas <strong style="color:var(--text);">1 livro PDF grátis</strong>!</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Direita: Formulário -->
-    <div class="modal-right">
-      <div id="formArea">
-        <div class="form-header">
-          <h2>Criar Conta</h2>
-          <p>Preenche os dados abaixo para começar</p>
-        </div>
-        <form onsubmit="submeterRegisto(event)">
-          <div class="form-row">
-            <div class="field"><label>Nome</label><input type="text" placeholder="Teu nome" required></div>
-            <div class="field"><label>Apelido</label><input type="text" placeholder="Teu apelido" required></div>
-          </div>
-          <div class="field"><label>Email</label><input type="email" placeholder="email@exemplo.com" required></div>
-          <div class="field"><label>WhatsApp / Telefone</label><input type="tel" placeholder="+244 9XX XXX XXX" required></div>
-          <div class="form-row">
-            <div class="field">
-              <label>Plataforma Principal</label>
-              <select required>
-                <option value="" disabled selected>Escolher...</option>
-                <option>Instagram</option><option>TikTok</option><option>YouTube</option>
-                <option>Facebook</option><option>Blog / Website</option><option>Telegram</option><option>Outro</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Seguidores Aprox.</label>
-              <select required>
-                <option value="" disabled selected>Escolher...</option>
-                <option>Menos de 1.000</option><option>1.000 – 10.000</option>
-                <option>10.000 – 50.000</option><option>50.000 – 200.000</option><option>Mais de 200.000</option>
-              </select>
-            </div>
-          </div>
-          <div class="field"><label>Link do teu perfil / canal</label><input type="url" placeholder="https://instagram.com/seuperfil"></div>
-          <div class="field"><label>Como pretendes divulgar? (opcional)</label><textarea placeholder="Conta-nos um pouco sobre a tua estratégia..."></textarea></div>
-          <div class="field"><label>Palavra-passe</label><input type="password" placeholder="Mínimo 8 caracteres" minlength="8" required></div>
-          <div class="checkbox-group">
-            <input type="checkbox" id="termos" required>
-            <label for="termos">Li e aceito os <a href="#">Termos e Condições</a> do Programa de Afiliados da Vagalume90.</label>
-          </div>
-          <button type="submit" class="btn-submit">✦ Criar Conta de Afiliado</button>
-          <div class="login-hint">Já tens conta? <a href="#">Entrar aqui</a></div>
-        </form>
-      </div>
-
-      <!-- Sucesso -->
-      <div class="success-overlay" id="sucessoArea" style="flex-direction:column;align-items:center;text-align:center;padding:1.5rem;overflow-y:auto;">
-        <div class="success-icon">✓</div>
-        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--glow);margin-bottom:0.5rem;">Bem-vindo à família!</h3>
-        <p style="font-size:0.85rem;color:var(--muted);line-height:1.65;max-width:320px;margin-bottom:1.2rem;">O teu registo foi enviado. Confirma pelo WhatsApp para activar a conta e receber os teus bónus.</p>
-
-        <!-- Código -->
-        <div style="background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.2);border-radius:10px;padding:0.8rem 1.5rem;margin-bottom:0.4rem;">
-          <div style="font-size:0.68rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.3rem;">O teu código de afiliado</div>
-          <div style="font-family:'Bebas Neue',sans-serif;letter-spacing:0.15em;color:var(--glow);font-size:1.3rem;" id="codigoRef">VAG-XXXXXX</div>
-        </div>
-
-        <!-- Link de convite -->
-        <div style="width:100%;background:rgba(245,200,66,0.05);border:1px solid rgba(245,200,66,0.18);border-radius:10px;padding:1rem;margin-bottom:1rem;">
-          <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.6rem;">🔗 O teu link de convite</div>
-          <div style="display:flex;gap:0.5rem;align-items:center;">
-            <div id="linkConvite" style="flex:1;background:#080b12;border:1px solid rgba(245,200,66,0.15);border-radius:6px;padding:0.5rem 0.8rem;font-size:0.75rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">vagalume90.com/afiliado?ref=VAG-XXXXXX</div>
-            <button onclick="copiarLink()" style="background:var(--glow);color:#080b12;border:none;border-radius:6px;padding:0.5rem 0.8rem;font-weight:700;font-size:0.75rem;cursor:pointer;white-space:nowrap;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" id="btnCopiar">📋 Copiar</button>
-          </div>
-          <p style="font-size:0.75rem;color:var(--muted);margin-top:0.6rem;line-height:1.5;">Partilha este link nas tuas redes. Cada pessoa que se registar através dele conta como teu convite!</p>
-        </div>
-
-        <!-- Bónus livro -->
-        <div style="width:100%;background:linear-gradient(135deg,rgba(37,211,102,0.06),rgba(245,200,66,0.04));border:1px solid rgba(37,211,102,0.25);border-radius:10px;padding:1rem;margin-bottom:1rem;">
-          <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#25d366;margin-bottom:0.5rem;">🎁 Bónus por Convite</div>
-          <p style="font-size:0.82rem;color:var(--muted);line-height:1.6;">Por cada afiliado que se registar usando o teu link, <strong style="color:var(--text);">ganhas um livro PDF grátis</strong> à tua escolha da nossa loja!</p>
-          <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.7rem;flex-wrap:wrap;justify-content:center;">
-            <span style="font-size:0.75rem;background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.2);color:#25d366;padding:0.2rem 0.7rem;border-radius:100px;">1 convite = 1 livro grátis 📚</span>
-          </div>
-        </div>
-
-        <!-- Confirmar no WhatsApp -->
-        <a href="https://wa.me/244929894589?text=Olá!%20Acabei%20de%20me%20registar%20como%20afiliado%20Vagalume90.%20O%20meu%20código%20é%20" id="btnWhatsapp" target="_blank" style="width:100%;background:#25d366;color:#fff;font-weight:700;font-size:0.88rem;padding:0.8rem;border-radius:8px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:0.5rem;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">💬 Confirmar registo no WhatsApp</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
- <script>
-  // Fireflies
-  const container = document.getElementById('fireflies');
-  for (let i = 0; i < 35; i++) {
-    const f = document.createElement('div');
-    f.className = 'firefly';
-    const x = Math.random() * 100;
-    const y = Math.random() * 100;
-    const dx = (Math.random() - 0.5) * 300 + 'px';
-    const dy = (Math.random() - 0.5) * 300 + 'px';
-    const dur = 6 + Math.random() * 10;
-    const delay = Math.random() * -20;
-    f.style.cssText = `left:${x}%;top:${y}%;--dx:${dx};--dy:${dy};animation-duration:${dur}s,${1.5+Math.random()}s;animation-delay:${delay}s,${Math.random()*2}s;`;
-    container.appendChild(f);
-  }
-
-  // Smooth scroll
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const target = document.querySelector(a.getAttribute('href'));
-      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
-    });
-  });
-
-  // ========== FUNÇÕES DO MODAL ==========
-  function abrirRegisto(e) {
-    if (e) e.preventDefault();
-    const modal = document.getElementById('modalRegisto');
-    if (modal) {
-      modal.classList.add('active');
-      document.body.style.overflow = 'hidden';
-      console.log("✅ Modal aberto!");
-    } else {
-      console.error("❌ Modal não encontrado!");
-    }
-  }
-
-  function fecharRegisto() {
-    const modal = document.getElementById('modalRegisto');
-    if (modal) {
-      modal.classList.remove('active');
-      document.body.style.overflow = '';
-    }
-  }
-
-  // Fechar modal ao clicar fora
-  document.getElementById('modalRegisto').addEventListener('click', function(e) {
-    if (e.target === this) fecharRegisto();
-  });
-  
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') fecharRegisto();
-  });
-  // ========== SUBMIT REGISTO ==========
-async function submeterRegisto(e) {
-  e.preventDefault();
-  const form = e.target;
-  const nome = form.querySelector('input[placeholder="Teu nome"]').value;
-  const apelido = form.querySelector('input[placeholder="Teu apelido"]').value;
-  const email = form.querySelector('input[type="email"]').value;
-  const telefone = form.querySelector('input[type="tel"]').value;
-  const plataforma = form.querySelectorAll('select')[0].value;
-  const seguidores = form.querySelectorAll('select')[1].value;
-  const perfilLink = form.querySelector('input[type="url"]').value;
-  const estrategia = form.querySelector('textarea').value;
-  const senha = form.querySelector('input[type="password"]').value;
-  
-  if (!email || !senha || !nome || !apelido) {
-    alert("Por favor, preencha todos os campos obrigatórios.");
-    return;
-  }
-  
-  if (senha.length < 6) {
-    alert("A palavra-passe deve ter pelo menos 6 caracteres.");
-    return;
-  }
-  
-  const codigo = 'VAG-' + Math.random().toString(36).substring(2,8).toUpperCase();
-  const dominioAtual = window.location.origin;
-  const linkConvite = `${dominioAtual}/?ref=${codigo}`;
-  
-  try {
-    console.log("📝 Criando usuário...");
-    const userCredential = await window.createUserWithEmailAndPassword(window.auth, email, senha);
-    const userId = userCredential.user.uid;
-    console.log("✅ Usuário criado:", userId);
-    
-    await window.addDoc(window.collection(window.db, "afiliados"), {
-      userId: userId,
-      nome: nome,
-      apelido: apelido,
-      email: email,
-      telefone: telefone,
-      plataforma: plataforma,
-      seguidores: seguidores,
-      perfilLink: perfilLink,
-      estrategia: estrategia,
-      codigoAfiliado: codigo,
-      linkAfiliado: linkConvite,
-      dataRegisto: new Date(),
-      status: "pendente",
-      convites: 0,
-      livrosGanhos: 0
-    });
-    
-    document.getElementById('codigoRef').textContent = codigo;
-    document.getElementById('linkConvite').textContent = linkConvite;
-    
-    const msgWhatsApp = `Olá! Acabei de me registar como afiliado Vagalume90.%0A%0A📝 Nome: ${nome} ${apelido}%0A📧 Email: ${email}%0A📱 Telefone: ${telefone}%0A🔑 Código: ${codigo}%0A🔗 Link de convite: ${linkConvite}`;
-    document.getElementById('btnWhatsapp').href = `https://wa.me/244929894589?text=${msgWhatsApp}`;
-    
-    document.getElementById('formArea').style.display = 'none';
-    document.getElementById('sucessoArea').style.display = 'flex';
-    
-  } catch (error) {
-    console.error("❌ Erro:", error);
-    let mensagemErro = "Erro ao registar: ";
-    if (error.code === 'auth/email-already-in-use') {
-      mensagemErro += "Este e-mail já está registado.";
-    } else if (error.code === 'auth/invalid-email') {
-      mensagemErro += "E-mail inválido.";
-    } else if (error.code === 'auth/weak-password') {
-      mensagemErro += "Palavra-passe muito fraca. Use pelo menos 6 caracteres.";
-    } else if (error.code === 'auth/operation-not-allowed') {
-      mensagemErro += "Registo por e-mail não está ativado no Firebase Console.";
-    } else {
-      mensagemErro += error.message;
-    }
-    alert(mensagemErro);
+  if (returning) {
+    loginForm.classList.add('visible');
+    registerForm.classList.remove('visible');
+    card.style.borderColor = 'var(--rose)';
+    if(orb) orb.style.background = 'rgba(232, 64, 122, 0.05)';
+    if(instr) { instr.style.color = 'var(--rose)'; instr.textContent = 'RECONEXÃO REQUERIDA'; }
+    if(eye) eye.style.filter = 'drop-shadow(0 0 25px rgba(232, 64, 122, 0.5))';
+    if(readout) { readout.style.color = 'var(--rose)'; readout.textContent = "VG90 · OPERADOR ANTIGO LOCALIZADO · INSIRA A CHAVE NEURAL"; }
+    rings.forEach(r => r.style.borderColor = 'rgba(232, 64, 122, 0.25)');
+  } else {
+    registerForm.classList.add('visible');
+    loginForm.classList.remove('visible');
+    card.style.borderColor = 'var(--gold)';
+    if(orb) orb.style.background = 'rgba(245, 192, 48, 0.05)';
+    if(instr) { instr.style.color = 'var(--gold)'; instr.textContent = 'INICIALIZAR NOVO REGISTO'; }
+    if(eye) eye.style.filter = 'drop-shadow(0 0 25px rgba(245, 192, 48, 0.4))';
+    if(readout) { readout.style.color = 'var(--gold)'; readout.textContent = "VG90 · SINAL DESCONHECIDO · REQUER MANIFESTAÇÃO DE NÓDULO (RANK: AVENTURIRO)"; }
+    rings.forEach(r => r.style.borderColor = 'rgba(245, 192, 48, 0.25)');
   }
 }
 
-  // ========== MODAL CASAIS ==========
-  function abrirModalCasais(tipo) {
-    const modal = document.getElementById('modalCasais');
-    const infoPag = document.getElementById('infoPagamento');
-    if (infoPag) infoPag.style.display = 'block';
-    if (document.getElementById('formAreaCasais')) {
-      document.getElementById('formAreaCasais').style.display = 'block';
-    }
-    if (document.getElementById('sucessoCasais')) {
-      document.getElementById('sucessoCasais').style.display = 'none';
-    }
-    if (modal) {
-      modal.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
-  }
+window.onload = () => {
+  syncPortalIdentity(isReturningUser);
+  buildNetworkLines();
+};
 
-  function fecharModalCasais() {
-    const modal = document.getElementById('modalCasais');
-    if (modal) {
-      modal.classList.remove('active');
-      document.body.style.overflow = '';
-    }
-  }
+function toggleAuth(mode) {
+  syncPortalIdentity(mode === 'login');
+}
 
-  if (document.getElementById('modalCasais')) {
-    document.getElementById('modalCasais').addEventListener('click', function(e) {
-      if (e.target === this) fecharModalCasais();
-    });
-  }
+function openTerminal() {
+  document.getElementById('login-card').classList.add('active');
+  const instr = document.getElementById('pulse-instruction');
+  if(instr) instr.style.opacity = '0';
+  document.getElementById('eye-container').style.transform = 'scale(0.78) translateY(-85px)';
+}
 
-  async function submeterCasais(e) {
-    e.preventDefault();
-    const nome = document.getElementById('nomesCasais').value;
-    const idade = document.querySelector('#modalCasais input[type="number"]')?.value;
-    const wa = document.getElementById('waCasais').value;
-    const tema = document.getElementById('temaCasais').value;
-    const estadoRelacionamento = document.querySelector('#modalCasais select:nth-of-type(2)')?.value;
-    const situacao = document.getElementById('situacaoCasais').value;
-    const tipo = 'Sessão Premium (2.000 Kz)';
-    
-    try {
-      await window.addDoc(window.collection(window.db, "consultas_casais"), {
-        nome: nome,
-        idade: idade || "Não informado",
-        whatsapp: wa,
-        tema: tema,
-        estadoRelacionamento: estadoRelacionamento,
-        situacao: situacao,
-        tipo: tipo,
-        dataEnvio: new Date(),
-        status: "pendente",
-        respondido: false
-      });
-      
-      const msg = encodeURIComponent(
-        `Olá! Quero ${tipo} na área de Assessoria para Casais.\n\n` +
-        `👤 Nome: ${nome}\n📱 WhatsApp: ${wa}\n💑 Tema: ${tema}\n\n` +
-        `📝 Situação:\n${situacao}`
-      );
-      
-      const btnWhats = document.getElementById('btnWhatsappCasais');
-      if (btnWhats) btnWhats.href = `https://wa.me/244929894589?text=${msg}`;
-      
-      if (document.getElementById('formAreaCasais')) {
-        document.getElementById('formAreaCasais').style.display = 'none';
-      }
-      if (document.getElementById('sucessoCasais')) {
-        document.getElementById('sucessoCasais').style.display = 'flex';
-      }
-      
-    } catch (error) {
-      console.error("Erro:", error);
-      alert("Erro ao enviar: " + error.message);
-    }
-  }
+function closeTerminal(e) {
+  e.stopPropagation();
+  document.getElementById('login-card').classList.remove('active');
+  const instr = document.getElementById('pulse-instruction');
+  if(instr) instr.style.opacity = '1';
+  document.getElementById('eye-container').style.transform = 'scale(1) translateY(0)';
+}
 
-  function copiarLink() {
-    const linkElement = document.getElementById('linkConvite');
-    if (!linkElement) return;
-    const link = linkElement.textContent;
-    navigator.clipboard.writeText(link).then(() => {
-      const btn = document.getElementById('btnCopiar');
-      if (btn) {
-        btn.textContent = '✅ Copiado!';
-        setTimeout(() => btn.textContent = '📋 Copiar', 2000);
-      }
-    }).catch(err => {
-      console.error("Erro ao copiar:", err);
-      alert("Não foi possível copiar. Selecione o link manualmente.");
-    });
-  }
-  // ========== FUNÇÃO PARA LER CÓDIGO DE CONVITE NA URL ==========
- async function lerCodigoConvite () {
-  const urlParams = new URLSearchParams(window.location.search);
-  const refCodigo = urlParams.get('ref');
-  
-  if (refCodigo) {
-    console.log("🔗 Visitante veio do convite do afiliado:", refCodigo);
-    sessionStorage.setItem('codigoAfiliadoOrigem', refCodigo);
-    const msg = document.createElement('div');
-    msg.innerHTML = `🎉 Você foi convidado por um afiliado Vagalume90! <br> <strong style="font-size:18px;">${refCodigo}</strong>`;
-    msg.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: linear-gradient(135deg, #f5c842, #ff6b1a);
-      color: #080b12;
-      padding: 15px 25px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: bold;
-      z-index: 1000;
-      box-shadow: 0 0 30px rgba(245,200,66,0.5);
-      animation: slideIn 0.5s ease;
-      max-width: 350px;
-      text-align: center;
-      font-family: 'DM Sans', sans-serif;
-    `;
-    document.body.appendChild(msg);
-    setTimeout(() => msg.remove(), 8000);
-    // Salvar clique no Firestore
-try {
-  await window.addDoc(window.collection(window.db, "cliques_convite"), {
-    codigoAfiliado: refCodigo,
-    dataClique: new Date(),
-    ip: "coletado pelo servidor",
-    userAgent: navigator.userAgent
-  });
-  console.log("✅ Clique registrado!");
-} catch(e) { console.log("Erro ao registrar clique:", e); }
+// ARMAZENAMENTO COMPATÍVEL COM FLASK / JS LOCAL
+function handleFormSubmit(event) {
+  // Se estiveres a testar apenas de forma estática sem o servidor Flask ligado, 
+  // retira as duas barras da linha abaixo para simular o processo:
+  // event.preventDefault();
+
+  localStorage.setItem('vg90_returning_operator', 'true');
+  const readout = document.getElementById('readout');
+  if (readout) {
+    readout.textContent = "SINAPSE PROCESSADA COM SUCESSO · INJETANDO CREDENCIAIS NO ECOSSISTEMA...";
   }
 }
 
-// Adicionar animação
-const styleConvite = document.createElement('style');
-styleConvite.textContent = `
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+// CAMINHOS SINÁPTICOS DINÂMICOS SVG
+function buildNetworkLines() {
+  const svg = document.getElementById('network-svg');
+  if(!svg) return;
+  svg.innerHTML = '';
+  const W = window.innerWidth, H = window.innerHeight;
+  
+  for(let i=0; i<6; i++) {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const angle = (i * Math.PI) / 3;
+    const targetX = W/2 + Math.cos(angle) * (W * 0.4);
+    const targetY = H/2 + Math.sin(angle) * (H * 0.4);
+    
+    const d = `M ${W/2} ${H/2} Q ${W/2 + (targetX - W/2)*0.5 + (Math.random()-0.5)*100} ${H/2 + (targetY - H/2)*0.5 + (Math.random()-0.5)*100} ${targetX} ${targetY}`;
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', isReturningUser ? 'rgba(232,64,122,0.06)' : 'rgba(245,192,48,0.06)');
+    path.setAttribute('stroke-width', '1.5');
+    svg.appendChild(path);
   }
-`;
-document.head.appendChild(styleConvite);
+}
+window.addEventListener('resize', buildNetworkLines);
 
-// Executar ao carregar a página
-lerCodigoConvite();
-</script>
+// CANVAS GRAPHICS ANIMATION
+(function(){
+  const cv = document.getElementById('breath-canvas');
+  if(!cv) return;
+  const cx = cv.getContext('2d');
+  let W, H, cells=[], t=0;
+  function resize(){ W=cv.width=window.innerWidth; H=cv.height=window.innerHeight; buildCells(); }
+  function buildCells(){
+    cells=[]; const count = Math.floor((W*H)/20000);
+    for(let i=0; i<count; i++){
+      cells.push({ x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-.5)*.18, vy:(Math.random()-.5)*.18, r:Math.random()*1.3+0.4, phase:Math.random()*Math.PI*2 });
+    }
+  }
+  resize(); window.addEventListener('resize',resize);
+  function draw(){
+    t += 0.004; cx.clearRect(0,0,W,H);
+    cells.forEach(p=>{
+      p.x += p.vx; p.y += p.vy;
+      if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+      cx.beginPath(); cx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      cx.fillStyle = isReturningUser ? 'rgba(232,64,122,'+(0.06 + 0.06*Math.sin(t+p.phase))+')' : 'rgba(245,192,48,'+(0.06 + 0.06*Math.sin(t+p.phase))+')';
+      cx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
 </script>
 </body>
 </html>
