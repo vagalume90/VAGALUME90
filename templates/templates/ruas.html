@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VG90 · As Ruas Holográficas</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Space+Grotesk:wght@300;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --neon-void: #020204; --tachyon-blue: #00f0ff; --singularity-gold: #ffcc00; --bioplasm-green: #00ff66;
+  --f-orbitron: 'Orbitron', sans-serif; --f-grotesk: 'Space Grotesk', sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  width: 100%; min-height: 100vh; background: var(--neon-void);
+  font-family: var(--f-grotesk); color: #fff; padding: 60px 20px;
+  display: flex; flex-direction: column; align-items: center;
+  background-image: radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.04) 0%, transparent 80%);
+}
+.quantum-container { width: 100%; max-width: 700px; text-align: center; }
+h1 { font-family: var(--f-orbitron); font-size: 2.3rem; font-weight: 700; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.2); letter-spacing: 2px; }
+.sub-quantum { font-family: var(--f-orbitron); font-size: 0.75rem; color: #555; margin-bottom: 40px; letter-spacing: 3px; }
+
+/* Santuário Bio-Yeto Avançado */
+.santuario-saude-yeto {
+  background: rgba(2, 2, 4, 0.85); border: 1px solid var(--tachyon-blue);
+  box-shadow: 0 0 40px rgba(0, 240, 255, 0.12), inset 0 0 20px rgba(0, 240, 255, 0.02);
+  border-radius: 16px; padding: 35px; text-align: left; backdrop-filter: blur(25px);
+}
+.saude-quantum-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; border-bottom: 1px solid rgba(0, 240, 255, 0.2); padding-bottom: 20px; }
+.saude-quantum-header h3 { font-family: var(--f-orbitron); font-size: 1.2rem; color: var(--tachyon-blue); text-shadow: 0 0 10px rgba(0, 240, 255, 0.4); }
+.tachyon-heart { font-size: 1.5rem; animation: hyperBeat 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) infinite; }
+@keyframes hyperBeat { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.18); filter: brightness(1.4); } }
+
+.meta-line { font-size: 0.95rem; margin-bottom: 12px; color: #b0b0b0; }
+.meta-line strong { color: #fff; }
+.kardashev-badge { color: var(--singularity-gold); font-family: var(--f-orbitron); font-weight: bold; }
+
+.nanobot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 30px 0; }
+.nanobot-card { background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; text-align: center; }
+.nanobot-card .telemetry-label { display: block; font-family: var(--f-orbitron); font-size: 0.6rem; color: #555; letter-spacing: 1px; margin-bottom: 6px; }
+.nanobot-card .telemetry-value { font-size: 1.1rem; font-weight: bold; font-family: var(--f-orbitron); }
+.telemetry-value.immortal { color: var(--bioplasm-green); text-shadow: 0 0 10px rgba(0, 255, 102, 0.4); }
+
+.btn-regeneration {
+  width: 100%; background: var(--tachyon-blue); border: none; padding: 15px;
+  border-radius: 8px; color: #000; font-family: var(--f-orbitron); font-size: 0.9rem; font-weight: 700;
+  cursor: pointer; transition: all 0.3s; letter-spacing: 2px; box-shadow: 0 4px 15px rgba(0, 240, 255, 0.2);
+}
+.btn-regeneration:hover { background: #fff; box-shadow: 0 0 30px #fff; transform: translateY(-1px); }
+.collapse-signal { display: inline-block; margin-top: 40px; font-family: var(--f-orbitron); font-size: 0.7rem; color: #444; text-decoration: none; letter-spacing: 2px; }
+.collapse-signal:hover { color: var(--tachyon-blue); }
+</style>
+</head>
+<body>
+
+<div class="quantum-container">
+  <h1>AS RUAS DA NEBULA VG90</h1>
+  <div class="sub-quantum">// ARTÉRIAS DE PLASMA E SINAPSES URBANAS COLETIVAS</div>
+
+  <div class="santuario-saude-yeto">
+    <div class="saude-quantum-header">
+      <span class="tachyon-heart">🩺</span>
+      <h3>SAÚDE YETO · Sistema de Bio-Regeneração Integrada</h3>
+    </div>
+    
+    <div class="meta-line">Entidade Identificada: <strong style="color: var(--tachyon-blue);">{{ username }}</strong></div>
+    <div class="meta-line">Nível de Sincronia: <span class="kardashev-badge">{{ rank }}</span></div>
+    
+    <div class="nanobot-grid">
+      <div class="nanobot-card">
+        <span class="telemetry-label">Status Vital</span>
+        <span class="telemetry-value immortal">{{ saude.status_vital }}</span>
+      </div>
+      <div class="nanobot-card">
+        <span class="telemetry-label">Frequência Escalar</span>
+        <span class="telemetry-value">{{ saude.pressao_art }}</span>
+      </div>
+      <div class="nanobot-card">
+        <span class="telemetry-label">Estabilidade Molecular</span>
+        <span class="telemetry-value" style="color: var(--tachyon-blue);">{{ saude.oxigenio }}</span>
+      </div>
+    </div>
+
+    <div class="meta-line" style="font-size: 0.8rem; color: #666; margin-bottom: 25px; font-family: var(--f-orbitron);">
+      > Telemetria de Triagem: <em style="color: #aaa;">{{ saude.consultas }}</em>
+    </div>
+
+    <button class="btn-regeneration" onclick="telepatiaEnfermeiro()">Disparar Consulta por Telepatia Sintética</button>
+  </div>
+
+  <a href="/logout" class="collapse-signal">// DESCONECTAR DA INFRAESTRUTURA</a>
+</div>
+
+<script>
+function telepatiaEnfermeiro() {
+  alert("Canal de Telepatia Sintética Aberto! Conectando diretamente ao córtex do Enfermeiro de Serviço da Saúde Yeto...");
+}
+</script>
+</body>
+</html>
