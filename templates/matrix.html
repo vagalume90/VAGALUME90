@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VG90 · Hiper-Matrix Quântica</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Space+Grotesk:wght@300;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --neon-void: #020204; --plasma-rose: #ff0055; --singularity-gold: #ffcc00; --tachyon-blue: #00f0ff;
+  --f-orbitron: 'Orbitron', sans-serif; --f-grotesk: 'Space Grotesk', sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  width: 100%; min-height: 100vh; background: var(--neon-void);
+  font-family: var(--f-grotesk); color: #fff; padding: 60px 20px;
+  display: flex; flex-direction: column; align-items: center;
+  background-image: radial-gradient(circle at 50% 50%, rgba(255, 0, 85, 0.05) 0%, transparent 80%);
+}
+.quantum-container { width: 100%; max-width: 700px; text-align: center; }
+h1 { font-family: var(--f-orbitron); font-size: 2.5rem; font-weight: 700; color: var(--plasma-rose); text-shadow: 0 0 20px var(--plasma-rose); letter-spacing: 4px; }
+.sub-quantum { font-family: var(--f-orbitron); font-size: 0.75rem; color: #555; margin-bottom: 40px; letter-spacing: 3px; }
+
+.matrix-singularity-card {
+  background: rgba(2, 2, 4, 0.8); border: 1px solid var(--plasma-rose);
+  box-shadow: 0 0 40px rgba(255, 0, 85, 0.15), inset 0 0 20px rgba(255, 0, 85, 0.05);
+  border-radius: 16px; padding: 40px; text-align: left; position: relative; backdrop-filter: blur(20px);
+}
+.matrix-singularity-card::before {
+  content: 'SUBSISTEMA ENERGÉTICO ATIVO'; position: absolute; top: -10px; right: 20px;
+  background: var(--plasma-rose); color: #000; font-family: var(--f-orbitron); font-size: 0.55rem;
+  padding: 2px 8px; border-radius: 4px; font-weight: bold; letter-spacing: 1px;
+}
+.card-title { font-family: var(--f-orbitron); font-size: 1.2rem; color: var(--plasma-rose); margin-bottom: 20px; display: flex; align-items: center; gap: 15px; }
+.pulse-dot { width: 8px; height: 8px; background: var(--plasma-rose); border-radius: 50%; box-shadow: 0 0 10px var(--plasma-rose); animation: nanoPulse 1s infinite; }
+@keyframes nanoPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.4; } }
+
+.data-stream { font-size: 1rem; margin-bottom: 15px; color: #e0e0e0; border-left: 2px solid rgba(255, 0, 85, 0.3); padding-left: 15px; }
+.quantum-badge { color: var(--singularity-gold); font-family: var(--f-orbitron); font-weight: bold; text-shadow: 0 0 10px rgba(255, 204, 0, 0.3); }
+
+.wormhole-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 40px; }
+.btn-wormhole {
+  padding: 18px; border: 1px solid rgba(255, 255, 255, 0.05); background: rgba(255, 255, 255, 0.01);
+  border-radius: 10px; color: #fff; font-family: var(--f-orbitron); font-size: 0.85rem; cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1); text-decoration: none; text-align: center;
+  letter-spacing: 2px; position: relative; overflow: hidden;
+}
+.btn-wormhole:hover {
+  background: rgba(255, 255, 255, 0.03); border-color: var(--tachyon-blue);
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.2); transform: translateY(-2px);
+}
+
+.collapse-signal { display: inline-block; margin-top: 40px; font-family: var(--f-orbitron); font-size: 0.7rem; color: #444; text-decoration: none; letter-spacing: 2px; transition: color 0.3s; }
+.collapse-signal:hover { color: var(--plasma-rose); text-shadow: 0 0 10px var(--plasma-rose); }
+</style>
+</head>
+<body>
+
+<div class="quantum-container">
+  <h1>NÚCLEO TRANSMUTADOR DA MATRIX</h1>
+  <div class="sub-quantum">// FLUXO DE CONSCIÊNCIA COORDENADA DA MALHA VG90</div>
+
+  <div class="matrix-singularity-card">
+    <div class="card-title"><div class="pulse-dot"></div> Sincronização de Avatar Multiversal</div>
+    <div class="data-stream">Operador Conectado: <strong style="color: var(--tachyon-blue);">{{ session.get('user', 'Entidade_Desmaterializada') }}</strong></div>
+    <div class="data-stream">Rank na Escala de Kardashev: <span class="quantum-badge">{{ rank }}</span></div>
+    <div class="data-stream" style="color: #777; font-size: 0.8rem; margin-top: 25px; border-left-color: #333;">
+      [CÓDIGO INFALÍVEL]: Conexão estabelecida via entrelaçamento quântico de 100.000 qubits diretamente com o aglomerado de memória estelar do MongoDB Atlas.
+    </div>
+  </div>
+
+  <div class="wormhole-grid">
+    <a href="/mundo/ruas" class="btn-wormhole" style="border-bottom: 2px solid var(--tachyon-blue);">Salto para as Ruas (Bio-Yeto)</a>
+    <a href="/mundo/mercado" class="btn-wormhole" style="border-bottom: 2px solid var(--singularity-gold);">Abrir Mercado Galáctico</a>
+  </div>
+
+  <a href="/logout" class="collapse-signal">// COLAPSAR ASSINATURA DE SINAL</a>
+</div>
+
+</body>
+</html>
