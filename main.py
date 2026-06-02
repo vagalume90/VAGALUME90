@@ -46,69 +46,63 @@ except Exception as e:
 @app.route('/')
 def index():
     if 'user' not in session:
-        return redirect('/login')
+        # Se não estiver logado, exibe o ecrã do Gatekeeper diretamente para fazer login/registro
+        return render_template('index.html')
     
-    # Renderiza o portal passando o utilizador e o rank vindo do MongoDB
+    # Se já estiver logado, mantém no portal injetando as variáveis do operador
     return render_template('index.html', usuario=session['user'], rank=session['rank'])
 
 
-# ROTA DE LOGIN - Firebase + MongoDB
-@app.route('/login', methods=['GET', 'POST'])
+# ROTA DE INSCRIÇÃO / REGISTO (Criação de Nó operador no MongoDB)
+@app.route('/register', methods=['POST'])
+def register():
+    username = request.form.get('username')
+    email = request.form.get('email')
+    password = request.form.get('password')
+    
+    if not username or not email or not password:
+        return jsonify({"success": False, "message": "Preenche todos os campos da sinapse."}), 400
+        
+    # Verificar se o utilizador ou email já existem na base de dados
+    if users_col.find_one({"$or": [{"username": username}, {"email": email}]}):
+        return jsonify({"success": False, "message": "Operador ou Sinapse já manifestados no sistema."}), 400
+
+    # Criar o perfil no MongoDB com o Rank Inicial de Aventuriro
+    user_profile = {
+        "username": username,
+        "email": email,
+        "password": password, # Chave neural de acesso
+        "rank": "Aventuriro"
+    }
+    users_col.insert_one(user_profile)
+    return jsonify({"success": True, "message": "Nódua manifestada com sucesso!"})
+
+
+# ROTA DE LOGIN - Autenticação Tradicional Directa no MongoDB
+@app.route('/login', methods=['POST'])
 def login():
-    if request.method == 'POST':
-        # O Firebase gera um "idToken" no frontend (JavaScript) após o login ter sucesso lá
-        # ou podes receber o email/username e a senha para validar via API do Firebase
-        id_token = request.form.get('idToken')
-        email = request.form.get('email')
-        username = request.form.get('username')
+    username = request.form.get('username')
+    password = request.form.get('password')
+    
+    if not username or not password:
+        return jsonify({"success": False, "message": "Identificador e chave requeridos."}), 400
+
+    # Procura pelo Identificador (Username) e valida a senha correspondente
+    user_profile = users_col.find_one({"username": username, "password": password})
+    
+    if user_profile:
+        session['user'] = user_profile['username']
+        session['rank'] = user_profile.get('rank', 'Aventuriro')
+        return jsonify({"success": True, "rank": session['rank'], "username": session['user']})
         
-        # Fluxo A: Autenticação via Token do Firebase (Mais seguro para Frontend)
-        if id_token:
-            try:
-                decoded_token = auth.verify_id_token(id_token)
-                uid = decoded_token['uid']
-                user_email = decoded_token.get('email', '')
-                
-                # Procurar ou criar o perfil deste utilizador no MongoDB para ler o Rank
-                user_profile = users_col.find_one({"firebase_uid": uid})
-                if not user_profile:
-                    # Se for o primeiro login, regista-o no MongoDB como Aventuriro
-                    user_profile = {
-                        "firebase_uid": uid,
-                        "username": username if username else user_email.split('@')[0],
-                        "email": user_email,
-                        "rank": "Aventuriro"
-                    }
-                    users_col.insert_one(user_profile)
-                
-                # Salva os dados na sessão do Flask
-                session['user'] = user_profile['username']
-                session['rank'] = user_profile.get('rank', 'Aventuriro')
-                return redirect('/')
-                
-            except Exception as e:
-                return render_template('login.html', erro=f"Erro de autenticação no Firebase: {e}")
-        
-        # Fluxo B: Formulário Tradicional de Teste (Caso ainda não uses Tokens no JS)
-        elif email or username:
-            search_query = {"email": email} if email else {"username": username}
-            user_profile = users_col.find_one(search_query)
-            
-            if user_profile:
-                session['user'] = user_profile['username']
-                session['rank'] = user_profile.get('rank', 'Aventuriro')
-                return redirect('/')
-            
-            return render_template('login.html', erro="Utilizador não encontrado no sistema.")
-            
-    return render_template('login.html')
+    return jsonify({"success": False, "message": "Chave neural ou Operador inválido."}), 401
 
 
 # ROTA DE LOGOUT
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect('/login')
+    return redirect('/')
 
 
 # --- ROTAS DE ACESSO AOS MUNDOS DO ECOSSISTEMA ---
@@ -116,23 +110,22 @@ def logout():
 @app.route('/mundo/mercado')
 def mundo_mercado():
     if 'user' not in session:
-        return redirect('/login')
+        return redirect('/')
     return render_template('mercado.html', rank=session['rank'])
 
 @app.route('/mundo/matrix')
 def mundo_matrix():
     if 'user' not in session:
-        return redirect('/login')
+        return redirect('/')
     return render_template('matrix.html', rank=session['rank'])
 
 @app.route('/mundo/ruas')
 def mundo_ruas():
     if 'user' not in session:
-        return redirect('/login')
+        return redirect('/')
     return render_template('ruas.html', rank=session['rank'])
 
 
 if __name__ == '__main__':
     porta = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=porta, debug=True)
-    
