@@ -1,353 +1,194 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-AO">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VG90 · Portal de Entrada Supremo</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400&display=swap" rel="stylesheet">
+<title>VG90 · Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-:root{
-  --void:#060608; --gold:#F5C030; --rose:#E8407A; --blue:#4FA3FF;
-  --f-h:'Bebas Neue',sans-serif; --f-m:'JetBrains Mono',monospace; --f-b:'Outfit',sans-serif;
+:root {
+  --void: #0a0a0c; --gold: #F5C030; --rose: #E8407A; --blue: #4FA3FF;
+  --f-m: 'JetBrains Mono', monospace; --f-b: 'Outfit', sans-serif;
 }
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100%;background:var(--void);overflow:hidden;font-family:var(--f-b);color:#fff;}
-
-/* ── ATMOSFERA E SCANLINES ── */
-#breath-canvas{position:fixed;inset:0;z-index:0;opacity:0.35;}
-body::before{
-  content:'';position:fixed;inset:0;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.15) 2px,rgba(0,0,0,.15) 4px);
-  pointer-events:none;z-index:900;
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  width: 100%; height: 100vh; background: var(--void);
+  font-family: var(--f-b); color: #fff; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
 
-.amb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:1;}
-.amb-center{width:500px;height:500px;top:50%;left:50%;transform:translate(-50%,-50%);transition:background 0.8s;}
-
-/* ── STAGE CENTRAL ── */
-#gatekeeper-stage{
-  position:fixed;inset:0;z-index:10;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+/* Fundo Dinâmico */
+#ambient-orb {
+  position: fixed; width: 400px; height: 400px; border-radius: 50%;
+  filter: blur(100px); pointer-events: none; opacity: 0.15; transition: background 0.5s;
 }
 
-/* ── MALHA DE REDE SVG ── */
-#network-svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2; }
-
-/* ── O NÚCLEO (OLHO CONSCIENTE) ── */
+/* Contentor do Logotipo */
 #eye-container {
-  position: relative; width: 270px; height: 270px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; z-index: 20;
-  transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+  width: 180px; height: 180px; margin-bottom: 20px;
+  cursor: pointer; position: relative; z-index: 10;
+  transition: transform 0.3s ease;
 }
+#eye-container:hover { transform: scale(1.05); }
 
-.dna-ring{position:absolute;border-radius:50%;border-style:solid;border-width:1px;pointer-events:none;transition:border-color 0.8s;}
-.dr1{inset:-15px;animation:drSpin 30s linear infinite;}
-.dr2{inset:5px;border-style:dashed;animation:drSpin 20s linear infinite reverse;}
-.dr3{inset:25px;border-style:dotted;animation:drSpin 12s linear infinite;}
-@keyframes drSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-
-/* Estilo do Olho (Imagem) */
-.neural-eye-img {
-  width: 78%; height: 78%; object-fit: contain; border-radius: 50%;
-  animation: eyeBreath 4s ease-in-out infinite; transition: all 0.5s;
+.logo-img {
+  width: 100%; height: 100%; object-fit: contain; border-radius: 50%;
   display: block;
 }
-@keyframes eyeBreath {
-  0%, 100% { transform: scale(1); opacity: 0.9; }
-  50% { transform: scale(1.04); opacity: 1; }
+
+/* Fallback se a imagem não carregar */
+.logo-fallback {
+  width: 100%; height: 100%; border-radius: 50%;
+  border: 2px solid var(--blue); background: rgba(79, 163, 255, 0.1);
+  box-shadow: 0 0 20px var(--blue); display: flex; align-items: center; justify-content: center;
+}
+.logo-fallback::after {
+  content: '👁️'; font-size: 3.5rem;
 }
 
-/* Olho de Fallback em CSS Puro (Ativado se a imagem falhar) */
-.css-eye-fallback {
-  width: 150px; height: 150px; border-radius: 50%;
-  border: 2px solid var(--rose); background: rgba(232, 64, 122, 0.1);
-  box-shadow: 0 0 30px var(--rose); display: flex; align-items: center; justify-content: center;
-  animation: eyeBreath 4s ease-in-out infinite; transition: all 0.5s;
-}
-.css-eye-fallback::after {
-  content: ''; width: 45px; height: 45px; border-radius: 50%; background: #fff;
-  box-shadow: 0 0 20px #fff;
+/* Cartão Uniforme de Acesso */
+#auth-card {
+  background: rgba(15, 15, 20, 0.98); border: 1px solid rgba(255,255,255,0.08);
+  padding: 30px; border-radius: 12px; width: 100%; max-width: 360px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 10; transition: border-color 0.5s;
 }
 
-/* ── PAINEL DE SINAL TERMINAL ── */
-#login-card {
-  position: absolute; background: rgba(6, 6, 8, 0.97); border: 1px solid transparent;
-  box-shadow: 0 0 50px rgba(0, 0, 0, 0.9); padding: 35px 30px; border-radius: 6px;
-  width: 350px; text-align: center; backdrop-filter: blur(16px); z-index: 30;
-  opacity: 0; pointer-events: none; transform: scale(0.92) translateY(30px);
-  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-}
-#login-card.active { opacity: 1; pointer-events: all; transform: scale(1) translateY(0); }
-
-.terminal-header { font-family: var(--f-m); font-size: 0.6rem; letter-spacing: 2px; margin-bottom: 25px; transition: color 0.8s; }
+.form-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; text-align: center; letter-spacing: 0.5px; }
 .auth-form { display: none; }
-.auth-form.visible { display: block; }
+.auth-form.active { display: block; }
 
-.input-group { position: relative; margin-bottom: 16px; }
-.input-group input {
-  width: 100%; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);
-  padding: 11px 14px; font-family: var(--f-m); font-size: 0.75rem; color: #fff;
-  border-radius: 4px; outline: none; transition: all 0.3s;
+/* Inputs Modernos e Limpos */
+.input-field {
+  width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12);
+  padding: 12px 15px; font-size: 0.9rem; color: #fff; border-radius: 6px;
+  outline: none; margin-bottom: 15px; transition: all 0.3s; font-family: var(--f-b);
 }
-.input-group input:focus { background: rgba(255,255,255,0.04); border-color: inherit; }
+.input-field:focus { border-color: var(--blue); background: rgba(255,255,255,0.06); }
 
-.btn-connect {
-  width: 100%; border: none; padding: 12px; border-radius: 4px;
-  font-family: var(--f-h); font-size: 1.2rem; letter-spacing: 2px; color: #fff;
-  cursor: pointer; margin-top: 10px; transition: all 0.3s;
+/* Botões Diretos */
+.btn-submit {
+  width: 100%; border: none; padding: 13px; border-radius: 6px;
+  font-size: 1rem; font-weight: 600; color: #000; cursor: pointer;
+  transition: all 0.3s; margin-top: 5px;
 }
-.btn-connect:hover { transform: translateY(-1px); filter: brightness(1.15); }
+.btn-submit:hover { transform: translateY(-1px); filter: brightness(1.1); }
 
-.switch-auth-mode { display: block; margin-top: 16px; font-family: var(--f-m); font-size: 0.6rem; text-decoration: none; letter-spacing: 1px; transition: color 0.3s; }
-.switch-auth-mode:hover { text-decoration: underline; }
-.btn-close-terminal { display: block; margin-top: 20px; font-family: var(--f-m); font-size: 0.55rem; color: rgba(255,255,255,0.3); text-decoration: none; letter-spacing: 1px; }
-.btn-close-terminal:hover { color: #fff; }
+/* Links de Troca Alternativa */
+.switch-text { display: block; text-align: center; margin-top: 15px; font-size: 0.8rem; color: #888; text-decoration: none; }
+.switch-text strong { color: #fff; }
+.switch-text:hover strong { text-decoration: underline; }
 
-#pulse-instruction { font-family: var(--f-m); font-size: 0.55rem; letter-spacing: 4px; margin-top: 30px; animation: textBlink 2s infinite; transition: all 0.5s; }
-@keyframes textBlink { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
-#readout { position: fixed; bottom: 16px; font-family: var(--f-m); font-size: 0.55rem; letter-spacing: 3px; text-align: center; z-index: 100; transition: color 0.8s; }
+/* Linha de Status Inferior */
+#status-readout { margin-top: 20px; font-family: var(--f-m); font-size: 0.7rem; color: #666; text-align: center; max-width: 320px; }
 </style>
 </head>
 <body>
 
-<div class="amb amb-center" id="ambient-orb"></div>
-<canvas id="breath-canvas"></canvas>
+<div id="ambient-orb"></div>
 
-<div id="gatekeeper-stage">
-  <svg id="network-svg"></svg>
+<div id="eye-container">
+  <img src="logo_olho.jpg.png" alt="Logo VG90" class="logo-img" id="site-logo" onerror="tryFlaskPath()">
+</div>
 
-  <div id="eye-container" onclick="openTerminal()">
-    <div class="dna-ring dr1"></div>
-    <div class="dna-ring dr2"></div>
-    <div class="dna-ring dr3"></div>
-    
-    <img src="logo_olho.jpg.png" alt="Olho Consciente VG90" class="neural-eye-img" id="core-eye" onerror="switchToCssEye()">
+<div id="auth-card">
+  <div id="form-login" class="auth-form">
+    <div class="form-title" style="color: var(--rose);">Entrar no Ecossistema</div>
+    <form onsubmit="sendAuth(event, '/login')">
+      <input type="text" name="username" class="input-field" placeholder="Nome de Utilizador" required autocomplete="username">
+      <input type="password" name="password" class="input-field" placeholder="Sua Chave / Senha" required autocomplete="current-password">
+      <button type="submit" class="btn-submit" style="background: var(--rose); color: #fff;">Entrar Agora</button>
+    </form>
+    <a href="#" class="switch-text" onclick="changeMode('register')">Não tem uma conta? <strong>Inscrever-se</strong></a>
   </div>
 
-  <div id="pulse-instruction">INICIALIZAR CONEXÃO NEURAL</div>
-
-  <div id="login-card">
-    <div id="form-login" class="auth-form">
-      <div class="terminal-header" style="color:var(--rose);">// ENTRAR_NO_ECOSSISTEMA (MATRIX/MERCADO/RUAS)</div>
-      <form onsubmit="handleFormSubmit(event, 'login')">
-        <div class="input-group"><input type="text" name="username" placeholder="IDENTIFICADOR" required autocomplete="off"></div>
-        <div class="input-group"><input type="password" name="password" placeholder="CHAVE NEURAL" required></div>
-        <button type="submit" class="btn-connect" style="background:linear-gradient(135deg, var(--rose), #9d174d);">CONECTAR AO NÚCLEO</button>
-      </form>
-      <a href="#" class="switch-auth-mode" onclick="toggleAuth('register')" style="color:var(--gold);">Novo no ecossistema? Manifestar Nódua →</a>
-    </div>
-
-    <div id="form-register" class="auth-form">
-      <div class="terminal-header" style="color:var(--gold);">// MANIFESTAR_NOVO_OPERADOR (NÍVEL: AVENTURIRO)</div>
-      <form onsubmit="handleFormSubmit(event, 'register')">
-        <div class="input-group"><input type="text" name="username" placeholder="ESCOLHER IDENTIFICADOR" required autocomplete="off"></div>
-        <div class="input-group"><input type="email" name="email" placeholder="ENDEREÇO DE SINAPSE" required autocomplete="off"></div>
-        <div class="input-group"><input type="password" name="password" placeholder="GERAR CHAVE CRIPTO-NEURAL" required></div>
-        <button type="submit" class="btn-connect" style="background:linear-gradient(135deg, var(--gold), #b48608); color:#000; font-weight:bold;">SOLICITAR ENTRADA</button>
-      </form>
-      <a href="#" class="switch-auth-mode" onclick="toggleAuth('login')" style="color:var(--rose);">Possui uma chave de operador? Autenticar ←</a>
-    </div>
-
-    <a href="#" class="btn-close-terminal" onclick="closeTerminal(event)">// ABORTAR SINAPSE</a>
+  <div id="form-register" class="auth-form">
+    <div class="form-title" style="color: var(--gold);">Criar Novo Operador</div>
+    <form onsubmit="sendAuth(event, '/register')">
+      <input type="text" name="username" class="input-field" placeholder="Escolha um Nome de Utilizador" required autocomplete="username">
+      <input type="email" name="email" class="input-field" placeholder="Seu E-mail" required autocomplete="email">
+      <input type="password" name="password" class="input-field" placeholder="Crie uma Senha Segura" required autocomplete="new-password">
+      <button type="submit" class="btn-submit" style="background: var(--gold);">Solicitar Acesso</button>
+    </form>
+    <a href="#" class="switch-text" onclick="changeMode('login')">Já tem registo? <strong>Fazer Login</strong></a>
   </div>
 </div>
 
-<div id="readout">VG90 · FRAGMENTO GATEKEEPER · MAPEANDO DISPOSITIVO...</div>
+<div id="status-readout" id="msg-box">A aguardar comandos...</div>
 
 <script>
-let isReturningUser = localStorage.getItem('vg90_returning_operator') === 'true';
-
-function switchToCssEye() {
-  const eyeImg = document.getElementById('core-eye');
-  if(eyeImg && eyeImg.tagName === 'IMG') {
-    const fallback = document.createElement('div');
-    fallback.className = 'css-eye-fallback';
-    fallback.id = 'core-eye';
-    eyeImg.replaceWith(fallback);
-    syncPortalIdentity(isReturningUser);
+// Tenta caminhos alternativos se o logo inicial direto falhar
+function tryFlaskPath() {
+  const img = document.getElementById('site-logo');
+  if (img && !img.dataset.attempted) {
+    img.dataset.attempted = "true";
+    // Tenta procurar na pasta static caso esteja lá guardado
+    img.src = "/static/logo_olho.jpg.png";
+  } else {
+    // Se falhar tudo, ativa o design em CSS puro para nunca ficar sem nada
+    const container = document.getElementById('eye-container');
+    container.innerHTML = '<div class="logo-fallback"></div>';
   }
 }
 
-function syncPortalIdentity(returning) {
+let currentMode = localStorage.getItem('returning_vg90') === 'true' ? 'login' : 'register';
+
+function changeMode(mode) {
+  currentMode = mode;
+  localStorage.setItem('returning_vg90', mode === 'login' ? 'true' : 'false');
+  
   const loginForm = document.getElementById('form-login');
   const registerForm = document.getElementById('form-register');
-  const card = document.getElementById('login-card');
+  const card = document.getElementById('auth-card');
   const orb = document.getElementById('ambient-orb');
-  const instr = document.getElementById('pulse-instruction');
-  const eye = document.getElementById('core-eye');
-  const readout = document.getElementById('readout');
-  const rings = document.querySelectorAll('.dna-ring');
-
-  if (returning) {
-    if(loginForm) loginForm.classList.add('visible');
-    if(registerForm) registerForm.classList.remove('visible');
-    if(card) card.style.borderColor = 'var(--rose)';
-    if(orb) orb.style.background = 'rgba(232, 64, 122, 0.05)';
-    if(instr) { instr.style.color = 'var(--rose)'; instr.textContent = 'RECONEXÃO REQUERIDA'; }
-    
-    if(eye) {
-      if(eye.tagName === 'IMG') {
-        eye.style.filter = 'drop-shadow(0 0 25px rgba(232, 64, 122, 0.5))';
-      } else {
-        eye.style.borderColor = 'var(--rose)';
-        eye.style.boxShadow = '0 0 30px var(--rose)';
-        eye.style.background = 'rgba(232, 64, 122, 0.1)';
-      }
-    }
-    if(readout) { readout.style.color = 'var(--rose)'; readout.textContent = "VG90 · OPERADOR ANTIGO LOCALIZADO · INSIRA A CHAVE NEURAL"; }
-    rings.forEach(r => r.style.borderColor = 'rgba(232, 64, 122, 0.25)');
+  
+  if (mode === 'login') {
+    loginForm.classList.add('active');
+    registerForm.classList.remove('active');
+    card.style.borderColor = 'rgba(232, 64, 122, 0.3)';
+    orb.style.background = 'var(--rose)';
   } else {
-    if(registerForm) registerForm.classList.add('visible');
-    if(loginForm) loginForm.classList.remove('visible');
-    if(card) card.style.borderColor = 'var(--gold)';
-    if(orb) orb.style.background = 'rgba(245, 192, 48, 0.05)';
-    if(instr) { instr.style.color = 'var(--gold)'; instr.textContent = 'INICIALIZAR NOVO REGISTO'; }
-    
-    if(eye) {
-      if(eye.tagName === 'IMG') {
-        eye.style.filter = 'drop-shadow(0 0 25px rgba(245, 192, 48, 0.4))';
-      } else {
-        eye.style.borderColor = 'var(--gold)';
-        eye.style.boxShadow = '0 0 30px var(--gold)';
-        eye.style.background = 'rgba(245, 192, 48, 0.1)';
-      }
-    }
-    if(readout) { readout.style.color = 'var(--gold)'; readout.textContent = "VG90 · SINAL DESCONHECIDO · REQUER MANIFESTAÇÃO DE NÓDULO (RANK: AVENTURIRO)"; }
-    rings.forEach(r => r.style.borderColor = 'rgba(245, 192, 48, 0.25)');
+    registerForm.classList.add('active');
+    loginForm.classList.remove('active');
+    card.style.borderColor = 'rgba(245, 192, 48, 0.3)';
+    orb.style.background = 'var(--gold)';
   }
 }
 
-window.onload = () => {
-  syncPortalIdentity(isReturningUser);
-  buildNetworkLines();
-};
+// Inicializa o ecrã no modo correto
+changeMode(currentMode);
 
-function toggleAuth(mode) { 
-  isReturningUser = (mode === 'login');
-  syncPortalIdentity(isReturningUser); 
-  buildNetworkLines();
-}
-
-function openTerminal() {
-  document.getElementById('login-card').classList.add('active');
-  const instr = document.getElementById('pulse-instruction');
-  if(instr) instr.style.opacity = '0';
-  document.getElementById('eye-container').style.transform = 'scale(0.78) translateY(-85px)';
-}
-
-function closeTerminal(e) {
-  e.stopPropagation();
-  document.getElementById('login-card').classList.remove('active');
-  const instr = document.getElementById('pulse-instruction');
-  if(instr) instr.style.opacity = '1';
-  document.getElementById('eye-container').style.transform = 'scale(1) translateY(0)';
-}
-
-// INTERCEPTADOR DE SUBMISSÃO CONECTADO AO BACKEND PYTHON DO MONGODB
-function handleFormSubmit(event, type) {
+// Envio simplificado de dados para o Backend Python
+function sendAuth(event, url) {
   event.preventDefault();
+  const readout = document.getElementById('status-readout');
+  readout.textContent = "A processar sinal...";
+  readout.style.color = "#888";
 
-  const form = event.target;
-  const formData = new FormData(form);
-  const readout = document.getElementById('readout');
+  const formData = new FormData(event.target);
 
-  if (type === 'register') {
-    if (readout) readout.textContent = "MANIFESTANDO NÓDULO... TRANSMITINDO SINAL AO BACKEND...";
-    
-    fetch('/register', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        localStorage.setItem('vg90_returning_operator', 'true');
-        if (readout) {
-          readout.style.color = 'var(--gold)';
-          readout.textContent = "SUCESSO! OPERADOR CONFIGURADO COMO AVENTURIRO. REDIRECIONANDO...";
-        }
-        setTimeout(() => { syncPortalIdentity(true); }, 2000);
+  fetch(url, { method: 'POST', body: formData })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      if (url === '/register') {
+        readout.textContent = "Registo Concluído com Sucesso! A entrar...";
+        readout.style.color = "var(--gold)";
+        setTimeout(() => changeMode('login'), 1500);
       } else {
-        if (readout) {
-          readout.style.color = '#ff4444';
-          readout.textContent = `ERRO: ${data.message}`;
-        }
+        readout.textContent = `Bem-vindo, ${data.username}! A entrar nas Ruas...`;
+        readout.style.color = "var(--blue)";
+        setTimeout(() => window.location.href = "/mundo/ruas", 1200);
       }
-    })
-    .catch(err => {
-      if (readout) readout.textContent = "ERRO CRÍTICO NA SINAPSE DE REDE.";
-    });
-
-  } else {
-    if (readout) readout.textContent = "VALIDANDO CHAVE CRIPTO-NEURAL... AGUARDE SINCRO...";
-    
-    fetch('/login', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        if (readout) {
-          readout.style.color = 'var(--rose)';
-          readout.textContent = `ACESSO CONCEDIDO · BEM-VINDO ${data.username.toUpperCase()} [RANK: ${data.rank}] · ENTRANDO NA MATRIX...`;
-        }
-        setTimeout(() => { window.location.href = "/mundo/matrix"; }, 1500);
-      } else {
-        if (readout) {
-          readout.style.color = '#ff4444';
-          readout.textContent = `ERRO DE AUTENTICAÇÃO: ${data.message}`;
-        }
-      }
-    })
-    .catch(err => {
-      if (readout) readout.textContent = "ERRO DE LIGAÇÃO AO NÚCLEO CENTRAL.";
-    });
-  }
-}
-
-function buildNetworkLines() {
-  const svg = document.getElementById('network-svg');
-  if(!svg) return;
-  svg.innerHTML = '';
-  const W = window.innerWidth, H = window.innerHeight;
-  for(let i=0; i<6; i++) {
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    const angle = (i * Math.PI) / 3;
-    const targetX = W/2 + Math.cos(angle) * (W * 0.4);
-    const targetY = H/2 + Math.sin(angle) * (H * 0.4);
-    const d = `M ${W/2} ${H/2} Q ${W/2 + (targetX - W/2)*0.5 + (Math.random()-0.5)*100} ${H/2 + (targetY - H/2)*0.5 + (Math.random()-0.5)*100} ${targetX} ${targetY}`;
-    path.setAttribute('d', d); path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', isReturningUser ? 'rgba(232,64,122,0.08)' : 'rgba(245,192,48,0.08)');
-    path.setAttribute('stroke-width', '1.5'); svg.appendChild(path);
-  }
-}
-window.addEventListener('resize', buildNetworkLines);
-
-(function(){
-  const cv = document.getElementById('breath-canvas'); if(!cv) return;
-  const cx = cv.getContext('2d'); let W, H, cells=[], t=0;
-  function resize(){ W=cv.width=window.innerWidth; H=cv.height=window.innerHeight; buildCells(); }
-  function buildCells(){
-    cells=[]; const count = Math.floor((W*H)/20000);
-    for(let i=0; i<count; i++){
-      cells.push({ x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-.5)*.18, vy:(Math.random()-.5)*.18, r:Math.random()*1.3+0.4, phase:Math.random()*Math.PI*2 });
+    } else {
+      readout.textContent = data.message;
+      readout.style.color = "#ff4444";
     }
-  }
-  resize(); window.addEventListener('resize',resize);
-  function draw(){
-    t += 0.004; cx.clearRect(0,0,W,H);
-    cells.forEach(p=>{
-      p.x += p.vx; p.y += p.vy; if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0;
-      cx.beginPath(); cx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      cx.fillStyle = isReturningUser ? 'rgba(232,64,122,'+(0.06 + 0.06*Math.sin(t+p.phase))+')' : 'rgba(245,192,48,'+(0.06 + 0.06*Math.sin(t+p.phase))+')';
-      cx.fill();
-    });
-    requestAnimationFrame(draw);
-  }
-  draw();
-})();
+  })
+  .catch(() => {
+    readout.textContent = "Erro de ligação com o servidor central.";
+    readout.style.color = "#ff4444";
+  });
+}
 </script>
 </body>
 </html>
