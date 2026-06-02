@@ -3,190 +3,192 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VG90 · Portal</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+<title>VG90 · Portal de Entrada Quântico</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Space+Grotesk:wght@300;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --void: #0a0a0c; --gold: #F5C030; --rose: #E8407A; --blue: #4FA3FF;
-  --f-m: 'JetBrains Mono', monospace; --f-b: 'Outfit', sans-serif;
+  --neon-void: #020204; --plasma-rose: #ff0055; --singularity-gold: #ffcc00; --tachyon-blue: #00f0ff;
+  --f-orbitron: 'Orbitron', sans-serif; --f-grotesk: 'Space Grotesk', sans-serif;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  width: 100%; height: 100vh; background: var(--void);
-  font-family: var(--f-b); color: #fff; overflow: hidden;
+  width: 100%; height: 100vh; background: var(--neon-void);
+  font-family: var(--f-grotesk); color: #fff; overflow: hidden;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background-image: radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.03) 0%, transparent 80%);
 }
 
-/* Fundo Dinâmico */
-#ambient-orb {
-  position: fixed; width: 400px; height: 400px; border-radius: 50%;
-  filter: blur(100px); pointer-events: none; opacity: 0.15; transition: background 0.5s;
+/* Orbe de Energia Estelar no Fundo */
+#ambient-energy {
+  position: fixed; width: 500px; height: 500px; border-radius: 50%;
+  filter: blur(120px); pointer-events: none; opacity: 0.12; transition: background 0.6s ease;
 }
 
-/* Contentor do Logotipo */
-#eye-container {
-  width: 180px; height: 180px; margin-bottom: 20px;
+/* Portal do Olho Consciente */
+#eye-portal {
+  width: 160px; height: 160px; margin-bottom: 25px;
   cursor: pointer; position: relative; z-index: 10;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
 }
-#eye-container:hover { transform: scale(1.05); }
+#eye-portal:hover { transform: scale(1.08) rotate(5deg); }
 
-.logo-img {
+.portal-img {
   width: 100%; height: 100%; object-fit: contain; border-radius: 50%;
-  display: block;
+  display: block; animation: floatEnergy 4s ease-in-out infinite;
+}
+@keyframes floatEnergy {
+  0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.2)); }
+  50% { transform: translateY(-6px); filter: drop-shadow(0 0 25px rgba(255, 0, 85, 0.4)); }
 }
 
-/* Fallback se a imagem não carregar */
-.logo-fallback {
+/* Fallback Quântico em CSS se a imagem falhar */
+.portal-fallback {
   width: 100%; height: 100%; border-radius: 50%;
-  border: 2px solid var(--blue); background: rgba(79, 163, 255, 0.1);
-  box-shadow: 0 0 20px var(--blue); display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--tachyon-blue); background: rgba(0, 240, 255, 0.05);
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.2); display: flex; align-items: center; justify-content: center;
 }
-.logo-fallback::after {
-  content: '👁️'; font-size: 3.5rem;
+.portal-fallback::after { content: '👁️'; font-size: 3.2rem; filter: drop-shadow(0 0 10px var(--tachyon-blue)); }
+
+/* Cartão Uniforme Intersetorial */
+#hyper-auth-card {
+  background: rgba(2, 2, 4, 0.92); border: 1px solid transparent;
+  padding: 40px 35px; border-radius: 16px; width: 100%; max-width: 380px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.8); z-index: 10; backdrop-filter: blur(20px);
+  transition: border-color 0.6s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-/* Cartão Uniforme de Acesso */
-#auth-card {
-  background: rgba(15, 15, 20, 0.98); border: 1px solid rgba(255,255,255,0.08);
-  padding: 30px; border-radius: 12px; width: 100%; max-width: 360px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 10; transition: border-color 0.5s;
+.hyper-title { font-family: var(--f-orbitron); font-size: 1.1rem; font-weight: 700; margin-bottom: 25px; text-align: center; letter-spacing: 2px; }
+.quantum-form { display: none; }
+.quantum-form.active { display: block; }
+
+/* Injeções de Dados (Inputs) */
+.hyper-input {
+  width: 100%; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 14px 18px; font-size: 0.9rem; color: #fff; border-radius: 8px;
+  outline: none; margin-bottom: 18px; transition: all 0.3s; font-family: var(--f-grotesk);
 }
+.hyper-input:focus { background: rgba(255, 255, 255, 0.04); border-color: var(--tachyon-blue); box-shadow: 0 0 15px rgba(0, 240, 255, 0.1); }
 
-.form-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; text-align: center; letter-spacing: 0.5px; }
-.auth-form { display: none; }
-.auth-form.active { display: block; }
-
-/* Inputs Modernos e Limpos */
-.input-field {
-  width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12);
-  padding: 12px 15px; font-size: 0.9rem; color: #fff; border-radius: 6px;
-  outline: none; margin-bottom: 15px; transition: all 0.3s; font-family: var(--f-b);
+/* Gatilhos de Ignição (Botões) */
+.btn-ignition {
+  width: 100%; border: none; padding: 15px; border-radius: 8px;
+  font-family: var(--f-orbitron); font-size: 0.9rem; font-weight: 700; letter-spacing: 2px;
+  color: #000; cursor: pointer; transition: all 0.3s; margin-top: 5px;
 }
-.input-field:focus { border-color: var(--blue); background: rgba(255,255,255,0.06); }
+.btn-ignition:hover { transform: translateY(-2px); filter: brightness(1.2); }
 
-/* Botões Diretos */
-.btn-submit {
-  width: 100%; border: none; padding: 13px; border-radius: 6px;
-  font-size: 1rem; font-weight: 600; color: #000; cursor: pointer;
-  transition: all 0.3s; margin-top: 5px;
-}
-.btn-submit:hover { transform: translateY(-1px); filter: brightness(1.1); }
+/* Links de Alternância Temporal */
+.switch-timeline { display: block; text-align: center; margin-top: 20px; font-size: 0.8rem; color: #555; text-decoration: none; font-family: var(--f-orbitron); letter-spacing: 1px; transition: color 0.3s; }
+.switch-timeline strong { color: #aaa; transition: color 0.3s; }
+.switch-timeline:hover strong { color: #fff; text-shadow: 0 0 8px #fff; }
 
-/* Links de Troca Alternativa */
-.switch-text { display: block; text-align: center; margin-top: 15px; font-size: 0.8rem; color: #888; text-decoration: none; }
-.switch-text strong { color: #fff; }
-.switch-text:hover strong { text-decoration: underline; }
-
-/* Linha de Status Inferior */
-#status-readout { margin-top: 20px; font-family: var(--f-m); font-size: 0.7rem; color: #666; text-align: center; max-width: 320px; }
+/* Monitor de Status */
+#telemetry-readout { margin-top: 25px; font-family: var(--f-orbitron); font-size: 0.65rem; color: #444; text-align: center; letter-spacing: 2px; max-width: 340px; text-transform: uppercase; }
 </style>
 </head>
 <body>
 
-<div id="ambient-orb"></div>
+<div id="ambient-energy"></div>
 
-<div id="eye-container">
-  <img src="logo_olho.jpg.png" alt="Logo VG90" class="logo-img" id="site-logo" onerror="tryFlaskPath()">
+<div id="eye-portal">
+  <img src="logo_olho.jpg.png" alt="Portal Consciente VG90" class="portal-img" id="site-logo" onerror="activateFallback()">
 </div>
 
-<div id="auth-card">
-  <div id="form-login" class="auth-form">
-    <div class="form-title" style="color: var(--rose);">Entrar no Ecossistema</div>
-    <form onsubmit="sendAuth(event, '/login')">
-      <input type="text" name="username" class="input-field" placeholder="Nome de Utilizador" required autocomplete="username">
-      <input type="password" name="password" class="input-field" placeholder="Sua Chave / Senha" required autocomplete="current-password">
-      <button type="submit" class="btn-submit" style="background: var(--rose); color: #fff;">Entrar Agora</button>
+<div id="hyper-auth-card">
+  <div id="form-login" class="quantum-form">
+    <div class="hyper-title" style="color: var(--plasma-rose); text-shadow: 0 0 15px rgba(255, 0, 85, 0.3);">// RECONECTAR_ASSINATURA</div>
+    <form onsubmit="initiateIgnition(event, '/login')">
+      <input type="text" name="username" class="hyper-input" placeholder="IDENTIFICADOR OPERADOR" required autocomplete="username">
+      <input type="password" name="password" class="hyper-input" placeholder="CHAVE NEURAL" required autocomplete="current-password">
+      <button type="submit" class="btn-ignition" style="background: var(--plasma-rose); color: #fff; box-shadow: 0 4px 15px rgba(255, 0, 85, 0.2);">ENTRAR NA MATRIX</button>
     </form>
-    <a href="#" class="switch-text" onclick="changeMode('register')">Não tem uma conta? <strong>Inscrever-se</strong></a>
+    <a href="#" class="switch-timeline" onclick="shiftTimeline('register')">Nova Entidade? <strong>Manifestar Nódua →</strong></a>
   </div>
 
-  <div id="form-register" class="auth-form">
-    <div class="form-title" style="color: var(--gold);">Criar Novo Operador</div>
-    <form onsubmit="sendAuth(event, '/register')">
-      <input type="text" name="username" class="input-field" placeholder="Escolha um Nome de Utilizador" required autocomplete="username">
-      <input type="email" name="email" class="input-field" placeholder="Seu E-mail" required autocomplete="email">
-      <input type="password" name="password" class="input-field" placeholder="Crie uma Senha Segura" required autocomplete="new-password">
-      <button type="submit" class="btn-submit" style="background: var(--gold);">Solicitar Acesso</button>
+  <div id="form-register" class="quantum-form">
+    <div class="hyper-title" style="color: var(--singularity-gold); text-shadow: 0 0 15px rgba(255, 204, 0, 0.3);">// MATERIALIZAR_NÓDULO</div>
+    <form onsubmit="initiateIgnition(event, '/register')">
+      <input type="text" name="username" class="hyper-input" placeholder="ESCOLHER IDENTIFICADOR" required autocomplete="username">
+      <input type="email" name="email" class="hyper-input" placeholder="ENDEREÇO DE SINAPSE (E-MAIL)" required autocomplete="email">
+      <input type="password" name="password" class="hyper-input" placeholder="CRIPTOGRAFAR CHAVE NEURAL" required autocomplete="new-password">
+      <button type="submit" class="btn-ignition" style="background: var(--singularity-gold); box-shadow: 0 4px 15px rgba(255, 204, 0, 0.2);">SOLICITAR INGRESSO</button>
     </form>
-    <a href="#" class="switch-text" onclick="changeMode('login')">Já tem registo? <strong>Fazer Login</strong></a>
+    <a href="#" class="switch-timeline" onclick="shiftTimeline('login')">Possui uma chave? <strong>Autenticar Operador ←</strong></a>
   </div>
 </div>
 
-<div id="status-readout" id="msg-box">A aguardar comandos...</div>
+<div id="telemetry-readout">Aguardando telemetria de entrada...</div>
 
 <script>
-// Tenta caminhos alternativos se o logo inicial direto falhar
-function tryFlaskPath() {
+// Ativa o olho geométrico em CSS puro caso a imagem seja bloqueada pelo Render/Git
+function activateFallback() {
   const img = document.getElementById('site-logo');
-  if (img && !img.dataset.attempted) {
-    img.dataset.attempted = "true";
-    // Tenta procurar na pasta static caso esteja lá guardado
+  if (img && !img.dataset.retry) {
+    img.dataset.retry = "true";
     img.src = "/static/logo_olho.jpg.png";
   } else {
-    // Se falhar tudo, ativa o design em CSS puro para nunca ficar sem nada
-    const container = document.getElementById('eye-container');
-    container.innerHTML = '<div class="logo-fallback"></div>';
+    const portal = document.getElementById('eye-portal');
+    portal.innerHTML = '<div class="portal-fallback"></div>';
   }
 }
 
-let currentMode = localStorage.getItem('returning_vg90') === 'true' ? 'login' : 'register';
+let activeTimeline = localStorage.getItem('vg90_returning') === 'true' ? 'login' : 'register';
 
-function changeMode(mode) {
-  currentMode = mode;
-  localStorage.setItem('returning_vg90', mode === 'login' ? 'true' : 'false');
+function shiftTimeline(mode) {
+  activeTimeline = mode;
+  localStorage.setItem('vg90_returning', mode === 'login' ? 'true' : 'false');
   
   const loginForm = document.getElementById('form-login');
   const registerForm = document.getElementById('form-register');
-  const card = document.getElementById('auth-card');
-  const orb = document.getElementById('ambient-orb');
+  const card = document.getElementById('hyper-auth-card');
+  const energy = document.getElementById('ambient-energy');
   
   if (mode === 'login') {
     loginForm.classList.add('active');
     registerForm.classList.remove('active');
-    card.style.borderColor = 'rgba(232, 64, 122, 0.3)';
-    orb.style.background = 'var(--rose)';
+    card.style.borderColor = 'rgba(255, 0, 85, 0.3)';
+    energy.style.background = 'var(--plasma-rose)';
   } else {
     registerForm.classList.add('active');
     loginForm.classList.remove('active');
-    card.style.borderColor = 'rgba(245, 192, 48, 0.3)';
-    orb.style.background = 'var(--gold)';
+    card.style.borderColor = 'rgba(255, 204, 0, 0.3)';
+    energy.style.background = 'var(--singularity-gold)';
   }
 }
 
-// Inicializa o ecrã no modo correto
-changeMode(currentMode);
+// Inicializa no modo correto guardado na memória quântica do navegador
+shiftTimeline(activeTimeline);
 
-// Envio simplificado de dados para o Backend Python
-function sendAuth(event, url) {
+// Envio simplificado e instantâneo de dados para o Backend Python
+function initiateIgnition(event, targetUrl) {
   event.preventDefault();
-  const readout = document.getElementById('status-readout');
-  readout.textContent = "A processar sinal...";
-  readout.style.color = "#888";
+  const telemetry = document.getElementById('telemetry-readout');
+  telemetry.textContent = "> Transmitindo pacotes de dados na velocidade da luz...";
+  telemetry.style.color = "#666";
 
   const formData = new FormData(event.target);
 
-  fetch(url, { method: 'POST', body: formData })
+  fetch(targetUrl, { method: 'POST', body: formData })
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      if (url === '/register') {
-        readout.textContent = "Registo Concluído com Sucesso! A entrar...";
-        readout.style.color = "var(--gold)";
-        setTimeout(() => changeMode('login'), 1500);
+      if (targetUrl === '/register') {
+        telemetry.textContent = "> Nódua materializada no MongoDB Atlas! Redirecionando para login...";
+        telemetry.style.color = "var(--singularity-gold)";
+        setTimeout(() => shiftTimeline('login'), 1500);
       } else {
-        readout.textContent = `Bem-vindo, ${data.username}! A entrar nas Ruas...`;
-        readout.style.color = "var(--blue)";
-        setTimeout(() => window.location.href = "/mundo/ruas", 1200);
+        telemetry.textContent = `> Acesso concedido! Saltando para o núcleo da Matrix...`;
+        telemetry.style.color = "var(--tachyon-blue)";
+        setTimeout(() => window.location.href = "/mundo/matrix", 1200);
       }
     } else {
-      readout.textContent = data.message;
-      readout.style.color = "#ff4444";
+      telemetry.textContent = `> Erro na fenda: ${data.message}`;
+      telemetry.style.color = "var(--plasma-rose)";
     }
   })
   .catch(() => {
-    readout.textContent = "Erro de ligação com o servidor central.";
-    readout.style.color = "#ff4444";
+    telemetry.textContent = "> Erro crítico: Colapso na comunicação com o servidor central.";
+    telemetry.style.color = "var(--plasma-rose)";
   });
 }
 </script>
