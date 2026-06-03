@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VG90 · Portal de Entrada Quântico</title>
+<title> · Portal de Entrada Quântico</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Space+Grotesk:wght@300;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -166,14 +166,31 @@ function initiateIgnition(event, targetUrl) {
   telemetry.textContent = "> Transmitindo pacotes de dados na velocidade da luz...";
   telemetry.style.color = "#666";
 
+  // Captura os dados do formulário atual
   const formData = new FormData(event.target);
+  
+  // Converte para o formato URL-Encoded que o Flask (request.form) adora receber
+  const dataPairs = [];
+  for (const pair of formData.entries()) {
+      dataPairs.push(encodeURIComponent(pair[0]) + '=' + encodeURIComponent(pair[1]));
+  }
+  const urlEncodedData = dataPairs.join('&');
 
-  fetch(targetUrl, { method: 'POST', body: formData })
-  .then(res => res.json())
+  fetch(targetUrl, { 
+    method: 'POST', 
+    body: urlEncodedData,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Status do Servidor: " + res.status);
+    return res.json();
+  })
   .then(data => {
     if (data.success) {
       if (targetUrl === '/register') {
-        telemetry.textContent = "> Nódua materializada no MongoDB Atlas! Redirecionando para login...";
+        telemetry.textContent = "> Nódua materializada com sucesso! Redirecionando para autenticação...";
         telemetry.style.color = "var(--singularity-gold)";
         setTimeout(() => shiftTimeline('login'), 1500);
       } else {
@@ -186,7 +203,9 @@ function initiateIgnition(event, targetUrl) {
       telemetry.style.color = "var(--plasma-rose)";
     }
   })
-  .catch(() => {
+  .catch((err) => {
+    // Agora o erro na consola vai te dizer exatamente o que falhou!
+    console.error("Erro detalhado da ligação:", err);
     telemetry.textContent = "> Erro crítico: Colapso na comunicação com o servidor central.";
     telemetry.style.color = "var(--plasma-rose)";
   });
