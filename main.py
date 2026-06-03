@@ -3,17 +3,19 @@ from flask import Flask, render_template, request, redirect, session, jsonify
 from pymongo import MongoClient
 
 app = Flask(__name__)
-# Codificação secreta criptografada em matrizes de 5D
-app.secret_key = os.environ.get('SECRET_KEY', 'vagalume90_quantum_key_102026_portal')
 
-# Hiper-Conexão Cósmica ao MongoDB Atlas (Sincronização de Consciências)
+# Chave secreta de sessão protegida contra invasões criptográficas
+app.secret_key = os.environ.get('SECRET_KEY', 'vagalume90_quantum_secret_key_secure_102026')
+
+# =================================================================
+# CONEXÃO BLINDADA - A SENHA REAL FICA APENAS NO RENDER
+# =================================================================
 MONGO_URI = os.environ.get(
-    'MONGO_URI', 
-    'mongodb+srv://vagalume903_db_user:Vagalume90_2026!@cluster0.f8cltes.mongodb.net/?appName=Cluster0'
+    'MONGO_URI',
+    'mongodb+srv://vagalume903_db_user:CONFIGURADO_NO_RENDER@cluster0.f8cltes.mongodb.net/vagalume90_db?retryWrites=true&w=majority&appName=Cluster0'
 )
 
 try:
-    # Cliente quântico capaz de ler dados antes mesmo de serem criados (Anticipatory Streams)
     client = MongoClient(MONGO_URI)
     db = client['vagalume90_db']
     users_col = db['users']
@@ -21,6 +23,9 @@ try:
 except Exception as e:
     print(f"Falha crítica na fenda quântica do MongoDB: {e}")
 
+# =================================================================
+# ROTAS DO PORTAL DO ECOSSISTEMA VG90
+# =================================================================
 @app.route('/')
 def index():
     if 'user' in session:
@@ -32,14 +37,13 @@ def register():
     username = request.form.get('username', '').strip()
     email = request.form.get('email', '').strip()
     password = request.form.get('password', '')
-    
-    if not username or not email or not password:
-        return jsonify({"success": False, "message": "Campos incompletos na manifestação quântica."})
-        
-    if users_col.find_one({"$or": [{"username": username}, {"email": email}]}):
-        return jsonify({"success": False, "message": "Assinatura espiritual ou e-mail já materializados na rede."})
 
-    # Criação do nó de consciência no banco de dados espacial
+    if not username or not email or not password:
+        return jsonify({"success": False, "message": "Dados incompletos na manifestação quântica."})
+
+    if users_col.find_one({"$or": [{"username": username}, {"email": email}]}):
+        return jsonify({"success": False, "message": "Identificador ou E-mail já materializados na rede."})
+
     user_profile = {
         "username": username,
         "email": email,
@@ -53,7 +57,7 @@ def register():
 def login():
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '')
-    
+
     user_profile = users_col.find_one({"username": username, "password": password})
     
     if user_profile:
@@ -61,14 +65,16 @@ def login():
         session['rank'] = user_profile.get('rank', 'Aventuriro da Galáxia')
         return jsonify({"success": True, "username": session['user'], "rank": session['rank']})
         
-    return jsonify({"success": False, "message": "Chave cripto-neural ou identidade inválida."})
+    return jsonify({"success": False, "message": "Chave neural ou Identificador incorreto."})
 
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect('/')
 
-# Rotas de Teletransporte Holográfico para os Mundos
+# =================================================================
+# ROTAS DE TELETRANSPORTE HOLOGRÁFICO (OS MUNDOS)
+# =================================================================
 @app.route('/mundo/matrix')
 def mundo_matrix():
     if 'user' not in session:
@@ -88,18 +94,14 @@ def mundo_ruas():
         
     user_profile = users_col.find_one({"username": session['user']})
     
-    # Injeção Automática de dados Bio-Médicos da Saúde Yeto
+    # Injeção Automática de Dados de Telemetria Médica (Saúde Yeto do Futuro)
     dados_saude = user_profile.get('saude_yeto', {
         "status_vital": "Imortal / Estável",
-        "pressao_art": "144 Hz (Frequência Harmónica)",
+        "pressao_art": "144 Hz (Harmónica)",
         "oxigenio": "100% Bioplasmático",
-        "consultas": "Nenhuma anomalia detetada nas células"
+        "consultas": "Nenhuma anomalia celular detetada."
     })
-    
-    return render_template('ruas.html', 
-                           username=session['user'], 
-                           rank=session['rank'], 
-                           saude=dados_saude)
+    return render_template('ruas.html', username=session['user'], rank=session['rank'], saude=dados_saude)
 
 if __name__ == '__main__':
     porta = int(os.environ.get('PORT', 5000))
