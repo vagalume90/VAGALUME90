@@ -1,215 +1,120 @@
-<!DOCTYPE html>
-<html lang="pt-AO">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title> · Portal de Entrada Quântico</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Space+Grotesk:wght@300;500;600&display=swap" rel="stylesheet">
-<style>
-:root {
-  --neon-void: #020204; --plasma-rose: #ff0055; --singularity-gold: #ffcc00; --tachyon-blue: #00f0ff;
-  --f-orbitron: 'Orbitron', sans-serif; --f-grotesk: 'Space Grotesk', sans-serif;
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  width: 100%; height: 100vh; background: var(--neon-void);
-  font-family: var(--f-grotesk); color: #fff; overflow: hidden;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  background-image: radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.03) 0%, transparent 80%);
-}
+import os
+from flask import Flask, render_template, request, redirect, session, jsonify
+from pymongo import MongoClient
 
-/* Orbe de Energia Estelar no Fundo */
-#ambient-energy {
-  position: fixed; width: 500px; height: 500px; border-radius: 50%;
-  filter: blur(120px); pointer-events: none; opacity: 0.12; transition: background 0.6s ease;
-}
+app = Flask(__name__)
 
-/* Portal do Olho Consciente */
-#eye-portal {
-  width: 160px; height: 160px; margin-bottom: 25px;
-  cursor: pointer; position: relative; z-index: 10;
-  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-}
-#eye-portal:hover { transform: scale(1.08) rotate(5deg); }
+# Chave secreta de sessão protegida contra invasões criptográficas
+app.secret_key = os.environ.get('SECRET_KEY', 'vagalume90_quantum_secret_key_secure_102026')
 
-.portal-img {
-  width: 100%; height: 100%; object-fit: contain; border-radius: 50%;
-  display: block; animation: floatEnergy 4s ease-in-out infinite;
-}
-@keyframes floatEnergy {
-  0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.2)); }
-  50% { transform: translateY(-6px); filter: drop-shadow(0 0 25px rgba(255, 0, 85, 0.4)); }
-}
+# =================================================================
+# CONEXÃO BLINDADA - A SENHA REAL FICA APENAS NO RENDER
+# =================================================================
+MONGO_URI = os.environ.get(
+    'MONGO_URI', 
+    'mongodb+srv://vagalume903_db_user:CONFIGURADO_NO_RENDER@cluster0.f8cltes.mongodb.net/vagalume90_db?retryWrites=true&w=majority&appName=Cluster0'
+)
 
-/* Fallback Quântico em CSS se a imagem falhar */
-.portal-fallback {
-  width: 100%; height: 100%; border-radius: 50%;
-  border: 2px solid var(--tachyon-blue); background: rgba(0, 240, 255, 0.05);
-  box-shadow: 0 0 30px rgba(0, 240, 255, 0.2); display: flex; align-items: center; justify-content: center;
-}
-.portal-fallback::after { content: '👁️'; font-size: 3.2rem; filter: drop-shadow(0 0 10px var(--tachyon-blue)); }
+try:
+    # O cliente conecta usando a URI segura (seja a do Render ou o fallback)
+    client = MongoClient(MONGO_URI)
+    db = client['vagalume90_db']
+    users_col = db['users']
+    print("Sincronizador Quântico do MongoDB Atlas inicializado com sucesso!")
+except Exception as e:
+    print(f"Falha crítica na conexão com o MongoDB Atlas: {e}")
 
-/* Cartão Uniforme Intersetorial */
-#hyper-auth-card {
-  background: rgba(2, 2, 4, 0.92); border: 1px solid transparent;
-  padding: 40px 35px; border-radius: 16px; width: 100%; max-width: 380px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.8); z-index: 10; backdrop-filter: blur(20px);
-  transition: border-color 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-}
+# =================================================================
+# ROTAS DO PORTAL DO ECOSSISTEMA VG90
+# =================================================================
 
-.hyper-title { font-family: var(--f-orbitron); font-size: 1.1rem; font-weight: 700; margin-bottom: 25px; text-align: center; letter-spacing: 2px; }
-.quantum-form { display: none; }
-.quantum-form.active { display: block; }
+@app.route('/')
+def index():
+    # Se o operador já estiver logado, teletransporta direto para a Matrix
+    if 'user' in session:
+        return redirect('/mundo/matrix')
+    return render_template('index.html')
 
-/* Injeções de Dados (Inputs) */
-.hyper-input {
-  width: 100%; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 14px 18px; font-size: 0.9rem; color: #fff; border-radius: 8px;
-  outline: none; margin-bottom: 18px; transition: all 0.3s; font-family: var(--f-grotesk);
-}
-.hyper-input:focus { background: rgba(255, 255, 255, 0.04); border-color: var(--tachyon-blue); box-shadow: 0 0 15px rgba(0, 240, 255, 0.1); }
+@app.route('/register', methods=['POST'])
+def register():
+    username = request.form.get('username', '').strip()
+    email = request.form.get('email', '').strip()
+    password = request.form.get('password', '')
+    
+    if not username or not email or not password:
+        return jsonify({"success": False, "message": "Dados incompletos na manifestação quântica."})
+        
+    # Verifica se a entidade ou e-mail já existem na malha de dados
+    if users_col.find_one({"$or": [{"username": username}, {"email": email}]}):
+        return jsonify({"success": False, "message": "Identificador ou E-mail já materializados na rede."})
 
-/* Gatilhos de Ignição (Botões) */
-.btn-ignition {
-  width: 100%; border: none; padding: 15px; border-radius: 8px;
-  font-family: var(--f-orbitron); font-size: 0.9rem; font-weight: 700; letter-spacing: 2px;
-  color: #000; cursor: pointer; transition: all 0.3s; margin-top: 5px;
-}
-.btn-ignition:hover { transform: translateY(-2px); filter: brightness(1.2); }
-
-/* Links de Alternância Temporal */
-.switch-timeline { display: block; text-align: center; margin-top: 20px; font-size: 0.8rem; color: #555; text-decoration: none; font-family: var(--f-orbitron); letter-spacing: 1px; transition: color 0.3s; }
-.switch-timeline strong { color: #aaa; transition: color 0.3s; }
-.switch-timeline:hover strong { color: #fff; text-shadow: 0 0 8px #fff; }
-
-/* Monitor de Status */
-#telemetry-readout { margin-top: 25px; font-family: var(--f-orbitron); font-size: 0.65rem; color: #444; text-align: center; letter-spacing: 2px; max-width: 340px; text-transform: uppercase; }
-</style>
-</head>
-<body>
-
-<div id="ambient-energy"></div>
-
-<div id="eye-portal">
-  <img src="logo_olho.jpg.png" alt="Portal Consciente VG90" class="portal-img" id="site-logo" onerror="activateFallback()">
-</div>
-
-<div id="hyper-auth-card">
-  <div id="form-login" class="quantum-form">
-    <div class="hyper-title" style="color: var(--plasma-rose); text-shadow: 0 0 15px rgba(255, 0, 85, 0.3);">// RECONECTAR_ASSINATURA</div>
-    <form onsubmit="initiateIgnition(event, '/login')">
-      <input type="text" name="username" class="hyper-input" placeholder="IDENTIFICADOR OPERADOR" required autocomplete="username">
-      <input type="password" name="password" class="hyper-input" placeholder="CHAVE NEURAL" required autocomplete="current-password">
-      <button type="submit" class="btn-ignition" style="background: var(--plasma-rose); color: #fff; box-shadow: 0 4px 15px rgba(255, 0, 85, 0.2);">ENTRAR NA MATRIX</button>
-    </form>
-    <a href="#" class="switch-timeline" onclick="shiftTimeline('register')">Nova Entidade? <strong>Manifestar Nódua →</strong></a>
-  </div>
-
-  <div id="form-register" class="quantum-form">
-    <div class="hyper-title" style="color: var(--singularity-gold); text-shadow: 0 0 15px rgba(255, 204, 0, 0.3);">// MATERIALIZAR_NÓDULO</div>
-    <form onsubmit="initiateIgnition(event, '/register')">
-      <input type="text" name="username" class="hyper-input" placeholder="ESCOLHER IDENTIFICADOR" required autocomplete="username">
-      <input type="email" name="email" class="hyper-input" placeholder="ENDEREÇO DE SINAPSE (E-MAIL)" required autocomplete="email">
-      <input type="password" name="password" class="hyper-input" placeholder="CRIPTOGRAFAR CHAVE NEURAL" required autocomplete="new-password">
-      <button type="submit" class="btn-ignition" style="background: var(--singularity-gold); box-shadow: 0 4px 15px rgba(255, 204, 0, 0.2);">SOLICITAR INGRESSO</button>
-    </form>
-    <a href="#" class="switch-timeline" onclick="shiftTimeline('login')">Possui uma chave? <strong>Autenticar Operador ←</strong></a>
-  </div>
-</div>
-
-<div id="telemetry-readout">Aguardando telemetria de entrada...</div>
-
-<script>
-// Ativa o olho geométrico em CSS puro caso a imagem seja bloqueada pelo Render/Git
-function activateFallback() {
-  const img = document.getElementById('site-logo');
-  if (img && !img.dataset.retry) {
-    img.dataset.retry = "true";
-    img.src = "/static/logo_olho.jpg.png";
-  } else {
-    const portal = document.getElementById('eye-portal');
-    portal.innerHTML = '<div class="portal-fallback"></div>';
-  }
-}
-
-let activeTimeline = localStorage.getItem('vg90_returning') === 'true' ? 'login' : 'register';
-
-function shiftTimeline(mode) {
-  activeTimeline = mode;
-  localStorage.setItem('vg90_returning', mode === 'login' ? 'true' : 'false');
-  
-  const loginForm = document.getElementById('form-login');
-  const registerForm = document.getElementById('form-register');
-  const card = document.getElementById('hyper-auth-card');
-  const energy = document.getElementById('ambient-energy');
-  
-  if (mode === 'login') {
-    loginForm.classList.add('active');
-    registerForm.classList.remove('active');
-    card.style.borderColor = 'rgba(255, 0, 85, 0.3)';
-    energy.style.background = 'var(--plasma-rose)';
-  } else {
-    registerForm.classList.add('active');
-    loginForm.classList.remove('active');
-    card.style.borderColor = 'rgba(255, 204, 0, 0.3)';
-    energy.style.background = 'var(--singularity-gold)';
-  }
-}
-
-// Inicializa no modo correto guardado na memória quântica do navegador
-shiftTimeline(activeTimeline);
-
-// Envio simplificado e instantâneo de dados para o Backend Python
-function initiateIgnition(event, targetUrl) {
-  event.preventDefault();
-  const telemetry = document.getElementById('telemetry-readout');
-  telemetry.textContent = "> Transmitindo pacotes de dados na velocidade da luz...";
-  telemetry.style.color = "#666";
-
-  // Captura os dados do formulário atual
-  const formData = new FormData(event.target);
-  
-  // Converte para o formato URL-Encoded que o Flask (request.form) adora receber
-  const dataPairs = [];
-  for (const pair of formData.entries()) {
-      dataPairs.push(encodeURIComponent(pair[0]) + '=' + encodeURIComponent(pair[1]));
-  }
-  const urlEncodedData = dataPairs.join('&');
-
-  fetch(targetUrl, { 
-    method: 'POST', 
-    body: urlEncodedData,
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
+    # Cria o novo nó de consciência com nível inicial de acesso
+    user_profile = {
+        "username": username,
+        "email": email,
+        "password": password,
+        "rank": "Aventuriro da Galáxia"
     }
-  })
-  .then(res => {
-    if (!res.ok) throw new Error("Status do Servidor: " + res.status);
-    return res.json();
-  })
-  .then(data => {
-    if (data.success) {
-      if (targetUrl === '/register') {
-        telemetry.textContent = "> Nódua materializada com sucesso! Redirecionando para autenticação...";
-        telemetry.style.color = "var(--singularity-gold)";
-        setTimeout(() => shiftTimeline('login'), 1500);
-      } else {
-        telemetry.textContent = `> Acesso concedido! Saltando para o núcleo da Matrix...`;
-        telemetry.style.color = "var(--tachyon-blue)";
-        setTimeout(() => window.location.href = "/mundo/matrix", 1200);
-      }
-    } else {
-      telemetry.textContent = `> Erro na fenda: ${data.message}`;
-      telemetry.style.color = "var(--plasma-rose)";
-    }
-  })
-  .catch((err) => {
-    // Agora o erro na consola vai te dizer exatamente o que falhou!
-    console.error("Erro detalhado da ligação:", err);
-    telemetry.textContent = "> Erro crítico: Colapso na comunicação com o servidor central.";
-    telemetry.style.color = "var(--plasma-rose)";
-  });
-}
-</script>
-</body>
-</html>
+    users_col.insert_one(user_profile)
+    return jsonify({"success": True})
+
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.form.get('username', '').strip()
+    password = request.form.get('password', '')
+    
+    # Procura o operador correspondente na base de dados
+    user_profile = users_col.find_one({"username": username, "password": password})
+    
+    if user_profile:
+        session['user'] = user_profile['username']
+        session['rank'] = user_profile.get('rank', 'Aventuriro da Galáxia')
+        return jsonify({"success": True, "username": session['user'], "rank": session['rank']})
+        
+    return jsonify({"success": False, "message": "Chave neural ou Identificador incorreto."})
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
+
+# =================================================================
+# ROTAS DE TELETRANSPORTE HOLOGRÁFICO (OS MUNDOS)
+# =================================================================
+
+@app.route('/mundo/matrix')
+def mundo_matrix():
+    if 'user' not in session:
+        return redirect('/')
+    return render_template('matrix.html', rank=session['rank'])
+
+@app.route('/mundo/mercado')
+def mundo_mercado():
+    if 'user' not in session:
+        return redirect('/')
+    return render_template('mercado.html', rank=session['rank'])
+
+@app.route('/mundo/ruas')
+def mundo_ruas():
+    if 'user' not in session:
+        return redirect('/')
+        
+    user_profile = users_col.find_one({"username": session['user']})
+    
+    # Injeção Automática de Dados de Telemetria Médica (Saúde Yeto do Futuro)
+    dados_saude = user_profile.get('saude_yeto', {
+        "status_vital": "Imortal / Estável",
+        "pressao_art": "144 Hz (Harmónica)",
+        "oxigenio": "100% Bioplasmático",
+        "consultas": "Nenhuma anomalia celular detetada."
+    })
+    
+    return render_template('ruas.html', 
+                           username=session['user'], 
+                           rank=session['rank'], 
+                           saude=dados_saude)
+
+if __name__ == '__main__':
+    # Define a porta dinâmica exigida pelo ambiente do Render
+    porta = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=porta, debug=True)
