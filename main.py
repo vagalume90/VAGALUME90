@@ -8,14 +8,16 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'vagalume90_quantum_secret_key_secure_102026')
 
 # =================================================================
-# CONEXÃO BLINDADA - A SENHA REAL FICA APENAS NO RENDER
+# CONEXÃO BLINDADA - APENAS LÊ O QUE ESTÁ NO PAINEL DO RENDER
 # =================================================================
-MONGO_URI = os.environ.get(
-    'MONGO_URI',
-    'mongodb+srv://vagalume903_db_user:CONFIGURADO_NO_RENDER@cluster0.f8cltes.mongodb.net/vagalume90_db?retryWrites=true&w=majority&appName=Cluster0'
-)
+MONGO_URI = os.environ.get('MONGO_URI')
+
+if not MONGO_URI:
+    # Bloqueio preventivo caso a variável não esteja configurada no Render
+    raise ValueError("Erro Crítico: A variável MONGO_URI não foi detetada no ambiente do Render!")
 
 try:
+    # O cliente conecta usando a URI segura injetada pelo ambiente
     client = MongoClient(MONGO_URI)
     db = client['vagalume90_db']
     users_col = db['users']
@@ -28,6 +30,7 @@ except Exception as e:
 # =================================================================
 @app.route('/')
 def index():
+    # Se o operador já estiver logado, teletransporta direto para a Matrix
     if 'user' in session:
         return redirect('/mundo/matrix')
     return render_template('index.html')
@@ -41,9 +44,11 @@ def register():
     if not username or not email or not password:
         return jsonify({"success": False, "message": "Dados incompletos na manifestação quântica."})
 
+    # Verifica se a entidade ou e-mail já existem na malha de dados
     if users_col.find_one({"$or": [{"username": username}, {"email": email}]}):
         return jsonify({"success": False, "message": "Identificador ou E-mail já materializados na rede."})
 
+    # Cria o novo nó de consciência com nível inicial de acesso
     user_profile = {
         "username": username,
         "email": email,
@@ -58,6 +63,7 @@ def login():
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '')
 
+    # Procura o operador correspondente na base de dados
     user_profile = users_col.find_one({"username": username, "password": password})
     
     if user_profile:
@@ -104,5 +110,6 @@ def mundo_ruas():
     return render_template('ruas.html', username=session['user'], rank=session['rank'], saude=dados_saude)
 
 if __name__ == '__main__':
+    # Define a porta dinâmica exigida pelo ambiente do Render
     porta = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=porta, debug=True)
