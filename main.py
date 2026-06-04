@@ -17,7 +17,7 @@ if not MONGO_URI:
     raise ValueError("Erro Crítico: A variável MONGO_URI não foi detetada no ambiente do Render!")
 
 try:
-    # O cliente conecta usando a URI segura injetada pelo ambiente
+    # O cliente conecta usando a URI segura injetada pelo ambiente do Render
     client = MongoClient(MONGO_URI)
     db = client['vagalume90_db']
     users_col = db['users']
