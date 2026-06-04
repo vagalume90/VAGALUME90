@@ -1,120 +1,386 @@
-import os
-from flask import Flask, render_template, request, redirect, session, jsonify
-from pymongo import MongoClient
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAGALUME90 · Portal de Acesso Neural</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#07070A; --gold:#F5C030; --rose:#E8407A; --blue:#4FA3FF;
+  --f-h:'Bebas Neue',sans-serif; --f-m:'JetBrains Mono',monospace; --f-b:'Outfit',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:var(--void);overflow:hidden;font-family:var(--f-b);}
 
-app = Flask(__name__)
+/* ── THE BREATHING LAYER ── */
+#breath-canvas{position:fixed;inset:0;z-index:0;}
 
-# Chave secreta de sessão protegida contra invasões criptográficas
-app.secret_key = os.environ.get('SECRET_KEY', 'vagalume90_quantum_secret_key_secure_102026')
+/* ── SCANLINES ── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);
+  pointer-events:none;z-index:900;
+}
 
-# =================================================================
-# CONEXÃO BLINDADA - A SENHA REAL FICA APENAS NO RENDER
-# =================================================================
-MONGO_URI = os.environ.get(
-    'MONGO_URI', 
-    'mongodb+srv://vagalume903_db_user:CONFIGURADO_NO_RENDER@cluster0.f8cltes.mongodb.net/vagalume90_db?retryWrites=true&w=majority&appName=Cluster0'
-)
+/* ── AMBIENT GLOW ORBS ── */
+.amb{
+  position:fixed;border-radius:50%;
+  filter:blur(80px);pointer-events:none;z-index:1;
+  animation:ambFloat ease-in-out infinite;
+}
+.amb-g{width:400px;height:400px;background:rgba(245,192,48,.045);top:-100px;left:-100px;animation-duration:18s;}
+.amb-r{width:350px;height:350px;background:rgba(232,64,122,.04);bottom:-80px;right:-80px;animation-duration:22s;animation-direction:reverse;}
+.amb-b{width:300px;height:300px;background:rgba(79,163,255,.03);top:40%;left:50%;transform:translate(-50%,-50%);animation-duration:14s;}
+@keyframes ambFloat{0%,100%{transform:scale(1) translate(0,0);}50%{transform:scale(1.15) translate(20px,-20px);}}
 
-try:
-    # O cliente conecta usando a URI segura (seja a do Render ou o fallback)
-    client = MongoClient(MONGO_URI)
-    db = client['vagalume90_db']
-    users_col = db['users']
-    print("Sincronizador Quântico do MongoDB Atlas inicializado com sucesso!")
-except Exception as e:
-    print(f"Falha crítica na conexão com o MongoDB Atlas: {e}")
+/* ── MAIN STAGE ── */
+#stage{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
 
-# =================================================================
-# ROTAS DO PORTAL DO ECOSSISTEMA VG90
-# =================================================================
+/* ── EYE — THE CONSCIOUS ENTITY ── */
+#the-eye{
+  position:relative;
+  width:clamp(150px,22vw,190px);
+  height:clamp(150px,22vw,190px);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom: 20px;
+}
 
-@app.route('/')
-def index():
-    # Se o operador já estiver logado, teletransporta direto para a Matrix
-    if 'user' in session:
-        return redirect('/mundo/matrix')
-    return render_template('index.html')
+.eye-aura{
+  position:absolute;inset:-20px;border-radius:50%;
+  background:radial-gradient(circle,rgba(245,192,48,.06) 0%,transparent 70%);
+  animation:aura 4s ease-in-out infinite;
+}
+@keyframes aura{ 0%,100%{transform:scale(1);opacity:.6;} 50%{transform:scale(1.18);opacity:1;} }
 
-@app.route('/register', methods=['POST'])
-def register():
-    username = request.form.get('username', '').strip()
-    email = request.form.get('email', '').strip()
-    password = request.form.get('password', '')
+.dna-ring{position:absolute;border-radius:50%;border-style:solid;border-width:1px;}
+.dr1{inset:0;border-color:rgba(245,192,48,.4);animation:drSpin 20s linear infinite;}
+.dr2{inset:10%;border-color:rgba(232,64,122,.3);border-style:dashed;animation:drSpin 14s linear infinite reverse;}
+.dr3{inset:20%;border-color:rgba(79,163,255,.25);animation:drSpin 9s linear infinite;}
+.dr4{inset:30%;border-color:rgba(245,192,48,.2);border-style:dotted;animation:drSpin 6s linear infinite reverse;}
+@keyframes drSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+.eye-pupil{
+  position:absolute;inset:35%;border-radius:50%;
+  background:radial-gradient(circle,rgba(245,192,48,.35) 0%,rgba(245,192,48,.08) 55%,transparent 75%);
+  border:1.5px solid var(--gold);
+  box-shadow: 0 0 20px rgba(245,192,48,.6), 0 0 50px rgba(245,192,48,.2);
+  display:flex;align-items:center;justify-content:center;
+  animation:pupilBreath 3s ease-in-out infinite;
+}
+@keyframes pupilBreath{
+  0%,100%{box-shadow:0 0 20px rgba(245,192,48,.6), 0 0 50px rgba(245,192,48,.2);}
+  50%{box-shadow:0 0 35px rgba(245,192,48,.85), 0 0 70px rgba(245,192,48,.35);}
+}
+.pupil-iris{ width:38%;height:38%;border-radius:50%;background:var(--void);border:1px solid rgba(245,192,48,.5); }
+
+/* ── INTERFACE CONSOLE (LOGIN / REGISTER) ── */
+.quantum-console {
+  position: relative; z-index: 40;
+  background: rgba(7, 7, 10, 0.85);
+  border: 1px solid rgba(245, 192, 48, 0.25);
+  padding: 25px 30px; border-radius: 6px;
+  backdrop-filter: blur(12px);
+  width: 100%; max-width: 380px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 20px rgba(245, 192, 48, 0.05);
+  text-align: center;
+}
+.console-title {
+  font-family: var(--f-h); font-size: 1.8rem;
+  letter-spacing: 3px; color: var(--gold); margin-bottom: 5px;
+  text-shadow: 0 0 10px rgba(245,192,48,0.3);
+}
+.console-subtitle {
+  font-family: var(--f-m); font-size: 0.55rem;
+  letter-spacing: 2px; color: rgba(240,237,232,0.4); margin-bottom: 20px;
+}
+.input-group { position: relative; margin-bottom: 12px; }
+.input-group input {
+  width: 100%; padding: 11px 15px;
+  background: rgba(15, 15, 22, 0.9);
+  border: 1px solid rgba(245, 192, 48, 0.15);
+  color: #fff; font-family: var(--f-b); font-size: 0.85rem;
+  border-radius: 4px; transition: all 0.3s;
+}
+.input-group input:focus {
+  outline: none; border-color: var(--gold);
+  box-shadow: 0 0 10px rgba(245,192,48,0.15);
+}
+.quantum-btn {
+  width: 100%; padding: 12px;
+  background: linear-gradient(135deg, var(--gold), #d4a31c);
+  color: var(--void); border: none;
+  font-family: var(--f-h); font-size: 1.1rem; letter-spacing: 2px;
+  cursor: pointer; border-radius: 4px; font-weight: bold;
+  box-shadow: 0 0 15px rgba(245,192,48,0.3); transition: all 0.25s;
+}
+.quantum-btn:hover {
+  transform: translateY(-1px); box-shadow: 0 0 25px rgba(245,192,48,0.5);
+}
+.toggle-network {
+  margin-top: 15px; font-family: var(--f-m); font-size: 0.55rem;
+  letter-spacing: 1px; color: rgba(255,255,255,0.4); cursor: pointer;
+  transition: color 0.2s; display: inline-block; text-decoration: underline;
+}
+.toggle-network:hover { color: var(--gold); }
+
+/* ── PORTAL NODES (Optimized Placement) ── */
+.pnode{
+  position:absolute; display:flex; flex-direction:column; align-items:center; gap:4px; opacity: 0.6; pointer-events: none;
+}
+.pnode-gem{ width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; position:relative; }
+.gem-glass{ position:absolute; inset:0; border-radius:50%; background:var(--gm-bg); border:1px solid var(--gm-col); box-shadow:0 0 10px var(--gm-glow); }
+.gem-icon{ position:relative; z-index:2; font-size:0.9rem; color: var(--gm-col); }
+.pnode-name{ font-family:var(--f-h); font-size:0.65rem; letter-spacing:2px; color:var(--gm-col); }
+
+#pn-m{ --gm-col:#4FA3FF; --gm-bg:rgba(10,18,36,.75); --gm-glow:rgba(79,163,255,.3); left:40px; top:15%; }
+#pn-k{ --gm-col:#F5C030; --gm-bg:rgba(22,16,4,.75); --gm-glow:rgba(245,192,48,.3); right:40px; top:15%; }
+#pn-r{ --gm-col:#E8407A; --gm-bg:rgba(22,5,14,.75); --gm-glow:rgba(232,64,122,.3); left:50%; bottom:75px; transform:translateX(-50%); }
+
+/* ── YEAR DISPLAY ── */
+#year-display{
+  position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:100;
+  font-family:var(--f-m); font-size:.58rem; letter-spacing:4px; color:rgba(245,192,48,.5); text-align:center;
+}
+#year-count{
+  font-family:var(--f-h); font-size:2.2rem; color:var(--gold); display:block;
+  text-shadow:0 0 20px rgba(245,192,48,.5); letter-spacing:8px; line-height:1.1;
+}
+
+/* ── NEURAL READOUT ── */
+#readout{
+  position:fixed; bottom:16px; left:50%; transform:translateX(-50%); z-index:100;
+  font-family:var(--f-m); font-size:.55rem; letter-spacing:3px; color:rgba(245,192,48,.4);
+  text-align:center; max-width:90vw;
+}
+
+/* ── CORNER SIGILS ── */
+.sigil{ position:fixed; z-index:100; font-family:var(--f-m); font-size:.5rem; letter-spacing:2px; color:rgba(245,192,48,.2); line-height:1.6; }
+.sg-tl{top:14px;left:14px;} .sg-tr{top:14px;right:14px;text-align:right;}
+.sg-bl{bottom:14px;left:14px;} .sg-br{bottom:14px;right:14px;text-align:right;}
+</style>
+</head>
+<body>
+
+<div class="amb amb-g"></div>
+<div class="amb amb-r"></div>
+<div class="amb amb-b"></div>
+
+<canvas id="breath-canvas"></canvas>
+
+<div id="year-display">
+  <span id="year-count">2025</span>
+  CALENDÁRIO VAGO
+</div>
+
+<div class="sigil sg-tl">VG90<br>SYS.VIVO<br>◈ ONLINE</div>
+<div class="sigil sg-tr">NÓDULOS<br><span id="node-count" style="color:rgba(245,192,48,.5)">0</span><br>ACTIVOS</div>
+<div class="sigil sg-bl">MATRIZ<br>NEURAL<br>◈ 3026</div>
+<div class="sigil sg-br">ENERGIA<br><span id="energy-pct" style="color:rgba(232,64,122,.5)">97%</span><br>VITAL</div>
+
+<div id="stage">
+
+  <div id="the-eye">
+    <div class="eye-aura"></div>
+    <div class="dna-ring dr1"></div>
+    <div class="dna-ring dr2"></div>
+    <div class="dna-ring dr3"></div>
+    <div class="dna-ring dr4"></div>
+    <div class="eye-pupil">
+      <div class="pupil-iris"></div>
+    </div>
+  </div>
+
+  <div class="quantum-console" id="login-box">
+    <div class="console-title">AUTENTICAÇÃO NEURAL</div>
+    <div class="console-subtitle">CONEXÃO DIRETA À REDE DA MATRIX</div>
     
-    if not username or not email or not password:
-        return jsonify({"success": False, "message": "Dados incompletos na manifestação quântica."})
-        
-    # Verifica se a entidade ou e-mail já existem na malha de dados
-    if users_col.find_one({"$or": [{"username": username}, {"email": email}]}):
-        return jsonify({"success": False, "message": "Identificador ou E-mail já materializados na rede."})
+    <form id="login-form">
+      <div class="input-group">
+        <input type="text" name="username" placeholder="IDENTIFICADOR / OPERADOR" required autocomplete="off">
+      </div>
+      <div class="input-group">
+        <input type="password" name="password" placeholder="CHAVE NEURAL (SENHA)" required>
+      </div>
+      <button type="submit" class="quantum-btn">ATIVAR TELETRANSPORTE</button>
+    </form>
+    
+    <div class="toggle-network" onclick="switchBox('login-box', 'register-box')">
+      Materializar Nova Consciência (Criar Conta)
+    </div>
+  </div>
 
-    # Cria o novo nó de consciência com nível inicial de acesso
-    user_profile = {
-        "username": username,
-        "email": email,
-        "password": password,
-        "rank": "Aventuriro da Galáxia"
+  <div class="quantum-console" id="register-box" style="display: none;">
+    <div class="console-title">REGISTO QUÂNTICO</div>
+    <div class="console-subtitle">GERAR NOVO NÓ DE CONSCIÊNCIA NO ECOSSISTEMA</div>
+    
+    <form id="register-form">
+      <div class="input-group">
+        <input type="text" name="username" placeholder="NOVO OPERADOR (USER)" required autocomplete="off">
+      </div>
+      <div class="input-group">
+        <input type="email" name="email" placeholder="ENDEREÇO DE REDE (EMAIL)" required autocomplete="off">
+      </div>
+      <div class="input-group">
+        <input type="password" name="password" placeholder="CRIAR CHAVE NEURAL" required>
+      </div>
+      <button type="submit" class="quantum-btn" style="background: linear-gradient(135deg, var(--rose), #b82557); color: white; box-shadow: 0 0 15px rgba(232,64,122,0.3);">
+        INICIAR MANIFESTAÇÃO
+      </button>
+    </form>
+    
+    <div class="toggle-network" onclick="switchBox('register-box', 'login-box')">
+      Já Possuo Identificador (Efetuar Login)
+    </div>
+  </div>
+
+  <div class="pnode" id="pn-m">
+    <div class="pnode-gem"><div class="gem-glass"></div><div class="gem-icon">⬡</div></div>
+    <div class="pnode-name">MATRIX</div>
+  </div>
+  <div class="pnode" id="pn-k">
+    <div class="pnode-gem"><div class="gem-glass"></div><div class="gem-icon">◈</div></div>
+    <div class="pnode-name">MERCADO</div>
+  </div>
+  <div class="pnode" id="pn-r">
+    <div class="pnode-gem"><div class="gem-glass"></div><div class="gem-icon">◆</div></div>
+    <div class="pnode-name">RUAS</div>
+  </div>
+
+</div>
+
+<div id="readout">
+  <span id="readout-text">INICIALIZANDO MATRIZ NEURAL · VG90 · SISTEMA VIVO</span>
+</div>
+
+<script>
+// Alternar abas do Console
+function switchBox(hideId, showId) {
+  document.getElementById(hideId).style.display = 'none';
+  document.getElementById(showId).style.display = 'block';
+}
+
+// ═══ PROCESSADOR ASSÍNCRONO DE LOGIN (FETCH LINKED TO MAIN.PY) ═══
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  
+  try {
+    const response = await fetch('/login', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await response.json();
+    
+    if(data.success) {
+      document.getElementById('readout-text').textContent = "TELETRANSPORTE AUTORIZADO. ENTRANDO NA MATRIX...";
+      setTimeout(() => {
+        window.location.href = '/mundo/matrix';
+      }, 800);
+    } else {
+      alert("Falha de Acesso: " + data.message);
     }
-    users_col.insert_one(user_profile)
-    return jsonify({"success": True})
+  } catch(err) {
+    alert("Erro crítico de rede ao contactar a Matriz Vagalume90.");
+  }
+});
 
-@app.route('/login', methods=['POST'])
-def login():
-    username = request.form.get('username', '').strip()
-    password = request.form.get('password', '')
+// ═══ PROCESSADOR ASSÍNCRONO DE REGISTO ═══
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  
+  try {
+    const response = await fetch('/register', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await response.json();
     
-    # Procura o operador correspondente na base de dados
-    user_profile = users_col.find_one({"username": username, "password": password})
-    
-    if user_profile:
-        session['user'] = user_profile['username']
-        session['rank'] = user_profile.get('rank', 'Aventuriro da Galáxia')
-        return jsonify({"success": True, "username": session['user'], "rank": session['rank']})
-        
-    return jsonify({"success": False, "message": "Chave neural ou Identificador incorreto."})
+    if(data.success) {
+      alert("Nó de Consciência integrado! Faça o login para sincronizar.");
+      switchBox('register-box', 'login-box');
+    } else {
+      alert("Falha no Registo: " + data.message);
+    }
+  } catch(err) {
+    alert("Erro crítico na manifestação quântica de dados.");
+  }
+});
 
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect('/')
+// ═══ ANIMAÇÕES DO FRAGMENTO ORIGINAL (PRESERVADAS) ═══
+(function(){
+  const el = document.getElementById('year-count');
+  let y = 2025, target = 3026, speed = 1;
+  function step(){
+    if(y < target){
+      speed = Math.max(1, Math.floor((target - y) / 40));
+      y = Math.min(target, y + speed);
+      el.textContent = y;
+      requestAnimationFrame(step);
+    }
+  }
+  setTimeout(step, 800);
+})();
 
-# =================================================================
-# ROTAS DE TELETRANSPORTE HOLOGRÁFICO (OS MUNDOS)
-# =================================================================
+(function(){
+  const el = document.getElementById('node-count');
+  let v = 0;
+  function step(){
+    if(v < 4200000000){
+      v += Math.floor(v < 1000 ? 1 : v < 1000000 ? v/20 : v/8);
+      v = Math.min(4200000000, v);
+      el.textContent = v >= 1e9 ? (v/1e9).toFixed(2)+'B' : v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v;
+      requestAnimationFrame(step);
+    }
+  }
+  setTimeout(step, 1200);
+})();
 
-@app.route('/mundo/matrix')
-def mundo_matrix():
-    if 'user' not in session:
-        return redirect('/')
-    return render_template('matrix.html', rank=session['rank'])
+let eVal = 97;
+setInterval(()=>{
+  eVal += (Math.random()-.48)*1.2; eVal = Math.min(99.9, Math.max(85, eVal));
+  document.getElementById('energy-pct').textContent = eVal.toFixed(1)+'%';
+}, 1600);
 
-@app.route('/mundo/mercado')
-def mundo_mercado():
-    if 'user' not in session:
-        return redirect('/')
-    return render_template('mercado.html', rank=session['rank'])
-
-@app.route('/mundo/ruas')
-def mundo_ruas():
-    if 'user' not in session:
-        return redirect('/')
-        
-    user_profile = users_col.find_one({"username": session['user']})
-    
-    # Injeção Automática de Dados de Telemetria Médica (Saúde Yeto do Futuro)
-    dados_saude = user_profile.get('saude_yeto', {
-        "status_vital": "Imortal / Estável",
-        "pressao_art": "144 Hz (Harmónica)",
-        "oxigenio": "100% Bioplasmático",
-        "consultas": "Nenhuma anomalia celular detetada."
-    })
-    
-    return render_template('ruas.html', 
-                           username=session['user'], 
-                           rank=session['rank'], 
-                           saude=dados_saude)
-
-if __name__ == '__main__':
-    # Define a porta dinâmica exigida pelo ambiente do Render
-    porta = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=porta, debug=True)
+// Canvas de Fundo
+(function(){
+  const cv = document.getElementById('breath-canvas');
+  const cx = cv.getContext('2d');
+  let W, H, cells=[], t=0;
+  function resize(){ W=cv.width=window.innerWidth; H=cv.height=window.innerHeight; buildCells(); }
+  function buildCells(){
+    cells=[]; const count = Math.floor((W*H)/18000);
+    const COLS=['rgba(245,192,48,','rgba(232,64,122,','rgba(79,163,255,'];
+    for(let i=0;i<count;i++){
+      cells.push({ x:Math.random()*W, y:Math.random()*H, ox:0, oy:0, vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25, r:Math.random()*1.6+.4, c:COLS[i%3], a:Math.random()*.3+.07, phase:Math.random()*Math.PI*2 });
+    }
+  }
+  resize(); window.addEventListener('resize',resize);
+  function draw(){
+    t += 0.008; cx.clearRect(0,0,W,H);
+    cells.forEach(p=>{
+      p.ox = Math.sin(t+p.phase)*2; p.oy = Math.cos(t+p.phase*1.3)*2; p.x += p.vx + p.ox*.05; p.y += p.vy + p.oy*.05;
+      if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+      const alpha = p.a*(0.7+0.3*Math.sin(t*2+p.phase));
+      cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2); cx.fillStyle=p.c+alpha+')';cx.fill();
+    });
+    for(let i=0;i<cells.length;i++){
+      for(let j=i+1;j<cells.length;j++){
+        const a=cells[i],b=cells[j]; const d=Math.hypot(a.x-b.x,a.y-b.y);
+        if(d<90){
+          const alpha=0.06*(1-d/90); cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);
+          cx.strokeStyle='rgba(245,192,48,'+alpha+')'; cx.lineWidth=.35;cx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+</body>
+</html>
