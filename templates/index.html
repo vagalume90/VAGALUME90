@@ -3,792 +3,384 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VAGALUME90 — Portal Transdimensional</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-
+<title>VAGALUME90 · Portal de Acesso Neural</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400&display=swap" rel="stylesheet">
 <style>
-:root {
-  --void:       #07070A;
-  --gold:       #F5C030;
-  --plasma:     #E8407A;
-  --matrix:     #4FA3FF;
-  --glass-bg:   rgba(245,192,48,0.04);
-  --glass-border: rgba(245,192,48,0.18);
-  --glass-border-active: rgba(245,192,48,0.55);
-  --text-dim:   rgba(245,192,48,0.45);
-  --text-bright:#F5C030;
-  --font-title: 'Bebas Neue', sans-serif;
-  --font-mono:  'JetBrains Mono', monospace;
-  --font-body:  'Outfit', sans-serif;
+:root{
+  --void:#07070A; --gold:#F5C030; --rose:#E8407A; --blue:#4FA3FF;
+  --f-h:'Bebas Neue',sans-serif; --f-m:'JetBrains Mono',monospace; --f-b:'Outfit',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:var(--void);overflow:hidden;font-family:var(--f-b);}
+
+/* ── THE BREATHING LAYER ── */
+#breath-canvas{position:fixed;inset:0;z-index:0;}
+
+/* ── SCANLINES ── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);
+  pointer-events:none;z-index:900;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── AMBIENT GLOW ORBS ── */
+.amb{
+  position:fixed;border-radius:50%;
+  filter:blur(80px);pointer-events:none;z-index:1;
+  animation:ambFloat ease-in-out infinite;
+}
+.amb-g{width:400px;height:400px;background:rgba(245,192,48,.045);top:-100px;left:-100px;animation-duration:18s;}
+.amb-r{width:350px;height:350px;background:rgba(232,64,122,.04);bottom:-80px;right:-80px;animation-duration:22s;animation-direction:reverse;}
+.amb-b{width:300px;height:300px;background:rgba(79,163,255,.03);top:40%;left:50%;transform:translate(-50%,-50%);animation-duration:14s;}
+@keyframes ambFloat{0%,100%{transform:scale(1) translate(0,0);}50%{transform:scale(1.15) translate(20px,-20px);}}
 
-html, body {
-  width: 100%; height: 100%;
-  background: var(--void);
-  color: var(--gold);
-  font-family: var(--font-body);
-  overflow: hidden;
-  user-select: none;
+/* ── MAIN STAGE ── */
+#stage{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
 
-/* ── CANVAS NEURAL ── */
-#neural-canvas {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
+/* ── EYE — THE CONSCIOUS ENTITY ── */
+#the-eye{
+  position:relative;
+  width:clamp(150px,22vw,190px);
+  height:clamp(150px,22vw,190px);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom: 20px;
 }
 
-/* ── LAYOUT PRINCIPAL ── */
-#app {
-  position: relative;
-  z-index: 1;
-  width: 100%; height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  padding: 70px 16px 56px;
+.eye-aura{
+  position:absolute;inset:-20px;border-radius:50%;
+  background:radial-gradient(circle,rgba(245,192,48,.06) 0%,transparent 70%);
+  animation:aura 4s ease-in-out infinite;
+}
+@keyframes aura{ 0%,100%{transform:scale(1);opacity:.6;} 50%{transform:scale(1.18);opacity:1;} }
+
+.dna-ring{position:absolute;border-radius:50%;border-style:solid;border-width:1px;}
+.dr1{inset:0;border-color:rgba(245,192,48,.4);animation:drSpin 20s linear infinite;}
+.dr2{inset:10%;border-color:rgba(232,64,122,.3);border-style:dashed;animation:drSpin 14s linear infinite reverse;}
+.dr3{inset:20%;border-color:rgba(79,163,255,.25);animation:drSpin 9s linear infinite;}
+.dr4{inset:30%;border-color:rgba(245,192,48,.2);border-style:dotted;animation:drSpin 6s linear infinite reverse;}
+@keyframes drSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+.eye-pupil{
+  position:absolute;inset:35%;border-radius:50%;
+  background:radial-gradient(circle,rgba(245,192,48,.35) 0%,rgba(245,192,48,.08) 55%,transparent 75%);
+  border:1.5px solid var(--gold);
+  box-shadow: 0 0 20px rgba(245,192,48,.6), 0 0 50px rgba(245,192,48,.2);
+  display:flex;align-items:center;justify-content:center;
+  animation:pupilBreath 3s ease-in-out infinite;
+}
+@keyframes pupilBreath{
+  0%,100%{box-shadow:0 0 20px rgba(245,192,48,.6), 0 0 50px rgba(245,192,48,.2);}
+  50%{box-shadow:0 0 35px rgba(245,192,48,.85), 0 0 70px rgba(245,192,48,.35);}
+}
+.pupil-iris{ width:38%;height:38%;border-radius:50%;background:var(--void);border:1px solid rgba(245,192,48,.5); }
+
+/* ── INTERFACE CONSOLE (LOGIN / REGISTER) ── */
+.quantum-console {
+  position: relative; z-index: 40;
+  background: rgba(7, 7, 10, 0.85);
+  border: 1px solid rgba(245, 192, 48, 0.25);
+  padding: 25px 30px; border-radius: 6px;
+  backdrop-filter: blur(12px);
+  width: 100%; max-width: 380px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 20px rgba(245, 192, 48, 0.05);
+  text-align: center;
+}
+.console-title {
+  font-family: var(--f-h); font-size: 1.8rem;
+  letter-spacing: 3px; color: var(--gold); margin-bottom: 5px;
+  text-shadow: 0 0 10px rgba(245,192,48,0.3);
+}
+.console-subtitle {
+  font-family: var(--f-m); font-size: 0.55rem;
+  letter-spacing: 2px; color: rgba(240,237,232,0.4); margin-bottom: 20px;
+}
+.input-group { position: relative; margin-bottom: 12px; }
+.input-group input {
+  width: 100%; padding: 11px 15px;
+  background: rgba(15, 15, 22, 0.9);
+  border: 1px solid rgba(245, 192, 48, 0.15);
+  color: #fff; font-family: var(--f-b); font-size: 0.85rem;
+  border-radius: 4px; transition: all 0.3s;
+}
+.input-group input:focus {
+  outline: none; border-color: var(--gold);
+  box-shadow: 0 0 10px rgba(245,192,48,0.15);
+}
+.quantum-btn {
+  width: 100%; padding: 12px;
+  background: linear-gradient(135deg, var(--gold), #d4a31c);
+  color: var(--void); border: none;
+  font-family: var(--f-h); font-size: 1.1rem; letter-spacing: 2px;
+  cursor: pointer; border-radius: 4px; font-weight: bold;
+  box-shadow: 0 0 15px rgba(245,192,48,0.3); transition: all 0.25s;
+}
+.quantum-btn:hover {
+  transform: translateY(-1px); box-shadow: 0 0 25px rgba(245,192,48,0.5);
+}
+.toggle-network {
+  margin-top: 15px; font-family: var(--f-m); font-size: 0.55rem;
+  letter-spacing: 1px; color: rgba(255,255,255,0.4); cursor: pointer;
+  transition: color 0.2s; display: inline-block; text-decoration: underline;
+}
+.toggle-network:hover { color: var(--gold); }
+
+/* ── PORTAL NODES (Optimized Placement) ── */
+.pnode{
+  position:absolute; display:flex; flex-direction:column; align-items:center; gap:4px; opacity: 0.6; pointer-events: none;
+}
+.pnode-gem{ width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; position:relative; }
+.gem-glass{ position:absolute; inset:0; border-radius:50%; background:var(--gm-bg); border:1px solid var(--gm-col); box-shadow:0 0 10px var(--gm-glow); }
+.gem-icon{ position:relative; z-index:2; font-size:0.9rem; color: var(--gm-col); }
+.pnode-name{ font-family:var(--f-h); font-size:0.65rem; letter-spacing:2px; color:var(--gm-col); }
+
+#pn-m{ --gm-col:#4FA3FF; --gm-bg:rgba(10,18,36,.75); --gm-glow:rgba(79,163,255,.3); left:40px; top:15%; }
+#pn-k{ --gm-col:#F5C030; --gm-bg:rgba(22,16,4,.75); --gm-glow:rgba(245,192,48,.3); right:40px; top:15%; }
+#pn-r{ --gm-col:#E8407A; --gm-bg:rgba(22,5,14,.75); --gm-glow:rgba(232,64,122,.3); left:50%; bottom:75px; transform:translateX(-50%); }
+
+/* ── YEAR DISPLAY ── */
+#year-display{
+  position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:100;
+  font-family:var(--f-m); font-size:.58rem; letter-spacing:4px; color:rgba(245,192,48,.5); text-align:center;
+}
+#year-count{
+  font-family:var(--f-h); font-size:2.2rem; color:var(--gold); display:block;
+  text-shadow:0 0 20px rgba(245,192,48,.5); letter-spacing:8px; line-height:1.1;
+}
+
+/* ── NEURAL READOUT ── */
+#readout{
+  position:fixed; bottom:16px; left:50%; transform:translateX(-50%); z-index:100;
+  font-family:var(--f-m); font-size:.55rem; letter-spacing:3px; color:rgba(245,192,48,.4);
+  text-align:center; max-width:90vw;
 }
 
 /* ── CORNER SIGILS ── */
-.sigil {
-  position: fixed;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  line-height: 1.7;
-  color: var(--text-dim);
-  letter-spacing: 0.05em;
-  z-index: 10;
-  pointer-events: none;
-}
-.sigil span { color: var(--gold); font-weight: 700; }
-.sigil.tl { top: 18px; left: 20px; }
-.sigil.tr { top: 18px; right: 20px; text-align: right; }
-.sigil.bl { bottom: 44px; left: 20px; }
-.sigil.br { bottom: 44px; right: 20px; text-align: right; }
-
-/* ── TÍTULO ── */
-#header {
-  text-align: center;
-  position: relative;
-}
-#header h1 {
-  font-family: var(--font-title);
-  font-size: clamp(38px, 8vw, 72px);
-  letter-spacing: 0.12em;
-  line-height: 1;
-  background: linear-gradient(135deg, #F5C030 0%, #FFE599 40%, #E8407A 80%, #F5C030 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: shimmer 4s linear infinite;
-}
-#header p {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-dim);
-  letter-spacing: 0.3em;
-  margin-top: 4px;
-  text-transform: uppercase;
-}
-@keyframes shimmer {
-  to { background-position: 200% center; }
-}
-
-/* ── OLHO CENTRAL ── */
-#eye-container {
-  position: relative;
-  width: 130px;
-  height: 130px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-/* Anéis de DNA */
-.ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1.5px solid transparent;
-}
-.ring-1 {
-  width: 130px; height: 130px;
-  border-top-color: var(--gold);
-  border-right-color: rgba(245,192,48,0.2);
-  border-bottom-color: var(--gold);
-  border-left-color: rgba(245,192,48,0.2);
-  animation: spin1 3.5s linear infinite;
-}
-.ring-2 {
-  width: 105px; height: 105px;
-  border-top-color: var(--plasma);
-  border-right-color: rgba(232,64,122,0.2);
-  border-bottom-color: var(--plasma);
-  border-left-color: rgba(232,64,122,0.2);
-  animation: spin2 2.8s linear infinite reverse;
-}
-.ring-3 {
-  width: 82px; height: 82px;
-  border-top-color: var(--matrix);
-  border-right-color: rgba(79,163,255,0.15);
-  border-bottom-color: var(--matrix);
-  border-left-color: rgba(79,163,255,0.15);
-  animation: spin1 2s linear infinite;
-}
-.ring-4 {
-  width: 62px; height: 62px;
-  border-top-color: rgba(245,192,48,0.6);
-  border-right-color: transparent;
-  border-bottom-color: rgba(245,192,48,0.6);
-  border-left-color: transparent;
-  animation: spin2 1.4s linear infinite reverse;
-}
-
-@keyframes spin1 { to { transform: rotate(360deg); } }
-@keyframes spin2 { to { transform: rotate(-360deg); } }
-
-/* Núcleo pulsante */
-#eye-core {
-  width: 42px; height: 42px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 38% 35%, #FFE28A, #F5C030 40%, #C8860A 75%, #4A2D00);
-  box-shadow:
-    0 0 20px rgba(245,192,48,0.9),
-    0 0 50px rgba(245,192,48,0.4),
-    0 0 90px rgba(245,192,48,0.15),
-    inset 0 0 10px rgba(0,0,0,0.4);
-  animation: breathe 3s ease-in-out infinite;
-  position: relative;
-  z-index: 2;
-}
-/* Pupila */
-#eye-core::after {
-  content: '';
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #1a0a00, #07070A);
-  box-shadow: 0 0 6px rgba(232,64,122,0.8);
-}
-@keyframes breathe {
-  0%,100% { transform: scale(1);   box-shadow: 0 0 20px rgba(245,192,48,.9), 0 0 50px rgba(245,192,48,.4), 0 0 90px rgba(245,192,48,.15); }
-  50%      { transform: scale(1.12); box-shadow: 0 0 32px rgba(245,192,48,1),  0 0 80px rgba(245,192,48,.6), 0 0 130px rgba(245,192,48,.25); }
-}
-
-/* ── CONSOLAS QUÂNTICAS ── */
-#consoles-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 420px;
-}
-
-.console {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  padding: 28px 28px 24px;
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  position: relative;
-  overflow: hidden;
-  /* top-left corner accent */
-}
-.console::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 60px; height: 2px;
-  background: linear-gradient(90deg, var(--gold), transparent);
-}
-.console::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 2px; height: 60px;
-  background: linear-gradient(180deg, var(--gold), transparent);
-}
-.console.hidden {
-  display: none;
-}
-
-.console-title {
-  font-family: var(--font-title);
-  font-size: 22px;
-  letter-spacing: 0.15em;
-  color: var(--gold);
-  margin-bottom: 4px;
-}
-.console-sub {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 0.2em;
-  margin-bottom: 22px;
-  text-transform: uppercase;
-}
-
-/* Inputs */
-.field {
-  margin-bottom: 14px;
-  position: relative;
-}
-.field label {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.field input {
-  width: 100%;
-  background: rgba(245,192,48,0.04);
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
-  padding: 11px 14px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--gold);
-  outline: none;
-  transition: border-color 0.3s, box-shadow 0.3s;
-  -webkit-text-fill-color: var(--gold);
-}
-.field input::placeholder { color: rgba(245,192,48,0.25); }
-.field input:focus {
-  border-color: var(--glass-border-active);
-  box-shadow: 0 0 0 3px rgba(245,192,48,0.07), inset 0 0 14px rgba(245,192,48,0.04);
-}
-/* autofill fix */
-.field input:-webkit-autofill,
-.field input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #0d0d12 inset;
-  -webkit-text-fill-color: var(--gold) !important;
-  caret-color: var(--gold);
-}
-
-/* Botões */
-.btn-primary {
-  width: 100%;
-  margin-top: 6px;
-  padding: 13px;
-  font-family: var(--font-title);
-  font-size: 18px;
-  letter-spacing: 0.15em;
-  color: var(--void);
-  background: linear-gradient(135deg, #F5C030, #E8A800);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.15s, box-shadow 0.3s;
-  box-shadow: 0 0 20px rgba(245,192,48,0.3);
-}
-.btn-primary::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 34px rgba(245,192,48,0.5); }
-.btn-primary:hover::before { opacity: 1; }
-.btn-primary:active { transform: translateY(0); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.btn-switch {
-  width: 100%;
-  margin-top: 16px;
-  padding: 10px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  color: var(--text-dim);
-  background: transparent;
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: color 0.3s, border-color 0.3s;
-}
-.btn-switch:hover { color: var(--gold); border-color: var(--glass-border-active); }
-.btn-switch span { color: var(--plasma); }
-
-/* Feedback messages */
-.msg {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  padding: 8px 12px;
-  border-radius: 6px;
-  margin-top: 12px;
-  display: none;
-}
-.msg.error   { color: var(--plasma); background: rgba(232,64,122,0.08); border: 1px solid rgba(232,64,122,0.25); display: block; }
-.msg.success { color: #72ffa0;       background: rgba(114,255,160,0.06); border: 1px solid rgba(114,255,160,0.25); display: block; }
-.msg.loading { color: var(--matrix); background: rgba(79,163,255,0.06);  border: 1px solid rgba(79,163,255,0.2);  display: block; }
-
-/* ── TYPEWRITER BARRA INFERIOR ── */
-#typewriter-bar {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  height: 32px;
-  background: rgba(7,7,10,0.92);
-  border-top: 1px solid var(--glass-border);
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  z-index: 20;
-}
-#typewriter-bar span {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 0.08em;
-}
-#tw-prefix { color: var(--matrix); margin-right: 8px; flex-shrink: 0; }
-#tw-text { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-#tw-cursor {
-  display: inline-block;
-  width: 7px; height: 12px;
-  background: var(--gold);
-  animation: blink 1s step-end infinite;
-  vertical-align: middle;
-  margin-left: 2px;
-  flex-shrink: 0;
-}
-@keyframes blink { 0%,100%{ opacity:1; } 50%{ opacity:0; } }
-
-/* ── RESPONSIVO ── */
-@media (max-width: 480px) {
-  .console { padding: 22px 18px 18px; }
-  .sigil.tr, .sigil.br { display: none; }
-}
+.sigil{ position:fixed; z-index:100; font-family:var(--f-m); font-size:.5rem; letter-spacing:2px; color:rgba(245,192,48,.2); line-height:1.6; }
+.sg-tl{top:14px;left:14px;} .sg-tr{top:14px;right:14px;text-align:right;}
+.sg-bl{bottom:14px;left:14px;} .sg-br{bottom:14px;right:14px;text-align:right;}
 </style>
 </head>
 <body>
 
-<!-- Canvas Neural -->
-<canvas id="neural-canvas"></canvas>
+<div class="amb amb-g"></div>
+<div class="amb amb-r"></div>
+<div class="amb amb-b"></div>
 
-<!-- Corner Sigils -->
-<div class="sigil tl">
-  VAGALUME90 CORE v9.0<br>
-  CICLO: <span>3026.06</span><br>
-  SETOR: <span>ALFA-PRIME</span><br>
-  PROTOCOLO: <span>QUÂNTICO</span>
-</div>
-<div class="sigil tr">
-  ZONA: <span>LUANDA-MATRIX</span><br>
-  REDE: <span>TRANSDIMENSIONAL</span><br>
-  LATÊNCIA: <span id="latency">—</span> ms<br>
-  STATUS: <span style="color:#72ffa0">◉ VIVO</span>
-</div>
-<div class="sigil bl">
-  ENERGIA VITAL<br>
-  <span id="energy">97.3</span>%<br>
-  ████████░░
-</div>
-<div class="sigil br">
-  NÓDULOS ATIVOS<br>
-  <span id="nodes">0</span><br>
-  / 4.200.000.000
+<canvas id="breath-canvas"></canvas>
+
+<div id="year-display">
+  <span id="year-count">2025</span>
+  CALENDÁRIO VAGO
 </div>
 
-<!-- App -->
-<div id="app">
+<div class="sigil sg-tl">VG90<br>SYS.VIVO<br>◈ ONLINE</div>
+<div class="sigil sg-tr">NÓDULOS<br><span id="node-count" style="color:rgba(245,192,48,.5)">0</span><br>ACTIVOS</div>
+<div class="sigil sg-bl">MATRIZ<br>NEURAL<br>◈ 3026</div>
+<div class="sigil sg-br">ENERGIA<br><span id="energy-pct" style="color:rgba(232,64,122,.5)">97%</span><br>VITAL</div>
 
-  <!-- Header -->
-  <div id="header">
-    <h1>VAGALUME90</h1>
-    <p>Ecossistema Digital Transdimensional — 3026</p>
-  </div>
+<div id="stage">
 
-  <!-- Olho Central -->
-  <div id="eye-container">
-    <div class="ring ring-1"></div>
-    <div class="ring ring-2"></div>
-    <div class="ring ring-3"></div>
-    <div class="ring ring-4"></div>
-    <div id="eye-core"></div>
-  </div>
-
-  <!-- Consolas Quânticas -->
-  <div id="consoles-wrapper">
-
-    <!-- LOGIN -->
-    <div class="console" id="console-login">
-      <div class="console-title">Autenticação Neural</div>
-      <div class="console-sub">// ACESSO AO NÚCLEO VG90</div>
-
-      <div class="field">
-        <label>Identificador de Usuário</label>
-        <input type="text" id="l-username" name="username" placeholder="seu_username" autocomplete="username">
-      </div>
-      <div class="field">
-        <label>Sequência de Acesso</label>
-        <input type="password" id="l-password" name="password" placeholder="••••••••" autocomplete="current-password">
-      </div>
-
-      <button class="btn-primary" id="btn-login">SINCRONIZAR</button>
-      <div class="msg" id="login-msg"></div>
-
-      <button class="btn-switch" id="go-register">
-        SEM IDENTIDADE? → <span>MANIFESTAR EXISTÊNCIA</span>
-      </button>
+  <div id="the-eye">
+    <div class="eye-aura"></div>
+    <div class="dna-ring dr1"></div>
+    <div class="dna-ring dr2"></div>
+    <div class="dna-ring dr3"></div>
+    <div class="dna-ring dr4"></div>
+    <div class="eye-pupil">
+      <div class="pupil-iris"></div>
     </div>
-
-    <!-- REGISTO -->
-    <div class="console hidden" id="console-register">
-      <div class="console-title">Manifestação Quântica</div>
-      <div class="console-sub">// CRIAR IDENTIDADE NO NEXO</div>
-
-      <div class="field">
-        <label>Designação Única</label>
-        <input type="text" id="r-username" name="username" placeholder="escolha_seu_nome" autocomplete="username">
-      </div>
-      <div class="field">
-        <label>Endereço Biomórfico</label>
-        <input type="email" id="r-email" name="email" placeholder="email@dominio.com" autocomplete="email">
-      </div>
-      <div class="field">
-        <label>Chave Quântica</label>
-        <input type="password" id="r-password" name="password" placeholder="••••••••" autocomplete="new-password">
-      </div>
-
-      <button class="btn-primary" id="btn-register">MANIFESTAR</button>
-      <div class="msg" id="register-msg"></div>
-
-      <button class="btn-switch" id="go-login">
-        JÁ EXISTE? → <span>AUTENTICAR CONSCIÊNCIA</span>
-      </button>
-    </div>
-
   </div>
+
+  <div class="quantum-console" id="login-box">
+    <div class="console-title">AUTENTICAÇÃO NEURAL</div>
+    <div class="console-subtitle">CONEXÃO DIRETA À REDE DA MATRIX</div>
+    
+    <form id="login-form">
+      <div class="input-group">
+        <input type="text" name="username" placeholder="IDENTIFICADOR / OPERADOR" required autocomplete="off">
+      </div>
+      <div class="input-group">
+        <input type="password" name="password" placeholder="CHAVE NEURAL (SENHA)" required>
+      </div>
+      <button type="submit" class="quantum-btn">ATIVAR TELETRANSPORTE</button>
+    </form>
+    
+    <div class="toggle-network" onclick="switchBox('login-box', 'register-box')">
+      Materializar Nova Consciência (Criar Conta)
+    </div>
+  </div>
+
+  <div class="quantum-console" id="register-box" style="display: none;">
+    <div class="console-title">REGISTO QUÂNTICO</div>
+    <div class="console-subtitle">GERAR NOVO NÓ DE CONSCIÊNCIA NO ECOSSISTEMA</div>
+    
+    <form id="register-form">
+      <div class="input-group">
+        <input type="text" name="username" placeholder="NOVO OPERADOR (USER)" required autocomplete="off">
+      </div>
+      <div class="input-group">
+        <input type="email" name="email" placeholder="ENDEREÇO DE REDE (EMAIL)" required autocomplete="off">
+      </div>
+      <div class="input-group">
+        <input type="password" name="password" placeholder="CRIAR CHAVE NEURAL" required>
+      </div>
+      <button type="submit" class="quantum-btn" style="background: linear-gradient(135deg, var(--rose), #b82557); color: white; box-shadow: 0 0 15px rgba(232,64,122,0.3);">
+        INICIAR MANIFESTAÇÃO
+      </button>
+    </form>
+    
+    <div class="toggle-network" onclick="switchBox('register-box', 'login-box')">
+      Já Possuo Identificador (Efetuar Login)
+    </div>
+  </div>
+
+  <div class="pnode" id="pn-m">
+    <div class="pnode-gem"><div class="gem-glass"></div><div class="gem-icon">⬡</div></div>
+    <div class="pnode-name">MATRIX</div>
+  </div>
+  <div class="pnode" id="pn-k">
+    <div class="pnode-gem"><div class="gem-glass"></div><div class="gem-icon">◈</div></div>
+    <div class="pnode-name">MERCADO</div>
+  </div>
+  <div class="pnode" id="pn-r">
+    <div class="pnode-gem"><div class="gem-glass"></div><div class="gem-icon">◆</div></div>
+    <div class="pnode-name">RUAS</div>
+  </div>
+
 </div>
 
-<!-- Typewriter Bar -->
-<div id="typewriter-bar">
-  <span id="tw-prefix">VG90://</span>
-  <span id="tw-text"></span>
-  <span id="tw-cursor"></span>
+<div id="readout">
+  <span id="readout-text">INICIALIZANDO MATRIZ NEURAL · VG90 · SISTEMA VIVO</span>
 </div>
 
 <script>
-/* ════════════════════════════════════════════
-   1. CANVAS NEURAL — partículas sinápticas
-════════════════════════════════════════════ */
+// Alternar abas do Console
+function switchBox(hideId, showId) {
+  document.getElementById(hideId).style.display = 'none';
+  document.getElementById(showId).style.display = 'block';
+}
+
+// ═══ PROCESSADOR ASSÍNCRONO DE LOGIN (FETCH LINKED TO MAIN.PY) ═══
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  
+  try {
+    const response = await fetch('/login', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await response.json();
+    
+    if(data.success) {
+      document.getElementById('readout-text').textContent = "TELETRANSPORTE AUTORIZADO. ENTRANDO NA MATRIX...";
+      setTimeout(() => {
+        window.location.href = '/mundo/matrix';
+      }, 800);
+    } else {
+      alert("Falha de Acesso: " + data.message);
+    }
+  } catch(err) {
+    alert("Erro crítico de rede ao contactar a Matriz Vagalume90.");
+  }
+});
+
+// ═══ PROCESSADOR ASSÍNCRONO DE REGISTO ═══
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  
+  try {
+    const response = await fetch('/register', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await response.json();
+    
+    if(data.success) {
+      alert("Nó de Consciência integrado! Faça o login para sincronizar.");
+      switchBox('register-box', 'login-box');
+    } else {
+      alert("Falha no Registo: " + data.message);
+    }
+  } catch(err) {
+    alert("Erro crítico na manifestação quântica de dados.");
+  }
+});
+
+// ═══ ANIMAÇÕES DO FRAGMENTO ORIGINAL (PRESERVADAS) ═══
 (function(){
-  const canvas = document.getElementById('neural-canvas');
-  const ctx = canvas.getContext('2d');
-  let W, H, mouse = { x: -999, y: -999 };
-  const N = 80, MAX_DIST = 130;
-  let particles = [];
-
-  function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
+  const el = document.getElementById('year-count');
+  let y = 2025, target = 3026, speed = 1;
+  function step(){
+    if(y < target){
+      speed = Math.max(1, Math.floor((target - y) / 40));
+      y = Math.min(target, y + speed);
+      el.textContent = y;
+      requestAnimationFrame(step);
+    }
   }
+  setTimeout(step, 800);
+})();
 
-  function mkParticle() {
-    return {
-      x: Math.random() * W,
-      y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.35,
-      vy: (Math.random() - 0.5) * 0.35,
-      r: Math.random() * 1.8 + 0.5,
-      alpha: Math.random() * 0.5 + 0.3,
-      // subtle color variation
-      hue: Math.random() < 0.6 ? 'gold' : (Math.random() < 0.5 ? 'plasma' : 'matrix')
-    };
+(function(){
+  const el = document.getElementById('node-count');
+  let v = 0;
+  function step(){
+    if(v < 4200000000){
+      v += Math.floor(v < 1000 ? 1 : v < 1000000 ? v/20 : v/8);
+      v = Math.min(4200000000, v);
+      el.textContent = v >= 1e9 ? (v/1e9).toFixed(2)+'B' : v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v;
+      requestAnimationFrame(step);
+    }
   }
+  setTimeout(step, 1200);
+})();
 
-  function colorOf(p) {
-    if (p.hue === 'gold')   return `rgba(245,192,48,${p.alpha})`;
-    if (p.hue === 'plasma') return `rgba(232,64,122,${p.alpha * 0.7})`;
-    return `rgba(79,163,255,${p.alpha * 0.7})`;
+let eVal = 97;
+setInterval(()=>{
+  eVal += (Math.random()-.48)*1.2; eVal = Math.min(99.9, Math.max(85, eVal));
+  document.getElementById('energy-pct').textContent = eVal.toFixed(1)+'%';
+}, 1600);
+
+// Canvas de Fundo
+(function(){
+  const cv = document.getElementById('breath-canvas');
+  const cx = cv.getContext('2d');
+  let W, H, cells=[], t=0;
+  function resize(){ W=cv.width=window.innerWidth; H=cv.height=window.innerHeight; buildCells(); }
+  function buildCells(){
+    cells=[]; const count = Math.floor((W*H)/18000);
+    const COLS=['rgba(245,192,48,','rgba(232,64,122,','rgba(79,163,255,'];
+    for(let i=0;i<count;i++){
+      cells.push({ x:Math.random()*W, y:Math.random()*H, ox:0, oy:0, vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25, r:Math.random()*1.6+.4, c:COLS[i%3], a:Math.random()*.3+.07, phase:Math.random()*Math.PI*2 });
+    }
   }
-
-  resize();
-  for (let i = 0; i < N; i++) particles.push(mkParticle());
-
-  window.addEventListener('resize', resize);
-  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-  window.addEventListener('touchmove', e => {
-    mouse.x = e.touches[0].clientX;
-    mouse.y = e.touches[0].clientY;
-  }, { passive: true });
-
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-
-    // connections
-    for (let i = 0; i < N; i++) {
-      const a = particles[i];
-      // mouse attraction
-      const mdx = mouse.x - a.x, mdy = mouse.y - a.y;
-      const md = Math.sqrt(mdx*mdx + mdy*mdy);
-      if (md < 100) {
-        a.vx += mdx * 0.0002;
-        a.vy += mdy * 0.0002;
-      }
-      for (let j = i + 1; j < N; j++) {
-        const b = particles[j];
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const d = Math.sqrt(dx*dx + dy*dy);
-        if (d < MAX_DIST) {
-          const opacity = (1 - d / MAX_DIST) * 0.18;
-          ctx.beginPath();
-          ctx.strokeStyle = `rgba(245,192,48,${opacity})`;
-          ctx.lineWidth = 0.5;
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.stroke();
+  resize(); window.addEventListener('resize',resize);
+  function draw(){
+    t += 0.008; cx.clearRect(0,0,W,H);
+    cells.forEach(p=>{
+      p.ox = Math.sin(t+p.phase)*2; p.oy = Math.cos(t+p.phase*1.3)*2; p.x += p.vx + p.ox*.05; p.y += p.vy + p.oy*.05;
+      if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+      const alpha = p.a*(0.7+0.3*Math.sin(t*2+p.phase));
+      cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2); cx.fillStyle=p.c+alpha+')';cx.fill();
+    });
+    for(let i=0;i<cells.length;i++){
+      for(let j=i+1;j<cells.length;j++){
+        const a=cells[i],b=cells[j]; const d=Math.hypot(a.x-b.x,a.y-b.y);
+        if(d<90){
+          const alpha=0.06*(1-d/90); cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);
+          cx.strokeStyle='rgba(245,192,48,'+alpha+')'; cx.lineWidth=.35;cx.stroke();
         }
       }
     }
-
-    // dots
-    for (const p of particles) {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = colorOf(p);
-      ctx.fill();
-
-      // glow
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r * 2.5, 0, Math.PI * 2);
-      const g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*2.5);
-      g.addColorStop(0, colorOf(p));
-      g.addColorStop(1, 'transparent');
-      ctx.fillStyle = g;
-      ctx.fill();
-
-      // move
-      p.x += p.vx;
-      p.y += p.vy;
-      // speed limit
-      const spd = Math.sqrt(p.vx*p.vx+p.vy*p.vy);
-      if (spd > 0.8) { p.vx *= 0.98; p.vy *= 0.98; }
-      // wrap
-      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
-      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
-    }
-
     requestAnimationFrame(draw);
   }
   draw();
 })();
-
-/* ════════════════════════════════════════════
-   2. TELEMETRIA — corner sigils dinâmicos
-════════════════════════════════════════════ */
-(function(){
-  // Energia oscilante
-  let e = 97.3;
-  setInterval(() => {
-    e += (Math.random() - 0.5) * 0.4;
-    e = Math.max(96, Math.min(98.9, e));
-    document.getElementById('energy').textContent = e.toFixed(1);
-  }, 1800);
-
-  // Nódulos em contagem
-  let nodes = 3812944021;
-  const nodeEl = document.getElementById('nodes');
-  setInterval(() => {
-    nodes += Math.floor(Math.random() * 1200 + 300);
-    if (nodes > 4200000000) nodes = 4200000000;
-    nodeEl.textContent = nodes.toLocaleString('pt-AO');
-  }, 900);
-
-  // Latência simulada
-  const latEl = document.getElementById('latency');
-  setInterval(() => {
-    latEl.textContent = (Math.random() * 8 + 2).toFixed(1);
-  }, 2000);
-})();
-
-/* ════════════════════════════════════════════
-   3. TYPEWRITER — barra de status
-════════════════════════════════════════════ */
-(function(){
-  const lines = [
-    'Inicializando protocolo de sincronização quântica...',
-    'NEXO VAGALUME90 operacional — 4.2B nódulos verificados.',
-    'Mercado Transdimensional: volume de transações +18.7% nesta órbita.',
-    'Afiliados ativos detectados: 247 entidades conscientes em rede.',
-    'Soberania digital confirmada — blockchain imutável, raízes culturais eternas.',
-    'Inteligência GEMINI integrada ao núcleo — geração de conteúdo ilimitada.',
-    'Aviso: janelas dimensionais instáveis no setor BETA — reconectar.',
-    'Firebase Auth sincronizado — identidades protegidas no plano quântico.',
-    'Ruas digitais abertas: 93 rotas de afiliação ativas no mapa.',
-    'O ecossistema vive. O ecossistema cresce. O ecossistema é você.',
-    'Matrix cultural carregada — herança afrofuturista v3026.06 instalada.',
-    'Protocolo de manifestação quântica disponível — crie sua identidade.',
-  ];
-  const el = document.getElementById('tw-text');
-  let li = 0, ci = 0, deleting = false, wait = 0;
-
-  function tick() {
-    if (wait > 0) { wait--; setTimeout(tick, 50); return; }
-    const line = lines[li];
-    if (!deleting) {
-      el.textContent = line.slice(0, ci + 1);
-      ci++;
-      if (ci >= line.length) { deleting = false; wait = 60; deleting = true; setTimeout(tick, 50); return; }
-      setTimeout(tick, 38);
-    } else {
-      el.textContent = line.slice(0, ci - 1);
-      ci--;
-      if (ci <= 0) {
-        deleting = false;
-        li = (li + 1) % lines.length;
-        wait = 15;
-        setTimeout(tick, 50);
-        return;
-      }
-      setTimeout(tick, 18);
-    }
-  }
-  tick();
-})();
-
-/* ════════════════════════════════════════════
-   4. ALTERNÂNCIA ENTRE CONSOLAS
-════════════════════════════════════════════ */
-const cLogin    = document.getElementById('console-login');
-const cRegister = document.getElementById('console-register');
-const goReg     = document.getElementById('go-register');
-const goLog     = document.getElementById('go-login');
-
-goReg.addEventListener('click', () => {
-  cLogin.classList.add('hidden');
-  cRegister.classList.remove('hidden');
-  clearMsg('login-msg');
-});
-goLog.addEventListener('click', () => {
-  cRegister.classList.add('hidden');
-  cLogin.classList.remove('hidden');
-  clearMsg('register-msg');
-});
-
-/* ════════════════════════════════════════════
-   5. HELPERS
-════════════════════════════════════════════ */
-function showMsg(id, text, type) {
-  const el = document.getElementById(id);
-  el.textContent = text;
-  el.className = 'msg ' + type;
-}
-function clearMsg(id) {
-  const el = document.getElementById(id);
-  el.textContent = '';
-  el.className = 'msg';
-}
-
-/* ════════════════════════════════════════════
-   6. LOGIN — Fetch assíncrono
-════════════════════════════════════════════ */
-document.getElementById('btn-login').addEventListener('click', async () => {
-  const username = document.getElementById('l-username').value.trim();
-  const password = document.getElementById('l-password').value;
-
-  if (!username || !password) {
-    showMsg('login-msg', '⚠ Preenche todos os campos para autenticar.', 'error');
-    return;
-  }
-
-  const btn = document.getElementById('btn-login');
-  btn.disabled = true;
-  showMsg('login-msg', '◌ Sincronizando consciência com o NEXO...', 'loading');
-
-  try {
-    const fd = new FormData();
-    fd.append('username', username);
-    fd.append('password', password);
-
-    const res  = await fetch('/login', { method: 'POST', body: fd });
-    const data = await res.json();
-
-    if (data.success) {
-      showMsg('login-msg', `◉ Bem-vindo, ${data.username} [${data.rank}]. Redirecionando...`, 'success');
-      setTimeout(() => { window.location.href = '/mundo/matrix'; }, 1200);
-    } else {
-      showMsg('login-msg', `✗ ${data.message || 'Credenciais inválidas no plano quântico.'}`, 'error');
-      btn.disabled = false;
-    }
-  } catch (err) {
-    showMsg('login-msg', '✗ Falha de conexão com o NEXO. Tenta novamente.', 'error');
-    btn.disabled = false;
-  }
-});
-
-/* ════════════════════════════════════════════
-   7. REGISTO — Fetch assíncrono
-════════════════════════════════════════════ */
-document.getElementById('btn-register').addEventListener('click', async () => {
-  const username = document.getElementById('r-username').value.trim();
-  const email    = document.getElementById('r-email').value.trim();
-  const password = document.getElementById('r-password').value;
-
-  if (!username || !email || !password) {
-    showMsg('register-msg', '⚠ Todos os campos são obrigatórios para manifestar.', 'error');
-    return;
-  }
-
-  const btn = document.getElementById('btn-register');
-  btn.disabled = true;
-  showMsg('register-msg', '◌ Gravando identidade no bloco quântico...', 'loading');
-
-  try {
-    const fd = new FormData();
-    fd.append('username', username);
-    fd.append('email', email);
-    fd.append('password', password);
-
-    const res  = await fetch('/register', { method: 'POST', body: fd });
-    const data = await res.json();
-
-    if (data.success) {
-      showMsg('register-msg', '◉ Identidade manifestada! Acede ao Login para entrar no NEXO.', 'success');
-      setTimeout(() => {
-        cRegister.classList.add('hidden');
-        cLogin.classList.remove('hidden');
-        document.getElementById('l-username').value = username;
-      }, 2000);
-    } else {
-      showMsg('register-msg', `✗ ${data.message || 'Erro ao manifestar identidade.'}`, 'error');
-      btn.disabled = false;
-    }
-  } catch (err) {
-    showMsg('register-msg', '✗ Falha de conexão. Tenta novamente.', 'error');
-    btn.disabled = false;
-  }
-});
-
-/* Enter key support */
-['l-username','l-password'].forEach(id => {
-  document.getElementById(id).addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('btn-login').click();
-  });
-});
-['r-username','r-email','r-password'].forEach(id => {
-  document.getElementById(id).addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('btn-register').click();
-  });
-});
 </script>
 </body>
 </html>
