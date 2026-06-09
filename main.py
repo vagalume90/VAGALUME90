@@ -13,7 +13,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'VAGALUME90_CHAVE_NEURAL_SECRETA')
 # O Render puxa a URI diretamente das variáveis de ambiente para segurança
 MONGO_URI = os.environ.get('MONGO_URI', 'mongodb+srv://usuario:senha@cluster.mongodb.net/vagalume90_db')
 client = MongoClient(MONGO_URI)
-db = client.get_database() # Seleciona a base de dados ativa
+db = client['vagalume90_db'] # Seleciona a base de dados ativa explicitamente
 
 # =================================================================
 # 1. ROTAS DE AUTENTICAÇÃO E ENTRADA
