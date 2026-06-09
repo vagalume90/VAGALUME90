@@ -1,146 +1,175 @@
+from flask import Flask, request, jsonify, session, redirect, url_for, render_template
+from pymongo import MongoClient
+from bson.objectid import ObjectId
+from datetime import datetime
 import os
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 
 app = Flask(__name__)
 
-# ── CONFIGURAÇÃO DE SEGURANÇA ──
-# Chave essencial para gerir as sessões de login (cookies) de forma estável no Render
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "vagalume90_quantum_secret_key_3026")
+# CHAVE SECRETA DA SESSÃO (Essencial para manter utilizadores logados)
+app.secret_key = os.environ.get('SECRET_KEY', 'VAGALUME90_CHAVE_NEURAL_SECRETA')
 
-# ════════════════════════════════════════════
-# 1. PORTAL DE ENTRADA (INDEX)
-# ════════════════════════════════════════════
+# CONEXÃO LÓGICA AO MONGODB ATLAS
+# O Render puxa a URI diretamente das variáveis de ambiente para segurança
+MONGO_URI = os.environ.get('MONGO_URI', 'mongodb+srv://usuario:senha@cluster.mongodb.net/vagalume90_db')
+client = MongoClient(MONGO_URI)
+db = client.get_database() # Seleciona a base de dados ativa
+
+# =================================================================
+# 1. ROTAS DE AUTENTICAÇÃO E ENTRADA
+# =================================================================
+
 @app.route('/')
 def index():
-    # Se o operador já estiver logado, teletransporta direto para a Matrix
     if 'username' in session:
-        return redirect(url_for('mundo_matrix'))
-    return render_template('index.html')
+        return redirect(url_for('modulo_mercado'))
+    return "<h1>PORTAL VAGALUME90</h1><p>Ecrã de Login Central. Autenticação Neural Requerida.</p>"
 
-
-# ════════════════════════════════════════════
-# 2. AUTENTICAÇÃO ASSÍNCRONA (LOGIN)
-# ════════════════════════════════════════════
-@app.route('/login', methods=['POST'])
-def login():
-    username = request.form.get('username', '').strip()
-    password = request.form.get('password', '')
-
-    if not username or not password:
-        return jsonify({"success": False, "message": "Preenche todos os campos para autenticar."}), 400
-
-    # ── SISTEMA DE AUTENTICAÇÃO SEGURO PARA TESTE ──
-    # Permite entrar com qualquer usuário para garantir que o portal passe da tela de login!
-    session['username'] = username
-    session['rank'] = "Operador Alfa"
-
-    # Retorna exatamente o JSON que o JavaScript do index.html precisa para avançar
-    return jsonify({
-        "success": True,
-        "username": username,
-        "rank": "Operador Alfa"
-    })
-
-
-# ════════════════════════════════════════════
-# 3. MANIFESTAÇÃO QUÂNTICA (REGISTO)
-# ════════════════════════════════════════════
-@app.route('/register', methods=['POST'])
-def register():
-    username = request.form.get('username', '').strip()
-    email = request.form.get('email', '').strip()
-    password = request.form.get('password', '')
-
-    if not username or not email or not password:
-        return jsonify({"success": False, "message": "Todos os campos são obrigatórios."}), 400
-
-    # Simula o sucesso imediato do registro na malha do servidor
-    return jsonify({
-        "success": True, 
-        "message": "Identidade gravada com sucesso! Proceda para o login."
-    })
-
-
-# ════════════════════════════════════════════
-# 4. ROTAS DOS MUNDOS (INTERMUNDOS)
-# ════════════════════════════════════════════
-
-# ── SUBSTRATO: MATRIX ──
-@app.route('/mundo/matrix')
-def mundo_matrix():
-    if 'username' not in session:
-        return redirect(url_for('index'))
-    return render_template('matrix.html', rank=session.get('rank', 'Operador Alfa'))
-
-
-# ── URBANIDADE: RUAS (SAÚDE YETO) ──
-@app.route('/mundo/ruas')
-def mundo_ruas():
-    if 'username' not in session:
-        return redirect(url_for('index'))
-    
-    # Telemetria médica injetada dinamicamente no ruas.html
-    dados_saude = {
-        "status_vital": "ESTÁVEL",
-        "pressao_art": "12/8 mmHg",
-        "oxigenio": "98% SpO2",
-        "consultas": "Nenhuma anomalia crítica detectada nas últimas 24h no setor Luanda."
-    }
-    return render_template('ruas.html', dados_saude=dados_saude)
-
-
-# ── ECONOMIA: MERCADO ──
-@app.route('/mundo/mercado')
-def mundo_mercado():
-    if 'username' not in session:
-        return redirect(url_for('index'))
-    return "<h1>MUNDO MERCADO</h1><p>// Fluxo de Valor em Construção.</p><br><a href='/mundo/matrix'>Voltar à Matrix</a>"
-
-
-# ════════════════════════════════════════════
-# 5. INTEGRAÇÃO DE INTELIGÊNCIA ARTIFICIAL (APIs)
-# ════════════════════════════════════════════
-
-@app.route('/api/ai/matrix', methods=['POST'])
-def api_ai_matrix():
-    if 'username' not in session:
-        return jsonify({"response": "Acesso negado."}), 403
-        
-    data = request.get_json() or {}
-    prompt_usuario = data.get('prompt', '')
-    
-    resposta_ia = f"<strong>[NEXO COMPILADO]</strong><br>Processou a diretriz: <em>'{prompt_usuario}'</em>.<br><br>Aqui está o teu insight estratégico para o ecossistema VAGALUME90: 'Foca no tráfego direcionado para as Ruas, onde a retenção bioplasmática da Saúde Yeto garante +45% de conversão intencional.'"
-    return jsonify({"response": resposta_ia})
-
-
-@app.route('/api/ai/saude', methods=['POST'])
-def api_ai_saude():
-    if 'username' not in session:
-        return jsonify({"response": "Acesso negado."}), 403
-        
-    data = request.get_json() or {}
-    prompt_clinico = data.get('prompt', '')
-    
-    resposta_medica = f"<strong>[TRIAGEM SAÚDE YETO]</strong><br>Análise de sintomas: <em>'{prompt_clinico}'</em>.<br><br><strong>Recomendação:</strong> Sinais vitais sob controlo. Monitorar parâmetros de oxigénio na malha urbana e garantir hidratação severa do operador."
-    return jsonify({"response": resposta_medica})
-
-
-# ════════════════════════════════════════════
-# 6. DESCONEXÃO E TRATAMENTO ANTI-404
-# ════════════════════════════════════════════
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('index'))
 
+# =================================================================
+# 2. MÓDULO MERCADO (ALAVANCA) - ROTAS VISUAIS
+# =================================================================
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return "<h1>[ERRO 404 — VAGALUME90]</h1><p>Esta rota não existe no ecossistema.</p><br><a href='/'>Voltar ao Portal</a>", 404
-
-
-if __name__ == '__main__':
-    # Lê a porta dinâmica que o Render exige para rodar o serviço grátis
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+@app.route('/modulo/mercado')
+def modulo_mercado():
+    # Bloqueio de Segurança: Se não estiver logado, recua para a entrada
+    if 'username' not in session:
+        return redirect(url_for('index'))
+        
+    # Puxar dados estendidos do utilizador logado no MongoDB Atlas
+    user_data = db.users.find_one({"username": session['username']})
+    if not user_data:
+        return "Erro Crítico: Operador não detetado na base de dados.", 404
     
+    # Extrair os produtos criados pelo Core IA que estão ativos na rede
+    produtos_ia = list(db.infoprodutos.find({"status": "ativo"}))
+    
+    # Extrair os itens físicos do Marketplace de Usados
+    itens_usados = list(db.marketplace_usados.find({"status": "disponivel"}))
+    
+    # Injetar os dados dinâmicos diretamente no template mercado.html
+    return render_template(
+        'mercado.html',
+        rank=session.get('rank', 'OPERADOR ALFA'),
+        saldo_disponivel=user_data.get('saldo', {}).get('disponivel', 0.0),
+        saldo_pendente=user_data.get('saldo', {}).get('pendente', 0.0),
+        codigo_afiliado=user_data.get('afiliacao', {}).get('codigo', ''),
+        produtos=produtos_ia,
+        usados=itens_usados
+    )
+
+# =================================================================
+# 3. ENDPOINTS DA API - TRANSAÇÕES FINANCEIRAS ACID (LEDGER)
+# =================================================================
+
+@app.route('/api/mercado/comprar', methods=['POST'])
+def processar_compra_v2():
+    if 'username' not in session:
+        return jsonify({"error": "Acesso negado. Autenticação necessária."}), 403
+        
+    data = request.get_json() or {}
+    produto_id = data.get('produto_id')
+    ref_afiliado = data.get('ref') # Username do afiliado que indicou
+    comprador_username = session['username']
+    
+    if not produto_id:
+        return jsonify({"error": "Parâmetro 'produto_id' em falta no payload."}), 400
+
+    # Puxar a parametrização de comissão ativa na coleção 'configuracoes'
+    config = db.configuracoes.find_one({"_id": "sistema_config"})
+    if not config:
+        # Fallback de segurança (Padrão: 40% Afiliado, 50% Criador, 10% Plataforma)
+        pct_afiliado, pct_criador, pct_plataforma = 40, 50, 10
+    else:
+        pct_afiliado = config['comissoes_percentual']['afiliado']
+        pct_criador = config['comissoes_percentual']['criador']
+        pct_plataforma = config['comissoes_percentual']['plataforma']
+
+    try:
+        # INÍCIO DA TRANSAÇÃO ACID: Garante que ou roda tudo com sucesso, ou cancela tudo
+        with client.start_session() as mongo_session:
+            with mongo_session.start_transaction():
+                
+                comprador = db.users.find_one({"username": comprador_username}, session=mongo_session)
+                produto = db.infoprodutos.find_one({"_id": ObjectId(produto_id)}, session=mongo_session)
+                
+                if not produto:
+                    return jsonify({"error": "O infoproduto solicitado não existe."}), 404
+                    
+                preco_total = produto.get('preco_sugerido', 0.0)
+                
+                # Validação de Saldo contra o Ledger do utilizador
+                if comprador.get('saldo', {}).get('disponivel', 0.0) < preco_total:
+                    return jsonify({"error": "Saldo Vagalume insuficiente para esta operação."}), 400
+                    
+                # Impedir que o criador compre o seu próprio produto usando link de afiliado
+                if ref_afiliado == produto['criador']:
+                    ref_afiliado = None
+
+                # Divisão analítica dos valores
+                comissao_afiliado = (preco_total * pct_afiliado) / 100 if ref_afiliado else 0.0
+                lucro_criador = (preco_total * pct_criador) / 100 if ref_afiliado else (preco_total * (pct_criador + pct_afiliado)) / 100
+                taxa_plataforma = (preco_total * pct_plataforma) / 100
+
+                # OPERAÇÃO 1: Deduzir o valor total do saldo do comprador
+                db.users.update_one(
+                    {"username": comprador_username},
+                    {"$inc": {"saldo.disponivel": -preco_total, "estatisticas.compras": 1}},
+                    session=mongo_session
+                )
+                
+                # OPERAÇÃO 2: Creditar o lucro na carteira do Criador do produto
+                db.users.update_one(
+                    {"username": produto['criador']},
+                    {"$inc": {"saldo.disponivel": lucro_criador, "estatisticas.vendas": 1}},
+                    session=mongo_session
+                )
+                
+                # OPERAÇÃO 3: Creditar a comissão do Afiliado (Se houver indicação válida)
+                if comissao_afiliado > 0 and ref_afiliado and ref_afiliado != comprador_username:
+                    db.users.update_one(
+                        {"username": ref_afiliado},
+                        {"$inc": {"saldo.disponivel": comissao_afiliado}},
+                        session=mongo_session
+                    )
+                
+                # OPERAÇÃO 4: Atualizar a telemetria e o volume de vendas do próprio produto
+                db.infoprodutos.update_one(
+                    {"_id": ObjectId(produto_id)},
+                    {"$inc": {"numero_vendas": 1}},
+                    session=mongo_session
+                )
+
+                # OPERAÇÃO 5: Registar a movimentação no Livro Razão (Coleção transacoes)
+                nova_transacao = {
+                    "tipo": "compra_infoproduto",
+                    "comprador": comprador_username,
+                    "vendedor": produto['criador'],
+                    "afiliado": ref_afiliado if comissao_afiliado > 0 else None,
+                    "produto_id": ObjectId(produto_id),
+                    "valores": {
+                        "total": preco_total,
+                        "comissao_afiliado": comissao_afiliado,
+                        "lucro_criador": lucro_criador,
+                        "taxa_plataforma": taxa_plataforma
+                    },
+                    "data": datetime.utcnow(),
+                    "status": "concluida"
+                }
+                db.transacoes.insert_one(nova_transacao, session=mongo_session)
+
+        return jsonify({"success": True, "message": "Nexo financeiro processado. Transação ACID concluída!"})
+
+    except Exception as e:
+        # Se qualquer uma das 5 operações falhar, o banco faz ROLLBACK automático e não mexe em nenhum saldo
+        return jsonify({"error": f"Falha crítica na transação: {str(e)}"}), 500
+
+# INITIALIZADOR DO SERVIDOR DO ECOSSISTEMA
+if __name__ == '__main__':
+    # Configurado para rodar localmente ou ler a porta dinâmica atribuída pelo Render
+    porta = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=porta, debug=True)
