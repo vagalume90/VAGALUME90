@@ -134,37 +134,44 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
 </nav>
 
 <script>
-async function comprarProduto(id) {
-  const refLink = new URLSearchParams(window.location.search).get('ref') || null;
+// FUNÇÃO DO BOTÃO DA IA INTEGRADA COM O BACKEND
+async function gerarAtivoIA() {
+  const temaInput = document.getElementById('tema-ia').value.trim();
+  const tipoSelect = document.getElementById('tipo-ia').value;
   
-  if (!confirm("Confirmar execução de transação ACID no Ledger do ecossistema?")) return;
+  if(!temaInput) {
+    alert("Por favor, introduz um tema válido antes de disparar o Core IA.");
+    return;
+  }
+  
+  alert("Diretriz enviada! O Core IA está a processar o infoproduto e a estruturar o funil de marketing...");
   
   try {
-    const res = await fetch('/api/mercado/comprar', {
+    const res = await fetch('/api/mercado/gerar-infoproduto', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ produto_id: id, ref: refLink })
+      body: JSON.stringify({ tema: temaInput, tipo: tipoSelect })
     });
+    
     const data = await res.json();
+    
     if(data.success) {
-      alert(data.message);
+      alert(data.message + "\nProduto gerado: " + data.produto);
       window.location.reload();
     } else {
-      alert("Erro na Operação: " + data.error);
+      alert("Erro no Core IA: " + data.error);
     }
   } catch (err) {
-    alert("Falha crítica de comunicação com o servidor.");
+    alert("Falha crítica de rede ao contactar a IA.");
   }
 }
 
-function gerarAtivoIA() {
-  const tema = document.getElementById('tema-ia').value.trim();
-  if(!tema) {
-    alert("Insira um tema válido antes de disparar o Core IA.");
-    return;
-  }
-  alert("Diretriz enviada! Core IA a processar o infoproduto e a estruturar a engenharia do funil de marketing em segundo plano...");
-}
-</script>
-</body>
-</html>
+// FUNÇÃO DE COMPRA DE PRODUTOS
+async function comprarProduto(id) {
+  const refLink = new URLSearchParams(window.location.search).get('ref') || null;
+  
+  if (!confirm("Confirmar execução de transação no Ledger do ecossistema?")) return;
+  
+  try {
+    const res = await fetch('/api/mercado/comprar', {
+      method:
