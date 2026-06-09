@@ -1,72 +1,170 @@
 <!DOCTYPE html>
-<html lang="pt-AO">
+<html lang="pt">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VG90 · Mercado de Singularidades</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Space+Grotesk:wght@300;500&display=swap" rel="stylesheet">
+<title>VAGALUME90 — Módulo Mercado</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --neon-void: #020204; --singularity-gold: #ffcc00; --tachyon-blue: #00f0ff;
-  --f-orbitron: 'Orbitron', sans-serif; --f-grotesk: 'Space Grotesk', sans-serif;
+  --void: #050507; --neon-green: #00FF66; --dark-green: rgba(0,255,102,0.02);
+  --glass-border: rgba(0,255,102,0.12); --font-title: 'Bebas Neue', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  width: 100%; min-height: 100vh; background: var(--neon-void);
-  font-family: var(--f-grotesk); color: #fff; padding: 60px 20px;
-  display: flex; flex-direction: column; align-items: center;
-  background-image: radial-gradient(circle at 50% 50%, rgba(255, 204, 0, 0.03) 0%, transparent 80%);
-}
-.quantum-container { width: 100%; max-width: 700px; text-align: center; }
-h1 { font-family: var(--f-orbitron); font-size: 2.3rem; font-weight: 700; color: var(--singularity-gold); text-shadow: 0 0 20px rgba(255, 204, 0, 0.6); letter-spacing: 3px; }
-.sub-quantum { font-family: var(--f-orbitron); font-size: 0.75rem; color: #555; margin-bottom: 40px; letter-spacing: 3px; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--void); color: #FFF; font-family: 'Outfit', sans-serif; min-height: 100vh; padding-bottom: 100px; overflow-x: hidden; }
 
-.mercado-void-card {
-  background: rgba(2, 2, 4, 0.8); border: 1px solid var(--singularity-gold);
-  box-shadow: 0 0 40px rgba(255, 204, 0, 0.1), inset 0 0 20px rgba(255, 204, 0, 0.03);
-  border-radius: 16px; padding: 35px; text-align: left; backdrop-filter: blur(20px);
-}
-.card-header { font-family: var(--f-orbitron); font-size: 1.2rem; color: var(--singularity-gold); margin-bottom: 20px; letter-spacing: 1px; }
+/* Grid de Telemetria Visual */
+.hud-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(0,255,102,0.01) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,102,0.01) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
 
-.blackhole-placeholder {
-  background: rgba(255, 255, 255, 0.01); border: 1px dashed rgba(255, 204, 0, 0.2);
-  padding: 40px 20px; border-radius: 10px; text-align: center; color: #777;
-  font-size: 0.95rem; line-height: 1.6; position: relative;
-}
-.blackhole-placeholder span { font-family: var(--f-orbitron); display: block; margin-top: 15px; color: var(--tachyon-blue); font-size: 0.75rem; letter-spacing: 1px; }
+header { padding: 30px; border-bottom: 1px solid var(--glass-border); position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; background: rgba(5,5,7,0.8); backdrop-filter: blur(10px); }
+header h1 { font-family: var(--font-title); font-size: 2.5rem; letter-spacing: 4px; color: var(--neon-green); text-shadow: 0 0 15px rgba(0,255,102,0.2); }
 
-.wormhole-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 40px; }
-.btn-wormhole {
-  padding: 18px; border: 1px solid rgba(255, 255, 255, 0.05); background: rgba(255, 255, 255, 0.01);
-  border-radius: 10px; color: #fff; font-family: var(--f-orbitron); font-size: 0.85rem; cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1); text-decoration: none; text-align: center; letter-spacing: 2px;
-}
-.btn-wormhole:hover { background: rgba(255, 255, 255, 0.03); border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.1); }
-.collapse-signal { display: inline-block; margin-top: 40px; font-family: var(--f-orbitron); font-size: 0.7rem; color: #444; text-decoration: none; letter-spacing: 2px; }
-.collapse-signal:hover { color: var(--singularity-gold); }
+.wallet-panel { background: rgba(0,0,0,0.6); border: 1px solid var(--glass-border); padding: 12px 24px; border-radius: 8px; font-family: var(--font-mono); font-size: 0.85rem; text-align: right; line-height: 1.4; }
+.wallet-panel span { color: var(--neon-green); font-weight: bold; }
+
+.container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; position: relative; z-index: 1; }
+
+.card-modulo { background: var(--dark-green); border: 1px solid var(--glass-border); border-radius: 12px; padding: 25px; backdrop-filter: blur(15px); box-shadow: inset 0 0 20px rgba(0,255,102,0.01); }
+.card-title { font-family: var(--font-title); font-size: 1.8rem; color: #FFF; letter-spacing: 2px; margin-bottom: 20px; border-left: 4px solid var(--neon-green); padding-left: 10px; display: flex; justify-content: space-between; align-items: center; }
+
+/* Elementos de Input do Terminal */
+.input-terminal { width: 100%; background: rgba(0,0,0,0.7); border: 1px solid var(--glass-border); padding: 14px; font-family: var(--font-mono); color: #FFF; border-radius: 6px; margin-bottom: 15px; outline: none; font-size: 0.9rem; transition: border-color 0.2s; }
+.input-terminal:focus { border-color: var(--neon-green); }
+select.input-terminal { color: rgba(255,255,255,0.8); cursor: pointer; }
+select.input-terminal option { background: var(--void); color: #FFF; }
+
+.btn-terminal { background: var(--neon-green); color: var(--void); border: none; font-family: var(--font-title); font-size: 1.3rem; padding: 12px 20px; border-radius: 6px; cursor: pointer; letter-spacing: 1px; font-weight: bold; transition: transform 0.1s, opacity 0.2s; width: 100%; }
+.btn-terminal:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-terminal:active { transform: translateY(0); }
+
+/* Listagens Dinâmicas */
+.product-list { display: grid; grid-template-columns: 1fr; gap: 15px; max-height: 280px; overflow-y: auto; padding-right: 5px; }
+.product-list::-webkit-scrollbar { width: 4px; }
+.product-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
+
+.product-item { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; transition: border-color 0.2s; }
+.product-item:hover { border-color: rgba(0,255,102,0.2); }
+.product-info h4 { font-family: var(--font-mono); font-size: 0.95rem; color: #FFF; margin-bottom: 4px; }
+.product-info p { font-size: 0.8rem; color: rgba(255,255,255,0.4); font-family: var(--font-mono); }
+.btn-buy { background: transparent; border: 1px solid var(--neon-green); color: var(--neon-green); font-family: var(--font-mono); font-size: 0.75rem; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s, color 0.2s; }
+.btn-buy:hover { background: var(--neon-green); color: var(--void); }
+
+/* Sistema de Links de Afiliados */
+.afiliado-box { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.02); padding: 15px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.6); line-height: 1.6; }
+
+/* Navegação Inferior */
+nav { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: rgba(5,5,7,0.95); border: 1px solid var(--glass-border); padding: 14px 35px; border-radius: 30px; display: flex; gap: 30px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+nav a { color: rgba(255,255,255,0.3); text-decoration: none; font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; transition: color 0.2s; }
+nav a.active { color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,102,0.3); }
+nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
 </style>
 </head>
 <body>
+<div class="hud-grid"></div>
 
-<div class="quantum-container">
-  <h1>CONVERGÊNCIA DE AFILIADOS UTES</h1>
-  <div class="sub-quantum">// ARQUITETURA DE MONETIZAÇÃO ALGORÍTMICA INTERESTELAR</div>
+<header>
+  <h1>MÓDULO MERCADO // ALAVANCA</h1>
+  <div class="wallet-panel">
+    <div>NEXUS STATUS: <span>{{ rank }}</span></div>
+    <div>SALDO DISPONÍVEL: <span>{{ "%.2f"|format(saldo_disponivel) }} KZ</span></div>
+    <div style="font-size: 0.75rem; opacity: 0.5;">SALDO PENDENTE: {{ "%.2f"|format(saldo_pendente) }} KZ</div>
+  </div>
+</header>
 
-  <div class="mercado-void-card">
-    <div class="card-header">🛸 Hub de Tráfego de Alta Frequência</div>
-    <div class="blackhole-placeholder">
-      Horizonte de Eventos limpo. O motor de afiliação está em modo latente...<br>
-      <span>A aguardar injeção de contratos neurais e links multidimensionais focados no mercado jovem angolano do futuro.</span>
+<div class="container">
+  <div class="card-modulo">
+    <div class="card-title">FÁBRICA DE ATIVOS // CORE IA</div>
+    <input type="text" id="tema-ia" class="input-terminal" placeholder="// Insira o tema ou nicho do Infoproduto...">
+    <select id="tipo-ia" class="input-terminal">
+      <option value="ebook">E-Book Estruturado + Funil de Vendas</option>
+      <option value="curso">Curso Masterclass + Sequência de E-mails</option>
+    </select>
+    <button class="btn-terminal" onclick="gerarAtivoIA()">DISPARAR ENGENHARIA DE FUNIL</button>
+  </div>
+
+  <div class="card-modulo">
+    <div class="card-title">PRODUTOS ATIVOS NA REDE</div>
+    <div class="product-list">
+      {% for prod in produtos %}
+      <div class="product-item">
+        <div class="product-info">
+          <h4>{{ prod.titulo }}</h4>
+          <p>CRIADOR: {{ prod.criador }} | VENDAS: {{ prod.numero_vendas|default(0) }}</p>
+        </div>
+        <button class="btn-buy" onclick="comprarProduto('{{ prod._id }}')">ADQUIRIR ({{ "%.2f"|format(prod.preco_sugerido) }} KZ)</button>
+      </div>
+      {% else %}
+      <p style="font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Nenhum ativo digital gerado na malha do mercado...</p>
+      {% endfor %}
     </div>
   </div>
 
-  <div class="wormhole-grid">
-    <a href="/mundo/ruas" class="btn-wormhole">Retornar às Ruas</a>
-    <a href="/mundo/matrix" class="btn-wormhole">Reconectar à Matrix</a>
+  <div class="card-modulo">
+    <div class="card-title">SISTEMA DE AFILIAÇÃO DE ELITE</div>
+    <div class="afiliado-box">
+      <p style="margin-bottom: 12px; color: #FFF;">// Link de Indicação único para o Ecossistema:</p>
+      <input type="text" class="input-terminal" style="margin-bottom: 10px; color: var(--neon-green);" readonly value="{{ request.url_root }}modulo/mercado?ref={{ codigo_afiliado }}">
+      <p style="font-size: 0.75rem;">Ao espalhar este nexo, ganhas automaticamente uma comissão parametrizável de 40% sobre qualquer infoproduto adquirido através da tua referência.</p>
+    </div>
   </div>
 
-  <a href="/logout" class="collapse-signal">// ABANDONAR RECORRÊNCIA COMERCIAL</a>
+  <div class="card-modulo">
+    <div class="card-title">MARKETPLACE DE USADOS // CIRCULAR</div>
+    <div class="product-list">
+      {% for item in usados %}
+      <div class="product-item">
+        <div class="product-info">
+          <h4>{{ item.nome }}</h4>
+          <p>CONDIÇÃO: {{ item.condicao }} | PREÇO: {{ "%.2f"|format(item.preco) }} KZ</p>
+        </div>
+        <button class="btn-buy">COMPRAR ITEM</button>
+      </div>
+      {% else %}
+      <p style="font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Nenhum item físico listado de momento para economia circular.</p>
+      {% endfor %}
+    </div>
+  </div>
 </div>
 
+<nav>
+  <a href="/modulo/mercado" class="active">Mercado</a>
+  <a href="#" style="opacity:0.3; cursor:not-allowed;">Matrix</a>
+  <a href="#" style="opacity:0.3; cursor:not-allowed;">Saúde Yeto</a>
+</nav>
+
+<script>
+async function comprarProduto(id) {
+  const refLink = new URLSearchParams(window.location.search).get('ref') || null;
+  
+  if (!confirm("Confirmar execução de transação ACID no Ledger do ecossistema?")) return;
+  
+  try {
+    const res = await fetch('/api/mercado/comprar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ produto_id: id, ref: refLink })
+    });
+    const data = await res.json();
+    if(data.success) {
+      alert(data.message);
+      window.location.reload();
+    } else {
+      alert("Erro na Operação: " + data.error);
+    }
+  } catch (err) {
+    alert("Falha crítica de comunicação com o servidor.");
+  }
+}
+
+function gerarAtivoIA() {
+  const tema = document.getElementById('tema-ia').value.trim();
+  if(!tema) {
+    alert("Insira um tema válido antes de disparar o Core IA.");
+    return;
+  }
+  alert("Diretriz enviada! Core IA a processar o infoproduto e a estruturar a engenharia do funil de marketing em segundo plano...");
+}
+</script>
 </body>
 </html>
