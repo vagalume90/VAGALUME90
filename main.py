@@ -188,6 +188,71 @@ def anunciar_item_usado():
         "message": "Item publicado com sucesso no Marketplace Circular!",
         "item": nome_item
     })
+    # =================================================================
+# ENDPOINT: COMPRAR ITEM USADO (TRANSAÇÃO P2P)
+# =================================================================
+@app.route('/api/mercado/comprar-usado', methods=['POST'])
+def processar_compra_usado():
+    if 'username' not in session:
+        return jsonify({"error": "Acesso negado. Autenticação necessária."}), 403
+        
+    data = request.get_json() or {}
+    item_id = data.get('item_id')
+    comprador_username = session['username']
+    
+    if not item_id:
+        return jsonify({"error": "Parâmetro 'item_id' em falta."}), 400
+
+    # 1. Localiza o item no marketplace
+    item = db.marketplace_usados.find_one({"_id": ObjectId(item_id), "status": "disponivel"})
+    if not item:
+        return jsonify({"error": "Item não encontrado ou já foi vendido."}), 404
+        
+    if item['vendedor'] == comprador_username:
+        return jsonify({"error": "Não podes comprar o teu próprio item, mano!"}), 400
+
+    preco_total = item['preco']
+
+    # 2. Verifica o saldo do comprador
+    comprador = db.users.find_one({"username": comprador_username})
+    if comprador.get('saldo', {}).get('disponivel', 0.0) < preco_total:
+        return jsonify({"error": "Saldo Vagalume insuficiente para esta compra."}), 400
+
+    try:
+        # 3. Desconta do comprador
+        db.users.update_one(
+            {"username": comprador_username},
+            {"$inc": {"saldo.disponivel": -preco_total}}
+        )
+        
+        # 4. Transfere o valor direto para o vendedor (P2P)
+        db.users.update_one(
+            {"username": item['vendedor']},
+            {"$inc": {"saldo.disponivel": preco_total}}
+        )
+        
+        # 5. Atualiza o status do item para 'vendido'
+        db.marketplace_usados.update_one(
+            {"_id": ObjectId(item_id)},
+            {"$set": {"status": "vendido"}}
+        )
+
+        # 6. Regista a transação física no Ledger
+        nova_transacao = {
+            "tipo": "compra_item_circular",
+            "comprador": comprador_username,
+            "vendedor": item['vendedor'],
+            "item_id": ObjectId(item_id),
+            "valor": preco_total,
+            "data": datetime.utcnow(),
+            "status": "concluida"
+        }
+        db.transacoes.insert_one(nova_transacao)
+
+        return jsonify({"success": True, "message": f"Compra P2P concluída! {preco_total} KZ transferidos para {item['vendedor']}."})
+
+    except Exception as e:
+        return jsonify({"error": f"Falha crítica no processamento P2P: {str(e)}"}), 500
 
 # =================================================================
 # 4. FÁBRICA DE ATIVOS - CORE IA MULTIFACETADA
