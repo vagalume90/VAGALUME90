@@ -121,8 +121,7 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
           <h4>{{ item.nome }}</h4>
           <p>CONDIÇÃO: {{ item.condicao }} | VENDEDOR: {{ item.vendedor }}</p>
         </div>
-        <button class="btn-buy">COMPRAR ITEM ({{ "%.2f"|format(item.preco) }} KZ)</button>
-      </div>
+        <button class="btn-buy" onclick="comprarItemUsado('{{ item._id }}')">COMPRAR ITEM ({{ "%.2f"|format(item.preco) }} KZ)</button>
       {% else %}
       <p style="font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Nenhum item físico listado de momento para economia circular.</p>
       {% endfor %}
@@ -230,6 +229,29 @@ async function comprarProduto(id) {
     }
   } catch (err) {
     alert("Falha de comunicação com o servidor.");
+  }
+}
+  // MOTOR DE TRANSAÇÃO P2P
+async function comprarItemUsado(id) {
+  if (!confirm("Confirmar envio de fundos P2P para o vendedor deste item?")) return;
+  
+  try {
+    const res = await fetch('/api/mercado/comprar-usado', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ item_id: id })
+    });
+    
+    const data = await res.json();
+    
+    if(data.success) {
+      alert(data.message);
+      window.location.reload(); // Atualiza para recalcular saldos e sumir com o item vendido
+    } else {
+      alert("Erro na transação P2P: " + data.error);
+    }
+  } catch (err) {
+    alert("Falha de comunicação com a rede P2P.");
   }
 }
 </script>
