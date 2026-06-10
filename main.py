@@ -46,6 +46,11 @@ def modulo_mercado():
     if 'username' not in session:
         return redirect(url_for('index'))
         
+    # CAPTURA O AFILIADO DA URL: Se existir um ?ref= no link, guarda na sessão do navegador
+    ref_url = request.args.get('ref')
+    if ref_url:
+        session['ref_afiliado'] = ref_url
+        
     user_data = db.users.find_one({"username": session['username']})
     if not user_data:
         return f"Erro Crítico: Operador '{session['username']}' não detetado na base de dados.", 404
@@ -58,11 +63,10 @@ def modulo_mercado():
         rank=session.get('rank', 'OPERADOR ALFA'),
         saldo_disponivel=user_data.get('saldo', {}).get('disponivel', 0.0),
         saldo_pendente=user_data.get('saldo', {}).get('pendente', 0.0),
-        codigo_afiliado=user_data.get('afiliacao', {}).get('codigo', ''),
+        codigo_afiliado=user_data.get('afiliacao', {}).get('codigo', 'VAGALUME90-ALFA'),
         produtos=produtos_ia,
         usados=itens_usados
     )
-
 # =================================================================
 # 3. ENDPOINTS DA API - TRANSAÇÕES
 # =================================================================
