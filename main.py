@@ -29,6 +29,12 @@ def index():
 def logout():
     session.clear()
     return redirect(url_for('index'))
+    @app.route('/login-teste')
+def login_teste():
+    # Esta rota simula o login do teu utilizador de forma automática
+    session['username'] = 'VAGALUME90'  # Substitui pelo username que editaste no Atlas
+    session['rank'] = 'OPERADOR ALFA'
+    return "<h3>Sessão Neural Ativada com Sucesso!</h3><p><a href='/modulo/mercado'>Entrar no Módulo Mercado</a></p>"
 
 # =================================================================
 # 2. MÓDULO MERCADO (ALAVANCA) - ROTAS VISUAIS
