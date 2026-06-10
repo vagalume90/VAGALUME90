@@ -28,7 +28,7 @@ def index():
 @app.route('/login-teste')
 def login_teste():
     # Define o utilizador que criaste com saldo na tua base de dados
-    session['username'] = 'HASTA'  # <-- Altera aqui para o teu username do Atlas (ex: 'ju' ou 'RADIJA')
+    session['username'] = 'HASTA'  
     session['rank'] = 'OPERADOR ALFA'
     return "<h3>Sessão Neural Ativada com Sucesso!</h3><p><a href='/modulo/mercado'>Entrar no Módulo Mercado</a></p>"
 
@@ -38,13 +38,48 @@ def logout():
     return redirect(url_for('index'))
 
 # =================================================================
-# 2. MÓDULO MERCADO (ALAVANCA) - ROTAS VISUAIS
+# 2. MÓDULO MERCADO - ROTAS VISUAIS
 # =================================================================
 
 @app.route('/modulo/mercado')
 def modulo_mercado():
     if 'username' not in session:
         return redirect(url_for('index'))
+        
+    ref_url = request.args.get('ref')
+    if ref_url:
+        session['ref_afiliado'] = ref_url
+        
+    comprador_atual = session['username']
+    user_data = db.users.find_one({"username": comprador_atual})
+    if not user_data:
+        return f"Erro Crítico: Operador '{comprador_atual}' não detetado.", 404
+    
+    produtos_ia = list(db.infoprodutos.find({"status": "ativo"}))
+    itens_usados = list(db.marketplace_usados.find({"status": "disponivel"}))
+    
+    # BUSCA OS ATIVOS ADQUIRIDOS: Procura transações concluídas deste utilizador
+    transacoes_usuario = list(db.transacoes.find({
+        "comprador": comprador_atual,
+        "status": "concluida"
+    }))
+    
+    # Extrai os IDs dos produtos comprados para encontrar os detalhes deles
+    ids_comprados = [t['produto_id'] for t in transacoes_usuario if 'produto_id' in t]
+    
+    # Busca os dados reais dos infoprodutos que foram comprados
+    ativos_adquiridos = list(db.infoprodutos.find({"_id": {"$in": ids_comprados}}))
+    
+    return render_template(
+        'mercado.html',
+        rank=session.get('rank', 'OPERADOR ALFA'),
+        saldo_disponivel=user_data.get('saldo', {}).get('disponivel', 0.0),
+        saldo_pendente=user_data.get('saldo', {}).get('pendente', 0.0),
+        codigo_afiliado=user_data.get('afiliacao', {}).get('codigo', 'VAGALUME90-ALFA'),
+        produtos=produtos_ia,
+        usados=itens_usados,
+        ativos_comprados=ativos_adquiridos  # Passa a lista para o ecrã
+    )
         
     # CAPTURA O AFILIADO DA URL: Se existir um ?ref= no link, guarda na sessão do navegador
     ref_url = request.args.get('ref')
