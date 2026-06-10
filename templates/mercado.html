@@ -208,21 +208,22 @@ async function anunciarItemFisico() {
   }
 }
 
-// MOTOR DE COMPRA DE INFOPRODUTOS
+// MOTOR DE COMPRA DE INFOPRODUTOS COM DETEÇÃO DE AFILIADOS
 async function comprarProduto(id) {
-  const refLink = new URLSearchParams(window.location.search).get('ref') || null;
-  
   if (!confirm("Confirmar execução de transação no Ledger do ecossistema?")) return;
   
   try {
     const res = await fetch('/api/mercado/comprar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ produto_id: id, ref: refLink })
+      body: JSON.stringify({ 
+        produto_id: id
+      })
     });
+    
     const data = await res.json();
     if(data.success) {
-      alert(data.message);
+      alert(data.message + "\nDistribuição de lucros concluída no Ledger!");
       window.location.reload();
     } else {
       alert("Erro na Operação: " + data.error);
