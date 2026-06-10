@@ -75,13 +75,11 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
 <div class="container">
   <div class="card-modulo">
     <div class="card-title">FÁBRICA DE ATIVOS // CORE IA</div>
-    
     <input type="text" id="tema-ia" class="input-terminal" placeholder="// Insira o tema ou nicho do Infoproduto...">
     <select id="tipo-ia" class="input-terminal">
       <option value="ebook">E-Book Estruturado + Funil de Vendas</option>
       <option value="curso">Curso Masterclass + Sequência de E-mails</option>
     </select>
-    
     <button class="btn-terminal" onclick="gerarAtivoIA()">DISPARAR ENGENHARIA DE FUNIL</button>
   </div>
 
@@ -103,12 +101,15 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
   </div>
 
   <div class="card-modulo">
-    <div class="card-title">SISTEMA DE AFILIAÇÃO DE ELITE</div>
-    <div class="afiliado-box">
-      <p style="margin-bottom: 12px; color: #FFF;">// Link de Indicação único para o Ecossistema:</p>
-      <input type="text" class="input-terminal" style="margin-bottom: 10px; color: var(--neon-green);" readonly value="{{ request.url_root }}modulo/mercado?ref={{ codigo_afiliado }}">
-      <p style="font-size: 0.75rem;">Ao espalhar este nexo, ganhas automaticamente uma comissão parametrizável de 40% sobre qualquer infoproduto adquirido através da tua referência.</p>
-    </div>
+    <div class="card-title">ANUNCIAR ITEM // CIRCULAR</div>
+    <input type="text" id="nome-item" class="input-terminal" placeholder="// Nome do item (Ex: Smartphone, Livro...)">
+    <select id="condicao-item" class="input-terminal">
+      <option value="Excelente - Como Novo">Excelente - Como Novo</option>
+      <option value="Usado - Em bom estado">Usado - Em bom estado</option>
+      <option value="Sinais de Uso Aceitáveis">Sinais de Uso Aceitáveis</option>
+    </select>
+    <input type="number" id="preco-item" class="input-terminal" placeholder="// Preço em Kwanzas (Ex: 15000)">
+    <button class="btn-terminal" onclick="anunciarItemFisico()">PUBLICAR NO MARKETPLACE</button>
   </div>
 
   <div class="card-modulo">
@@ -118,13 +119,22 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
       <div class="product-item">
         <div class="product-info">
           <h4>{{ item.nome }}</h4>
-          <p>CONDIÇÃO: {{ item.condicao }} | PREÇO: {{ "%.2f"|format(item.preco) }} KZ</p>
+          <p>CONDIÇÃO: {{ item.condicao }} | VENDEDOR: {{ item.vendedor }}</p>
         </div>
-        <button class="btn-buy">COMPRAR ITEM</button>
+        <button class="btn-buy">COMPRAR ITEM ({{ "%.2f"|format(item.preco) }} KZ)</button>
       </div>
       {% else %}
       <p style="font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Nenhum item físico listado de momento para economia circular.</p>
       {% endfor %}
+    </div>
+  </div>
+
+  <div class="card-modulo" style="grid-column: span 2;">
+    <div class="card-title">SISTEMA DE AFILIAÇÃO DE ELITE</div>
+    <div class="afiliado-box">
+      <p style="margin-bottom: 12px; color: #FFF;">// Link de Indicação único para o Ecossistema:</p>
+      <input type="text" class="input-terminal" style="margin-bottom: 10px; color: var(--neon-green);" readonly value="{{ request.url_root }}modulo/mercado?ref={{ codigo_afiliado }}">
+      <p style="font-size: 0.75rem;">Ao espalhar este nexo, ganhas automaticamente uma comissão parametrizável de 40% sobre qualquer infoproduto adquirido através da tua referência.</p>
     </div>
   </div>
 </div>
@@ -136,7 +146,7 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
 </nav>
 
 <script>
-// SCRIPT DE COORDENAÇÃO ATUALIZADO
+// MOTOR DO CORE IA
 async function gerarAtivoIA() {
   const temaInput = document.getElementById('tema-ia').value.trim();
   const tipoSelect = document.getElementById('tipo-ia').value;
@@ -159,7 +169,7 @@ async function gerarAtivoIA() {
     
     if(data.success) {
       alert("Sucesso! " + data.message + "\nAtivo: " + data.produto);
-      window.location.reload(); // Recarrega automaticamente o mercado para listar o produto!
+      window.location.reload();
     } else {
       alert("Aviso do Servidor: " + data.error);
     }
@@ -168,6 +178,38 @@ async function gerarAtivoIA() {
   }
 }
 
+// MOTOR DO MARKETPLACE CIRCULAR (NOVO)
+async function anunciarItemFisico() {
+  const nome = document.getElementById('nome-item').value.trim();
+  const condicao = document.getElementById('condicao-item').value;
+  const preco = document.getElementById('preco-item').value.trim();
+  
+  if(!nome || !preco) {
+    alert("Por favor, preenche o nome e o preço do item físico.");
+    return;
+  }
+  
+  try {
+    const res = await fetch('/api/mercado/anunciar-usado', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome: nome, condicao: condicao, preco: preco })
+    });
+    
+    const data = await res.json();
+    
+    if(data.success) {
+      alert(data.message + "\nItem: " + data.item);
+      window.location.reload(); // Atualiza a página para o item aparecer na lista!
+    } else {
+      alert("Erro ao anunciar: " + data.error);
+    }
+  } catch (err) {
+    alert("Erro de comunicação com o servidor.");
+  }
+}
+
+// MOTOR DE COMPRA DE INFOPRODUTOS
 async function comprarProduto(id) {
   const refLink = new URLSearchParams(window.location.search).get('ref') || null;
   
