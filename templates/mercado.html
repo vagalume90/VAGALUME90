@@ -75,11 +75,13 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
 <div class="container">
   <div class="card-modulo">
     <div class="card-title">FÁBRICA DE ATIVOS // CORE IA</div>
+    
     <input type="text" id="tema-ia" class="input-terminal" placeholder="// Insira o tema ou nicho do Infoproduto...">
     <select id="tipo-ia" class="input-terminal">
       <option value="ebook">E-Book Estruturado + Funil de Vendas</option>
       <option value="curso">Curso Masterclass + Sequência de E-mails</option>
     </select>
+    
     <button class="btn-terminal" onclick="gerarAtivoIA()">DISPARAR ENGENHARIA DE FUNIL</button>
   </div>
 
@@ -134,7 +136,7 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
 </nav>
 
 <script>
-// FUNÇÃO DO BOTÃO DA IA INTEGRADA COM O BACKEND
+// SCRIPT DE COORDENAÇÃO ATUALIZADO
 async function gerarAtivoIA() {
   const temaInput = document.getElementById('tema-ia').value.trim();
   const tipoSelect = document.getElementById('tipo-ia').value;
@@ -144,7 +146,7 @@ async function gerarAtivoIA() {
     return;
   }
   
-  alert("Diretriz enviada! O Core IA está a processar o infoproduto e a estruturar o funil de marketing...");
+  alert("Diretriz captada! Conectando com a malha neural para gerar o ativo...");
   
   try {
     const res = await fetch('/api/mercado/gerar-infoproduto', {
@@ -156,17 +158,16 @@ async function gerarAtivoIA() {
     const data = await res.json();
     
     if(data.success) {
-      alert(data.message + "\nProduto gerado: " + data.produto);
-      window.location.reload();
+      alert("Sucesso! " + data.message + "\nAtivo: " + data.produto);
+      window.location.reload(); // Recarrega automaticamente o mercado para listar o produto!
     } else {
-      alert("Erro no Core IA: " + data.error);
+      alert("Aviso do Servidor: " + data.error);
     }
   } catch (err) {
-    alert("Falha crítica de rede ao contactar a IA.");
+    alert("Falha de rede! Verifica se o teu Render está ligado.");
   }
 }
 
-// FUNÇÃO DE COMPRA DE PRODUTOS
 async function comprarProduto(id) {
   const refLink = new URLSearchParams(window.location.search).get('ref') || null;
   
@@ -174,4 +175,21 @@ async function comprarProduto(id) {
   
   try {
     const res = await fetch('/api/mercado/comprar', {
-      method:
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ produto_id: id, ref: refLink })
+    });
+    const data = await res.json();
+    if(data.success) {
+      alert(data.message);
+      window.location.reload();
+    } else {
+      alert("Erro na Operação: " + data.error);
+    }
+  } catch (err) {
+    alert("Falha de comunicação com o servidor.");
+  }
+}
+</script>
+</body>
+</html>
