@@ -149,6 +149,45 @@ def processar_compra_v2_gratis():
 
     except Exception as e:
         return jsonify({"error": f"Falha ao processar: {str(e)}"}), 500
+        # =================================================================
+# ENDPOINT: ANUNCIAR ITEM USADO (CIRCULAR)
+# =================================================================
+@app.route('/api/mercado/anunciar-usado', methods=['POST'])
+def anunciar_item_usado():
+    if 'username' not in session:
+        return jsonify({"error": "Acesso negado. Faça login primeiro."}), 403
+        
+    data = request.get_json() or {}
+    nome_item = data.get('nome', '').strip()
+    condicao_item = data.get('condicao', 'Usado - Em bom estado')
+    preco_item = data.get('preco')
+    
+    if not nome_item or not preco_item:
+        return jsonify({"error": "Por favor, preencha o nome e o preço do item."}), 400
+        
+    try:
+        # Garante que o preço guardado é um número decimal
+        preco_final = float(preco_item)
+    except ValueError:
+        return jsonify({"error": "O preço inserido deve ser um número válido."}), 400
+
+    novo_item_fisico = {
+        "nome": nome_item,
+        "condicao": condicao_item,
+        "preco": preco_final,
+        "vendedor": session['username'],
+        "status": "disponivel",
+        "data_anuncio": datetime.utcnow()
+    }
+    
+    # Guarda na coleção 'marketplace_usados' do teu Atlas
+    db.marketplace_usados.insert_one(novo_item_fisico)
+    
+    return jsonify({
+        "success": True, 
+        "message": "Item publicado com sucesso no Marketplace Circular!",
+        "item": nome_item
+    })
 
 # =================================================================
 # 4. FÁBRICA DE ATIVOS - CORE IA MULTIFACETADA
