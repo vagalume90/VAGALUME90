@@ -311,8 +311,7 @@ def gerar_infoproduto_ia():
         return jsonify({"success": False, "error": "O tema do ativo digital não pode estar vazio."}), 400
         
     # LINK DO TEU WEBHOOK DA MAKE
-    MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/wg7gm40x6ucyys58lu5101al9hsz3sw8"
-    
+    MAKE_n8n_URL = "http://vagalume90.onrender.com:5678/webhook-test/95c1aa9c-0ef6-4a2f-bf38-841b03f8ddb8"
     payload = {
         "operador": session['username'],
         "tema_solicitado": tema,
