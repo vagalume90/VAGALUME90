@@ -297,46 +297,46 @@ def processar_compra_usado():
 # 4. FÁBRICA DE ATIVOS - CORE IA MULTIFACETADA
 # =================================================================
 
+import requests # Garante que esta linha está no topo do ficheiro se não estiver
+
 @app.route('/api/mercado/gerar-infoproduto', methods=['POST'])
 def gerar_infoproduto_ia():
     if 'username' not in session:
-        return jsonify({"error": "Acesso negado."}), 403
+        return jsonify({"success": False, "error": "Sessão inválida"}), 401
         
     data = request.get_json() or {}
     tema = data.get('tema', '').strip()
-    tipo = data.get('tipo', 'ebook')
-    criador_username = session['username']
     
     if not tema:
-        return jsonify({"error": "Insira um tema válido."}), 400
+        return jsonify({"success": False, "error": "O tema do ativo digital não pode estar vazio."}), 400
         
-    novo_infoproduto = {
-        "titulo": f"Império Digital: {tema}",
-        "descricao": f"O guia definitivo focado em {tema}.",
-        "categoria": "Estratégia Digital",
-        "tags": [tipo, "Vagalume90", tema[:10]],
-        "criador": criador_username,
-        "preco_sugerido": 3500.00,
-        "conteudo": {
-            "tipo": tipo,
-            "modulos_ou_capitulos": [
-                "Fase 01: O Despertar",
-                f"Fase 02: Engenharia Aplicada a {tema}",
-                "Fase 03: Escala Automática"
-            ]
-        },
-        "numero_vendas": 0,
-        "status": "ativo",
-        "data_criacao": datetime.utcnow()
+    # LINK DO TEU WEBHOOK DA MAKE
+    MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/wg7gm40x6ucyys58lu5101al9hsz3sw8"
+    
+    payload = {
+        "operador": session['username'],
+        "tema_solicitado": tema,
+        "plataforma": "VAGALUME90",
+        "status": "requisitado"
     }
     
-    db.infoprodutos.insert_one(novo_infoproduto)
-    return jsonify({
-        "success": True, 
-        "message": f"Core IA gerou com sucesso!",
-        "produto": novo_infoproduto["titulo"]
-    })
-
-if __name__ == '__main__':
-    porta = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=porta, debug=True)
+    try:
+        # Dispara o gatilho para a Make processar em background
+        resposta_make = requests.post(MAKE_WEBHOOK_URL, json=payload, timeout=10)
+        
+        # Cria um registo temporário na tua base de dados enquanto a Make processa
+        db.infoprodutos.insert_one({
+            "titulo": f"Ebook: {tema} (Processando via IA)",
+            "tipo": "ebook",
+            "preco": 3500.0,
+            "status": "ativo",
+            "criador": session['username']
+        })
+        
+        return jsonify({
+            "success": True, 
+            "message": f"Engenharia de Funil disparada com sucesso para o tema '{tema}'!"
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": f"Falha ao comunicar com a malha Make: {str(e)}"}), 500
