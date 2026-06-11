@@ -188,6 +188,7 @@ def processar_compra_v2_gratis():
 
     except Exception as e:
         return jsonify({"error": f"Falha ao processar: {str(e)}"}), 500
+url = "https://vagalum90.onrender.com/webhook-test/95c1aa9c-0ef6-4a2f-bf38-841b03f8ddb8"
         # =================================================================
 # ENDPOINT: ANUNCIAR ITEM USADO (CIRCULAR)
 # =================================================================
