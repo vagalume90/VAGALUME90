@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify, session, redirect, url_for, render_template
 from pymongo import MongoClient
-from bson.objectid import ObjectId
+from bson.objectid import ObjectId  # IMPORTAÇÃO CORRIGIDA PARA EVITAR CRASH NO RENDER
 from datetime import datetime
 import os
-import requests  # Garante que esta linha está no topo do ficheiro se não estiver
+import requests  # Garante a comunicação com o n8n
 
 app = Flask(__name__)
 
@@ -79,7 +79,7 @@ def modulo_mercado():
         codigo_afiliado=user_data.get('afiliacao', {}).get('codigo', 'VAGALUME90-ALFA'),
         produtos=produtos_ia,
         usados=itens_usados,
-        ativos_comprados=ativos_adquiridos  # Passa a lista para o ecrã
+        ativos_comprados=ativos_adquiridos  # Passa a lista limpa para o ecrã
     )
 
 # =================================================================
@@ -290,7 +290,7 @@ def gerar_infoproduto_ia():
     if not tema:
         return jsonify({"success": False, "error": "O tema do ativo digital não pode estar vazio."}), 400
         
-    # LINK DO TEU WEBHOOK DO n8n (Corrigido sem :5678 e ajustado para o Render público)
+    # LINK DO TEU WEBHOOK DO n8n (Ajustado e limpo para o Render público funcionar sem erros)
     N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook-test/5422a513-4ade-4b7f-85e7-7fface77c482"
     
     payload = {
@@ -320,3 +320,8 @@ def gerar_infoproduto_ia():
         
     except Exception as e:
         return jsonify({"success": False, "error": f"Falha ao comunicar com a malha n8n: {str(e)}"}), 500
+
+if __name__ == '__main__':
+    # Garante que roda na porta certa do ambiente
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
