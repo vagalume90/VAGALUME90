@@ -3,6 +3,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from datetime import datetime
 import os
+import requests  # Garante que esta linha está no topo do ficheiro se não estiver
 
 app = Flask(__name__)
 
@@ -80,28 +81,7 @@ def modulo_mercado():
         usados=itens_usados,
         ativos_comprados=ativos_adquiridos  # Passa a lista para o ecrã
     )
-        
-    # CAPTURA O AFILIADO DA URL: Se existir um ?ref= no link, guarda na sessão do navegador
-    ref_url = request.args.get('ref')
-    if ref_url:
-        session['ref_afiliado'] = ref_url
-        
-    user_data = db.users.find_one({"username": session['username']})
-    if not user_data:
-        return f"Erro Crítico: Operador '{session['username']}' não detetado na base de dados.", 404
-    
-    produtos_ia = list(db.infoprodutos.find({"status": "ativo"}))
-    itens_usados = list(db.marketplace_usados.find({"status": "disponivel"}))
-    
-    return render_template(
-        'mercado.html',
-        rank=session.get('rank', 'OPERADOR ALFA'),
-        saldo_disponivel=user_data.get('saldo', {}).get('disponivel', 0.0),
-        saldo_pendente=user_data.get('saldo', {}).get('pendente', 0.0),
-        codigo_afiliado=user_data.get('afiliacao', {}).get('codigo', 'VAGALUME90-ALFA'),
-        produtos=produtos_ia,
-        usados=itens_usados
-    )
+
 # =================================================================
 # 3. ENDPOINTS DA API - TRANSAÇÕES
 # =================================================================
@@ -188,8 +168,8 @@ def processar_compra_v2_gratis():
 
     except Exception as e:
         return jsonify({"error": f"Falha ao processar: {str(e)}"}), 500
-url = "https://vagalum90.onrender.com/webhook-test/95c1aa9c-0ef6-4a2f-bf38-841b03f8ddb8"
-        # =================================================================
+
+# =================================================================
 # ENDPOINT: ANUNCIAR ITEM USADO (CIRCULAR)
 # =================================================================
 @app.route('/api/mercado/anunciar-usado', methods=['POST'])
@@ -228,7 +208,8 @@ def anunciar_item_usado():
         "message": "Item publicado com sucesso no Marketplace Circular!",
         "item": nome_item
     })
-    # =================================================================
+
+# =================================================================
 # ENDPOINT: COMPRAR ITEM USADO (TRANSAÇÃO P2P)
 # =================================================================
 @app.route('/api/mercado/comprar-usado', methods=['POST'])
@@ -298,8 +279,6 @@ def processar_compra_usado():
 # 4. FÁBRICA DE ATIVOS - CORE IA MULTIFACETADA
 # =================================================================
 
-import requests # Garante que esta linha está no topo do ficheiro se não estiver
-
 @app.route('/api/mercado/gerar-infoproduto', methods=['POST'])
 def gerar_infoproduto_ia():
     if 'username' not in session:
@@ -311,8 +290,9 @@ def gerar_infoproduto_ia():
     if not tema:
         return jsonify({"success": False, "error": "O tema do ativo digital não pode estar vazio."}), 400
         
-    # LINK DO TEU WEBHOOK DA MAKE
-    MAKE_n8n_URL = "http://vagalume90.onrender.com:5678/webhook-test/95c1aa9c-0ef6-4a2f-bf38-841b03f8ddb8"
+    # LINK DO TEU WEBHOOK DO n8n (Corrigido sem :5678 e ajustado para o Render público)
+    N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook-test/5422a513-4ade-4b7f-85e7-7fface77c482"
+    
     payload = {
         "operador": session['username'],
         "tema_solicitado": tema,
@@ -321,10 +301,10 @@ def gerar_infoproduto_ia():
     }
     
     try:
-        # Dispara o gatilho para a Make processar em background
-        resposta_make = requests.post(MAKE_WEBHOOK_URL, json=payload, timeout=10)
+        # Dispara o gatilho para o n8n processar em background
+        resposta_n8n = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=10)
         
-        # Cria um registo temporário na tua base de dados enquanto a Make processa
+        # Cria um registo temporário na tua base de dados enquanto o n8n processa
         db.infoprodutos.insert_one({
             "titulo": f"Ebook: {tema} (Processando via IA)",
             "tipo": "ebook",
@@ -339,4 +319,4 @@ def gerar_infoproduto_ia():
         })
         
     except Exception as e:
-        return jsonify({"success": False, "error": f"Falha ao comunicar com a malha Make: {str(e)}"}), 500
+        return jsonify({"success": False, "error": f"Falha ao comunicar com a malha n8n: {str(e)}"}), 500
