@@ -11,6 +11,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'VAGALUME90_CHAVE_NEURAL_SECRETA')
 
 # CONEXÃO LÓGICA AO MONGODB ATLAS
+# O Render vai ler a tua senha real direto do painel (Environment -> MONGO_URI)
 MONGO_URI = os.environ.get('MONGO_URI', 'mongodb+srv://usuario:senha@cluster.mongodb.net/vagalume90_db')
 client = MongoClient(MONGO_URI)
 db = client['vagalume90_db'] # Seleciona a base de dados ativa explicitamente
@@ -200,7 +201,6 @@ def anunciar_item_usado():
         "data_anuncio": datetime.utcnow()
     }
     
-    # Guarda na coleção 'marketplace_usados' do teu Atlas
     db.marketplace_usados.insert_one(novo_item_fisico)
     
     return jsonify({
@@ -224,7 +224,6 @@ def processar_compra_usado():
     if not item_id:
         return jsonify({"error": "Parâmetro 'item_id' em falta."}), 400
 
-    # 1. Localiza o item no marketplace
     item = db.marketplace_usados.find_one({"_id": ObjectId(item_id), "status": "disponivel"})
     if not item:
         return jsonify({"error": "Item não encontrado ou já foi vendido."}), 404
@@ -234,31 +233,26 @@ def processar_compra_usado():
 
     preco_total = item['preco']
 
-    # 2. Verifica o saldo do comprador
     comprador = db.users.find_one({"username": comprador_username})
     if comprador.get('saldo', {}).get('disponivel', 0.0) < preco_total:
         return jsonify({"error": "Saldo Vagalume insuficiente para esta compra."}), 400
 
     try:
-        # 3. Desconta do comprador
         db.users.update_one(
             {"username": comprador_username},
             {"$inc": {"saldo.disponivel": -preco_total}}
         )
         
-        # 4. Transfere o valor direto para o vendedor (P2P)
         db.users.update_one(
             {"username": item['vendedor']},
             {"$inc": {"saldo.disponivel": preco_total}}
         )
         
-        # 5. Atualiza o status do item para 'vendido'
         db.marketplace_usados.update_one(
             {"_id": ObjectId(item_id)},
             {"$set": {"status": "vendido"}}
         )
 
-        # 6. Regista a transação física no Ledger
         nova_transacao = {
             "tipo": "compra_item_circular",
             "comprador": comprador_username,
@@ -290,8 +284,8 @@ def gerar_infoproduto_ia():
     if not tema:
         return jsonify({"success": False, "error": "O tema do ativo digital não pode estar vazio."}), 400
         
-    # LINK DO TEU WEBHOOK DO n8n (Ajustado e limpo para o Render público funcionar sem erros)
-    N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook-test/5422a513-4ade-4b7f-85e7-7fface77c482"
+    # SEU NOVO LINK DO WEBHOOK DO n8n (Limpo e pronto para a produção ativa)
+    N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook/f2aff4d6-5511-45a4-b91f-1f126c2a6ffe"
     
     payload = {
         "operador": session['username'],
@@ -301,10 +295,10 @@ def gerar_infoproduto_ia():
     }
     
     try:
-        # Dispara o gatilho para o n8n processar em background
+        # Dispara o gatilho para o n8n em produção
         resposta_n8n = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=10)
         
-        # Cria um registo temporário na tua base de dados enquanto o n8n processa
+        # Cria um registo temporário no MongoDB Atlas
         db.infoprodutos.insert_one({
             "titulo": f"Ebook: {tema} (Processando via IA)",
             "tipo": "ebook",
@@ -322,6 +316,5 @@ def gerar_infoproduto_ia():
         return jsonify({"success": False, "error": f"Falha ao comunicar com a malha n8n: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    # Garante que roda na porta certa do ambiente
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
