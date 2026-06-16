@@ -14,7 +14,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'VAGALUME90_CHAVE_NEURAL_SECRETA')
 # O Render vai ler a tua senha real direto do painel (Environment -> MONGO_URI)
 MONGO_URI = os.environ.get('MONGO_URI', 'mongodb+srv://usuario:senha@cluster.mongodb.net/vagalume90_db')
 client = MongoClient(MONGO_URI)
-db = client['vagalume90_db'] # Seleciona a base de dados ativa explicitamente
+db = client['vagalume90_db'] # Seleciona a base de dados activa explicitamente
 
 # =================================================================
 # 1. ROTAS DE AUTENTICAÇÃO E ENTRADA
@@ -284,8 +284,8 @@ def gerar_infoproduto_ia():
     if not tema:
         return jsonify({"success": False, "error": "O tema do ativo digital não pode estar vazio."}), 400
         
-    # SEU NOVO LINK DO WEBHOOK DO n8n (Limpo e pronto para a produção ativa)
-    N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook/f2aff4d6-5511-45a4-b91f-1f126c2a6ffe"
+    # SEU NOVO LINK DO WEBHOOK DO n8n (Atualizado com o ID fresco e sem portas internas)
+    N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook/0c363a26-5491-4cc0-86a6-0b0a1e392c07"
     
     payload = {
         "operador": session['username'],
