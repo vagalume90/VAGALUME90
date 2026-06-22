@@ -40,7 +40,7 @@ def logout():
     return redirect(url_for('index'))
 
 # =================================================================
-# 2. MÓDULO MERCADO - ROTAS VISUAIS
+# 2. MÓDULO MERCADO - ROTAS VISUAIS (BLINDADO CONTRA ERRO 500)
 # =================================================================
 
 @app.route('/modulo/mercado')
@@ -57,7 +57,17 @@ def modulo_mercado():
     if not user_data:
         return f"Erro Crítico: Operador '{comprador_atual}' não detetado.", 404
     
-    produtos_ia = list(db.infoprodutos.find({"status": "ativo"}))
+    # Puxa os infoprodutos ativos da base de dados
+    produtos_cru = list(db.infoprodutos.find({"status": "ativo"}))
+    
+    # 🛡️ BLINDAGEM AUTOMÁTICA: Garante que nenhum produto antigo sem o atributo preco_sugerido quebre o Jinja2
+    produtos_ia = []
+    for prod in produtos_cru:
+        if 'preco_sugerido' not in prod:
+            # Se tiver o campo 'preco', usa-o. Caso contrário, define o padrão de 3500.0
+            prod['preco_sugerido'] = prod.get('preco', 3500.0)
+        produtos_ia.append(prod)
+        
     itens_usados = list(db.marketplace_usados.find({"status": "disponivel"}))
     
     # BUSCA OS ATIVOS ADQUIRIDOS: Procura transações concluídas deste utilizador
@@ -78,9 +88,9 @@ def modulo_mercado():
         saldo_disponivel=user_data.get('saldo', {}).get('disponivel', 0.0),
         saldo_pendente=user_data.get('saldo', {}).get('pendente', 0.0),
         codigo_afiliado=user_data.get('afiliacao', {}).get('codigo', 'VAGALUME90-ALFA'),
-        produtos=produtos_ia,
+        produtos=produtos_ia,  # Passa a lista corrigida e segura para o ecrã HTML
         usados=itens_usados,
-        ativos_comprados=ativos_adquiridos  # Passa a lista limpa para o ecrã
+        ativos_comprados=ativos_adquiridos  
     )
 
 # =================================================================
@@ -144,178 +154,4 @@ def processar_compra_v2_gratis():
             )
         
         db.infoprodutos.update_one(
-            {"_id": ObjectId(produto_id)},
-            {"$inc": {"numero_vendas": 1}}
-        )
-
-        nova_transacao = {
-            "tipo": "compra_infoproduto",
-            "comprador": comprador_username,
-            "vendedor": produto['criador'],
-            "afiliado": ref_afiliado if comissao_afiliado > 0 else None,
-            "produto_id": ObjectId(produto_id),
-            "valores": {
-                "total": preco_total,
-                "comissao_afiliado": comissao_afiliado,
-                "lucro_criador": lucro_criador,
-                "taxa_plataforma": taxa_plataforma
-            },
-            "data": datetime.utcnow(),
-            "status": "concluida"
-        }
-        db.transacoes.insert_one(nova_transacao)
-
-        return jsonify({"success": True, "message": "Transação processada com sucesso!"})
-
-    except Exception as e:
-        return jsonify({"error": f"Falha ao processar: {str(e)}"}), 500
-
-# =================================================================
-# ENDPOINT: ANUNCIAR ITEM USADO (CIRCULAR)
-# =================================================================
-@app.route('/api/mercado/anunciar-usado', methods=['POST'])
-def anunciar_item_usado():
-    if 'username' not in session:
-        return jsonify({"error": "Acesso negado. Faça login primeiro."}), 403
-        
-    data = request.get_json() or {}
-    nome_item = data.get('nome', '').strip()
-    condicao_item = data.get('condicao', 'Usado - Em bom estado')
-    preco_item = data.get('preco')
-    
-    if not nome_item or not preco_item:
-        return jsonify({"error": "Por favor, preencha o nome e o preço do item."}), 400
-        
-    try:
-        # Garante que o preço guardado é um número decimal
-        preco_final = float(preco_item)
-    except ValueError:
-        return jsonify({"error": "O preço inserido deve ser um número válido."}), 400
-
-    novo_item_fisico = {
-        "nome": nome_item,
-        "condicao": condicao_item,
-        "preco": preco_final,
-        "vendedor": session['username'],
-        "status": "disponivel",
-        "data_anuncio": datetime.utcnow()
-    }
-    
-    db.marketplace_usados.insert_one(novo_item_fisico)
-    
-    return jsonify({
-        "success": True, 
-        "message": "Item publicado com sucesso no Marketplace Circular!",
-        "item": nome_item
-    })
-
-# =================================================================
-# ENDPOINT: COMPRAR ITEM USADO (TRANSAÇÃO P2P)
-# =================================================================
-@app.route('/api/mercado/comprar-usado', methods=['POST'])
-def processar_compra_usado():
-    if 'username' not in session:
-        return jsonify({"error": "Acesso negado. Autenticação necessária."}), 403
-        
-    data = request.get_json() or {}
-    item_id = data.get('item_id')
-    comprador_username = session['username']
-    
-    if not item_id:
-        return jsonify({"error": "Parâmetro 'item_id' em falta."}), 400
-
-    item = db.marketplace_usados.find_one({"_id": ObjectId(item_id), "status": "disponivel"})
-    if not item:
-        return jsonify({"error": "Item não encontrado ou já foi vendido."}), 404
-        
-    if item['vendedor'] == comprador_username:
-        return jsonify({"error": "Não podes comprar o teu próprio item, mano!"}), 400
-
-    preco_total = item['preco']
-
-    comprador = db.users.find_one({"username": comprador_username})
-    if comprador.get('saldo', {}).get('disponivel', 0.0) < preco_total:
-        return jsonify({"error": "Saldo Vagalume insuficiente para esta compra."}), 400
-
-    try:
-        db.users.update_one(
-            {"username": comprador_username},
-            {"$inc": {"saldo.disponivel": -preco_total}}
-        )
-        
-        db.users.update_one(
-            {"username": item['vendedor']},
-            {"$inc": {"saldo.disponivel": preco_total}}
-        )
-        
-        db.marketplace_usados.update_one(
-            {"_id": ObjectId(item_id)},
-            {"$set": {"status": "vendido"}}
-        )
-
-        nova_transacao = {
-            "tipo": "compra_item_circular",
-            "comprador": comprador_username,
-            "vendedor": item['vendedor'],
-            "item_id": ObjectId(item_id),
-            "valor": preco_total,
-            "data": datetime.utcnow(),
-            "status": "concluida"
-        }
-        db.transacoes.insert_one(nova_transacao)
-
-        return jsonify({"success": True, "message": f"Compra P2P concluída! {preco_total} KZ transferidos para {item['vendedor']}."})
-
-    except Exception as e:
-        return jsonify({"error": f"Falha crítica no processamento P2P: {str(e)}"}), 500
-
-# =================================================================
-# 4. FÁBRICA DE ATIVOS - CORE IA MULTIFACETADA
-# =================================================================
-
-@app.route('/api/mercado/gerar-infoproduto', methods=['POST'])
-def gerar_infoproduto_ia():
-    if 'username' not in session:
-        return jsonify({"success": False, "error": "Sessão inválida"}), 401
-        
-    data = request.get_json() or {}
-    tema = data.get('tema', '').strip()
-    
-    if not tema:
-        return jsonify({"success": False, "error": "O tema do ativo digital não pode estar vazio."}), 400
-        
-    # SEU LINK DO WEBHOOK DO n8n 
-    N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook/8d4c3c1f-8869-49a3-9c71-5d64106f0f56"
-    
-    payload = {
-        "operador": session['username'],
-        "tema_solicitado": tema,
-        "plataforma": "VAGALUME90",
-        "status": "requisitado"
-    }
-    
-    try:
-        # Dispara o gatilho para o n8n em produção
-        resposta_n8n = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=10)
-        
-        # CORREÇÃO AQUI: Adicionado 'preco_sugerido' para dar match exato com o seu HTML mercado.html
-        db.infoprodutos.insert_one({
-            "titulo": f"Ebook: {tema} (Processando via IA)",
-            "tipo": "ebook",
-            "preco": 3500.0,
-            "preco_sugerido": 3500.0,  # <-- Campo adicionado para matar o Erro 500 do Jinja2
-            "status": "ativo",
-            "criador": session['username']
-        })
-        
-        return jsonify({
-            "success": True, 
-            "message": f"Engenharia de Funil disparada com sucesso para o tema '{tema}'!"
-        })
-        
-    except Exception as e:
-        return jsonify({"success": False, "error": f"Falha ao comunicar com a malha n8n: {str(e)}"}), 500
-
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+            {"_id
