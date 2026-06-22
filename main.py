@@ -284,7 +284,7 @@ def gerar_infoproduto_ia():
     if not tema:
         return jsonify({"success": False, "error": "O tema do ativo digital não pode estar vazio."}), 400
         
-    # SEU NOVO LINK DO WEBHOOK DO n8n (Atualizado com o ID mais recente: 8d4c3c1f-8869-49a3-9c71-5d64106f0f56)
+    # SEU LINK DO WEBHOOK DO n8n 
     N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook/8d4c3c1f-8869-49a3-9c71-5d64106f0f56"
     
     payload = {
@@ -298,11 +298,12 @@ def gerar_infoproduto_ia():
         # Dispara o gatilho para o n8n em produção
         resposta_n8n = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=10)
         
-        # Cria um registo temporário no MongoDB Atlas
+        # CORREÇÃO AQUI: Adicionado 'preco_sugerido' para dar match exato com o seu HTML mercado.html
         db.infoprodutos.insert_one({
             "titulo": f"Ebook: {tema} (Processando via IA)",
             "tipo": "ebook",
             "preco": 3500.0,
+            "preco_sugerido": 3500.0,  # <-- Campo adicionado para matar o Erro 500 do Jinja2
             "status": "ativo",
             "criador": session['username']
         })
