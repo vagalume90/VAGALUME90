@@ -284,8 +284,8 @@ def gerar_infoproduto_ia():
     if not tema:
         return jsonify({"success": False, "error": "O tema do ativo digital não pode estar vazio."}), 400
         
-    # SEU NOVO LINK DO WEBHOOK DO n8n (Atualizado com o ID fresco e sem portas internas)
-    N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook/0c363a26-5491-4cc0-86a6-0b0a1e392c07"
+    # SEU NOVO LINK DO WEBHOOK DO n8n (Atualizado com o ID mais recente: 8d4c3c1f-8869-49a3-9c71-5d64106f0f56)
+    N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook/8d4c3c1f-8869-49a3-9c71-5d64106f0f56"
     
     payload = {
         "operador": session['username'],
