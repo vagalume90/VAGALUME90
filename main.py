@@ -293,8 +293,8 @@ def gerar_infoproduto_ia():
     if not tema:
         return jsonify({"success": False, "error": "O tema do ativo digital não pode estar vazio."}), 400
         
-    # 🚀 NOVO LINK DO WEBHOOK DO n8n INJETADO AQUI COM O TEU ID RECENTE
-    N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook/339426e5-66a7-4272-a590-f6d0d40ec112"
+    # 🚀 LINK DO WEBHOOK AJUSTADO EXCLUSIVAMENTE PARA WEBHOOK-TEST
+    N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook-test/339426e5-66a7-4272-a590-f6d0d40ec112"
     
     payload = {
         "operador": session['username'],
@@ -304,10 +304,10 @@ def gerar_infoproduto_ia():
     }
     
     try:
-        # Dispara o gatilho para o n8n em produção
+        # Dispara o gatilho para o n8n em modo teste
         resposta_n8n = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=10)
         
-        # Cria o produto na base de dados já com 'preco_sugerido' para dar match com o HTML
+        # Cria o produto na base de dados
         db.infoprodutos.insert_one({
             "titulo": f"Ebook: {tema} (Processando via IA)",
             "tipo": "ebook",
