@@ -293,8 +293,8 @@ def gerar_infoproduto_ia():
     if not tema:
         return jsonify({"success": False, "error": "O tema do ativo digital não pode estar vazio."}), 400
         
-    # 🚀 LINK DO WEBHOOK AJUSTADO EXCLUSIVAMENTE PARA WEBHOOK-TEST
-    N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook-test/339426e5-66a7-4272-a590-f6d0d40ec112"
+    # 🎯 COORDENADA DE PRODUÇÃO CORRETA E DEFINITIVA REVISADA AQUI
+    N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook/339426e5-66a7-4272-a590-f6d0d40ec112"
     
     payload = {
         "operador": session['username'],
@@ -304,7 +304,7 @@ def gerar_infoproduto_ia():
     }
     
     try:
-        # Dispara o gatilho para o n8n em modo teste
+        # Dispara o gatilho para o n8n em modo Produção estável
         resposta_n8n = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=10)
         
         # Cria o produto na base de dados
