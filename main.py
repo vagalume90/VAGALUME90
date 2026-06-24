@@ -293,8 +293,8 @@ def gerar_infoproduto_ia():
     if not tema:
         return jsonify({"success": False, "error": "O tema do ativo digital não pode estar vazio."}), 400
         
-    # LINK OFICIAL DO WEBHOOK DO n8n ATUALIZADO 
-    N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook/8d4c3c1f-8869-49a3-9c71-5d64106f0f56"
+    # 🚀 NOVO LINK DO WEBHOOK DO n8n INJETADO AQUI COM O TEU ID RECENTE
+    N8N_WEBHOOK_URL = "https://vagalum90.onrender.com/webhook/339426e5-66a7-4272-a590-f6d0d40ec112"
     
     payload = {
         "operador": session['username'],
@@ -312,7 +312,7 @@ def gerar_infoproduto_ia():
             "titulo": f"Ebook: {tema} (Processando via IA)",
             "tipo": "ebook",
             "preco": 3500.0,
-            "preco_sugerido": 3500.0,  # <-- Campo essencial mantido aqui para novos registros
+            "preco_sugerido": 3500.0,
             "status": "ativo",
             "criador": session['username']
         })
