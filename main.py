@@ -293,9 +293,15 @@ def gerar_infoproduto_ia():
     if not tema:
         return jsonify({"success": False, "error": "O tema do ativo digital não pode estar vazio."}), 400
         
-    # 🎯 COORDENADA DE PRODUÇÃO CORRETA E DEFINITIVA REVISADA AQUI
-    payload = {N8N_WEBHOOK_URL = "https://vagalume90.onrender.com/webhook-test/vagalume-webhook"
+  # 🎯 COORDENADA DE PRODUÇÃO CORRETA E DEFINITIVA REVISADA AQUI
+    N8N_WEBHOOK_URL = "https://vagalume90.onrender.com/webhook-test/vagalume-webhook"
+    
+    payload = {
         "operador": session['username'],
+        "tema_solicitado": tema,
+        "plataforma": "VAGALUME90",
+        "status": "requisitado"
+    }
         "tema_solicitado": tema,
         "plataforma": "VAGALUME90",
         "status": "requisitado"
