@@ -293,24 +293,21 @@ def gerar_infoproduto_ia():
     if not tema:
         return jsonify({"success": False, "error": "O tema do ativo digital não pode estar vazio."}), 400
         
-  # 🎯 COORDENADA DE PRODUÇÃO CORRETA E DEFINITIVA REVISADA AQUI
-   N8N_WEBHOOK_URL = "https://vagalume90.onrender.com/webhook-test/vagalume-webhook"
-     payload = {
+    # 🎯 COORDENADA DE PRODUÇÃO CORRETA E DEFINITIVA REVISADA AQUI
+    N8N_WEBHOOK_URL = "https://vagalume90.onrender.com/webhook-test/vagalume-webhook"
+    
+    payload = {
         "operador": session['username'],
-        "tema_solicitado": tema,
-        "plataforma": "VAGALUME90",
-        "status": "requisitado"
-    }
         "tema_solicitado": tema,
         "plataforma": "VAGALUME90",
         "status": "requisitado"
     }
     
     try:
-        # Dispara o gatilho para o n8n em modo Produção estável
+        # Dispara o gatilho para o n8n em modo de Teste ativo
         resposta_n8n = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=10)
         
-        # Cria o produto na base de dados
+        # Cria o produto na base de dados MongoDB
         db.infoprodutos.insert_one({
             "titulo": f"Ebook: {tema} (Processando via IA)",
             "tipo": "ebook",
