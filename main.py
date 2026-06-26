@@ -295,7 +295,7 @@ def gerar_infoproduto_ia():
         
     # 🎯 COORDENADA DE PRODUÇÃO CORRETA E DEFINITIVA REVISADA AQUI
     N8N_WEBHOOK_URL = "https://vagalume90.onrender.com/webhook/497fd7f8-1f52-414b-bbc2-8f9e32c81566"
-    payload = {
+    payload = {N8N_WEBHOOK_URL = "https://vagalume90.onrender.com/webhook-test/vagalume-webhook"
         "operador": session['username'],
         "tema_solicitado": tema,
         "plataforma": "VAGALUME90",
