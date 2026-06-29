@@ -4,312 +4,239 @@ from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(__name__)
 
-# Link exato do teu fluxo n8n para testes
+# URL do teu Webhook do n8n para onde a Engenharia de Funil vai disparar os dados
 N8N_WEBHOOK_URL = "https://vagalume90.onrender.com/webhook-test/dae66e7c-13b2-40a1-a1c7-07d49baf94d9"
 
-# DESIGN DO MERCADO COM COMPORTAMENTO DE ABAS INTERLIGADAS
-PAGINA_MERCADO = """
+# HTML DO TEU MERCADO MATRIX ORIGINAL
+INTERF_MERCADO = """
 <!DOCTYPE html>
 <html lang="pt-AO">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vagalume90 - Ecossistema Integrado</title>
-    <!-- Importação das Fontes Oficiais da Marca -->
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <title>Módulo Mercado // Alavanca</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* Cores Oficiais da Identidade Visual Vagalume90 */
         :root {
-            --preto-vaga: #07070A;
-            --roxo-mistico: #3D1060;
-            --ouro-africano: #F5C030;
-            --rosa-olho: #E8407A;
-            --ciano-tech: #00C8FF;
-            --cinza-card: #0F0F16;
+            --bg-matrix: #0b0f12;
+            --card-matrix: #11161b;
+            --neon-green: #39ff14;
+            --border-green: #1f3a23;
+            --text-muted: #8a9ba8;
         }
 
         body {
-            background-color: var(--preto-vaga);
-            color: #FFFFFF;
-            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-matrix);
+            color: #ffffff;
+            font-family: 'Share Tech Mono', monospace;
             margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            padding: 20px;
         }
 
-        header {
-            text-align: center;
-            padding: 25px 20px 10px 20px;
-            width: 100%;
-            background: linear-gradient(180deg, var(--roxo-mistico) 0%, var(--preto-vaga) 100%);
-        }
-
-        header h1 {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 3.5rem;
-            color: var(--ouro-africano);
-            margin: 0;
+        .header-title {
+            color: var(--neon-green);
+            font-size: 2.2rem;
+            text-transform: uppercase;
             letter-spacing: 2px;
+            margin-bottom: 30px;
         }
 
-        /* ESTRATÉGIA DE ABAS: Menu de navegação entre os mundos */
-        .abas-menu {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-            width: 100%;
-            max-width: 500px;
-        }
-
-        .aba-link {
-            flex: 1;
-            text-align: center;
-            padding: 10px 5px;
-            background-color: var(--cinza-card);
-            border: 1px solid var(--roxo-mistico);
-            color: #FFFFFF;
-            text-decoration: none;
-            font-family: 'Bebas Neue', sans-serif;
+        .nexus-panel {
+            text-align: right;
+            margin-bottom: 20px;
             font-size: 1.1rem;
-            border-radius: 6px;
-            letter-spacing: 1px;
-            transition: all 0.3s;
+        }
+        .nexus-status { color: var(--neon-green); }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
 
-        .aba-link.ativa {
-            background-color: var(--roxo-mistico);
-            border-color: var(--ouro-africano);
-            color: var(--ouro-africano);
-        }
-
-        .container {
-            width: 90%;
-            max-width: 500px;
-            margin: 10px auto 30px auto;
+        @media (max-width: 768px) {
+            .grid-container { grid-template-columns: 1fr; }
         }
 
         .card {
-            background-color: var(--cinza-card);
-            border: 2px solid var(--roxo-mistico);
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-            margin-bottom: 20px;
+            background-color: var(--card-matrix);
+            border: 1px solid var(--border-green);
+            border-radius: 4px;
+            padding: 20px;
         }
 
         .card h2 {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 2rem;
-            color: var(--ciano-tech);
+            font-size: 1.5rem;
+            border-left: 4px solid var(--neon-green);
+            padding-left: 10px;
             margin-top: 0;
             letter-spacing: 1px;
         }
 
-        .form-group {
+        .input-matrix {
+            width: 100%;
+            background-color: #070a0d;
+            border: 1px solid var(--border-green);
+            color: var(--neon-green);
+            padding: 12px;
+            box-sizing: border-box;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
             margin-bottom: 15px;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-            color: #AAAAAA;
-        }
-
-        .form-group input {
+        .select-matrix {
             width: 100%;
+            background-color: #070a0d;
+            border: 1px solid var(--border-green);
+            color: #ffffff;
             padding: 12px;
-            box-sizing: border-box;
-            background-color: var(--preto-vaga);
-            border: 1px solid #333333;
-            border-radius: 6px;
-            color: #FFFFFF;
-            font-family: 'Outfit', sans-serif;
-            font-size: 1rem;
+            margin-bottom: 20px;
+            font-family: 'Share Tech Mono', monospace;
         }
 
-        .form-group input:focus {
-            border-color: var(--ciano-tech);
-            outline: none;
-        }
-
-        .btn-enviar {
+        .btn-neon {
             width: 100%;
-            padding: 14px;
-            background-color: var(--ouro-africano);
+            background-color: var(--neon-green);
             color: #000000;
             border: none;
-            border-radius: 6px;
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.5rem;
-            cursor: pointer;
-            letter-spacing: 1px;
-        }
-
-        /* CAMINHO INTERLIGADO NO FUNDO DO CARD */
-        .caminho-ponte {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px dashed #333333;
-            font-size: 0.9rem;
-            color: #CCCCCC;
-            text-align: center;
-        }
-
-        .caminho-ponte a {
-            color: var(--rosa-olho);
-            text-decoration: none;
+            padding: 15px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.2rem;
             font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
         }
 
-        .footer-link {
-            text-align: center;
-            font-size: 0.85rem;
+        .btn-adquirir {
+            background-color: transparent;
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 10px 15px;
+            cursor: pointer;
+            font-family: 'Share Tech Mono', monospace;
         }
 
-        .footer-link a {
-            color: var(--ciano-tech);
-            text-decoration: none;
-            font-family: 'JetBrains Mono', sans-serif;
+        .item-produto {
+            background: #070a0d;
+            border: 1px dashed var(--border-green);
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-footer {
+            margin-top: 40px;
+            border-top: 1px solid var(--border-green);
+            padding-top: 20px;
+            color: var(--text-muted);
+            font-size: 1.2rem;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>VAGALUME90</h1>
-        <!-- ABAS QUE CONECTAM CADA MUNDO DA PLATAFORMA -->
-        <div class="abas-menu">
-            <a href="#" class="aba-link ativa" onclick="mudarAba('mercado')">🛒 Mercado</a>
-            <a href="#" class="aba-link" onclick="mudarAba('afiliados')">👥 Afiliados</a>
-            <a href="#" class="aba-link" onclick="mudarAba('automacao')">🤖 Robôs/IA</a>
-        </div>
-    </header>
+    <div class="header-title">Módulo Mercado // Alavanca</div>
 
-    <div class="container">
-        
-        <!-- MUNDO 1: O MERCADO -->
-        <div id="aba-mercado" class="card">
-            <h2>Produtos Disponíveis</h2>
-            <p style="font-size: 0.9rem; color: #BBBBBB; margin-bottom: 20px;">Escolhe um produto digital ou serviço para avançar na Arena.</p>
-            
-            <form action="/enviar-teste" method="POST">
-                <div class="form-group">
-                    <label for="nome">Teu Nome Completo</label>
-                    <input type="text" id="nome" name="nome" placeholder="Ex: Ernesto Constantino" required>
-                </div>
-                <div class="form-group">
-                    <label for="telefone">Teu WhatsApp</label>
-                    <input type="tel" id="telefone" name="whatsapp" placeholder="Ex: 923000000" required>
-                </div>
-                <button type="submit" class="btn-enviar">Comprar Agora & Registar</button>
-            </form>
-
-            <!-- CAMINHO DIRETO PARA O OUTRO MUNDO -->
-            <div class="caminho-ponte">
-                Já compraste? <a href="#" onclick="mudarAba('afiliados')">Ir para a Aba de Afiliados para levantar comissões →</a>
-            </div>
-        </div>
-
-        <!-- MUNDO 2: OS AFILIADOS -->
-        <div id="aba-afiliados" class="card" style="display: none;">
-            <h2>Painel de Revenda</h2>
-            <p style="font-size: 0.9rem; color: #BBBBBB; margin-bottom: 20px;">Ganha dinheiro recomendando os nossos infoprodutos.</p>
-            
-            <div style="background: #07070A; padding: 15px; border-radius: 6px; border-left: 4px solid var(--ciano-tech); margin-bottom: 20px;">
-                <span style="font-size: 0.8rem; color: #888;">TEU SALDO ATUAL:</span><br>
-                <span style="font-family: 'JetBrains Mono', sans-serif; font-size: 1.8rem; color: var(--ciano-tech);">0,00 Kz</span>
-            </div>
-
-            <!-- CAMINHO DIRETO PARA OS OUTROS MUNDOS -->
-            <div class="caminho-ponte">
-                Precisas de produtos para vender? <a href="#" onclick="mudarAba('mercado')">Voltar ao Mercado ←</a><br><br>
-                Queres automatizar os teus links? <a href="#" onclick="mudarAba('automacao')">Configurar Robôs de IA →</a>
-            </div>
-        </div>
-
-        <!-- MUNDO 3: ROBÔS E INTEGRAÇÕES DE IA -->
-        <div id="aba-automacao" class="card" style="display: none;">
-            <h2>Central de Automação</h2>
-            <p style="font-size: 0.9rem; color: #BBBBBB; margin-bottom: 20px;">Configura as conexões do teu n8n e servidores do Render aqui.</p>
-            
-            <p style="font-family: 'JetBrains Mono', sans-serif; font-size: 0.9rem; color: var(--rosa-olho);">Status do Webhook: CONECTADO À ARENA</p>
-
-            <!-- CAMINHO DIRETO PARA VOLTAR -->
-            <div class="caminho-ponte">
-                Tudo pronto nas automações? <a href="#" onclick="mudarAba('mercado')">Ir para o Mercado Principal ↑</a>
-            </div>
-        </div>
-
-        <div class="footer-link">
-            <p>Infraestrutura Integrada Vagalume90 • Suporte via <a href="https://wa.me/923000000" target="_blank">WhatsApp 💬</a></p>
-        </div>
+    <div class="nexus-panel">
+        NEXUS STATUS: <span class="nexus-status">OPERADOR ALFA</span><br>
+        SALDO DISPONÍVEL: <span style="color: var(--neon-green);">999649.00 KZ</span><br>
+        <span style="color: var(--text-muted); font-size: 0.85rem;">SALDO PENDENTE: 0.00 KZ</span>
     </div>
 
-    <!-- Script simples para alternar as abas no ecrã sem recarregar a página -->
-    <script>
-        function mudarAba(nomeAba) {
-            // Esconde todos os cards
-            document.getElementById('aba-mercado').style.display = 'none';
-            document.getElementById('aba-afiliados').style.display = 'none';
-            document.getElementById('aba-automacao').style.display = 'none';
+    <div class="grid-container">
+        
+        <!-- COLUNA 1: FÁBRICA DE ATIVOS -->
+        <div class="card">
+            <h2>FÁBRICA DE ATIVOS // CORE IA</h2>
+            <form action="/modulo/mercado/disparar" method="POST">
+                <input type="text" name="tema" class="input-matrix" placeholder="// Insira o tema ou nicho do Infoproto..." required>
+                
+                <select name="tipo_funil" class="select-matrix">
+                    <option value="ebook_funil">E-Book Estruturado + Funil de Vendas</option>
+                    <option value="venda_automatica">Automação de Tráfego Direto</option>
+                </select>
+                
+                <button type="submit" class="btn-neon">Disparar Engenharia de Funil</button>
+            </form>
             
-            // Remove a classe ativa de todos os botões do menu
-            const links = document.querySelectorAll('.aba-link');
-            links.forEach(l => l.classList.remove('ativa'));
+            <div style="margin-top: 30px;" class="nav-footer">
+                ANUNCIAR ITEM // CIRCULAR
+            </div>
+        </div>
+
+        <!-- COLUNA 2: PRODUTOS ATIVOS -->
+        <div class="card">
+            <h2>PRODUTOS ATIVOS NA REDE</h2>
             
-            // Mostra o card selecionado e ativa o botão correspondente
-            if(nomeAba === 'mercado') {
-                document.getElementById('aba-mercado').style.display = 'block';
-                event.currentTarget ? event.currentTarget.classList.add('ativa') : links[0].classList.add('ativa');
-            } else if(nomeAba === 'afiliados') {
-                document.getElementById('aba-afiliados').style.display = 'block';
-                // Garante que o botão fica ativo mesmo quando clicado no link do fundo
-                links[1].classList.add('ativa');
-            } else if(nomeAba === 'automacao') {
-                document.getElementById('aba-automacao').style.display = 'block';
-                links[2].classList.add('ativa');
-            }
-        }
-    </script>
+            <div class="item-produto">
+                <div>
+                    <strong>Império Digital: AFRICA</strong><br>
+                    <span style="color: var(--text-muted); font-size: 0.85rem;">CRIADOR: HASTA | VENDAS: 1</span>
+                </div>
+                <button class="btn-adquirir">ADQUIRIR (3500.00 KZ)</button>
+            </div>
+
+            <div class="item-produto">
+                <div>
+                    <strong>Império Digital: AFRICA A MIL ANOS ATRAZ</strong><br>
+                    <span style="color: var(--text-muted); font-size: 0.85rem;">CRIADOR: HASTA | VENDAS: 0</span>
+                </div>
+                <button class="btn-adquirir">ADQUIRIR (3500.00 KZ)</button>
+            </div>
+
+            <div class="nav-footer">
+                MARKETPLACE DE USADOS // CIRCULAR
+            </div>
+        </div>
+
+    </div>
 
 </body>
 </html>
 """
 
+@app.route('/modulo/mercado')
+def modulo_mercado():
+    # Esta rota vai abrir exatamente o ecrã das tuas fotos!
+    return render_template_string(INTERF_MERCADO)
+
 @app.route('/')
 def home():
-    return render_template_string(PAGINA_MERCADO)
+    # Redireciona ou avisa para ir à rota certa
+    return "<h1>Vagalume90 Ativo</h1><p>Acede à rota correta: <a href='/modulo/mercado'>/modulo/mercado</a></p>"
 
-@app.route('/enviar-teste', methods=['POST'])
-def enviar_teste():
+@app.route('/modulo/mercado/disparar', methods=['POST'])
+def disparar_funil():
     try:
-        dados_usuario = request.json if request.is_json else request.form.to_dict()
-        if not dados_usuario:
-            dados_usuario = {"teste": "Arena Vagalume90", "status": "Conectado"}
-            
-        print(f"[INFO] Enviando dados para o n8n: {dados_usuario}")
+        tema = request.form.get('tema')
+        tipo_funil = request.form.get('tipo_funil')
         
-        resposta = requests.post(N8N_WEBHOOK_URL, json=dados_usuario, headers={"Content-Type": "application/json"}, timeout=10)
+        payload = {
+            "evento": "Disparo Engenharia de Funil",
+            "tema_solicitado": tema,
+            "tipo_estrutura": tipo_funil,
+            "operador": "ALFA"
+        }
+        
+        # Envia diretamente ao n8n
+        resposta = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=10)
         
         if resposta.status_code == 200:
             return f'''
-            <div style="background-color: #07070A; color: #FFFFFF; font-family: sans-serif; text-align: center; padding: 50px; min-height: 100vh;">
-                <h1 style="color: #00C8FF;">Registo Efetuado com Sucesso! 🔥</h1>
-                <p>Os teus dados cruzaram a ponte e chegaram ao n8n.</p>
-                <br><br>
-                <a href="/" style="color: #F5C030; text-decoration: none; font-weight: bold;"><- Voltar para a Arena Circular</a>
-            </div>
+            <body style="background-color: #0b0f12; color: #39ff14; font-family: monospace; padding: 50px; text-align: center;">
+                <h2>ENGINE DISPARADO COM SUCESSO! 🟢</h2>
+                <p>O n8n já está a processar a inteligência para o tema: "{tema}"</p>
+                <br><a href="/modulo/mercado" style="color: white; text-decoration: none;">[ Voltar ao Painel ]</a>
+            </body>
             '''
         else:
-            return jsonify({"status": "erro", "mensagem": f"Erro {resposta.status_code}", "detalhes": resposta.text}), 500
-
-    except requests.exceptions.RequestException as e:
-        return jsonify({"status": "erro", "mensagem": f"Erro de rede: {str(e)}"}), 500
+            return f"Erro no n8n: {resposta.status_code}", 500
+    except Exception as e:
+        return f"Falha na conexão: {str(e)}", 500
 
 if __name__ == '__main__':
     porta = int(os.environ.get("PORT", 5000))
