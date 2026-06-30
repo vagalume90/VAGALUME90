@@ -14,50 +14,41 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--void); color: #FFF; font-family: 'Outfit', sans-serif; min-height: 100vh; padding-bottom: 100px; overflow-x: hidden; }
 
-/* Grid de Telemetria Visual */
 .hud-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(0,255,102,0.01) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,102,0.01) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
 
 header { padding: 30px; border-bottom: 1px solid var(--glass-border); position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; background: rgba(5,5,7,0.8); backdrop-filter: blur(10px); }
 header h1 { font-family: var(--font-title); font-size: 2.5rem; letter-spacing: 4px; color: var(--neon-green); text-shadow: 0 0 15px rgba(0,255,102,0.2); }
 
 .wallet-panel { background: rgba(0,0,0,0.6); border: 1px solid var(--glass-border); padding: 12px 24px; border-radius: 8px; font-family: var(--font-mono); font-size: 0.85rem; text-align: right; line-height: 1.4; }
-.wallet-panel span { color: var(--neon-green); font-weight: bold; }
+.wallet-panel span { color: var(--neon-blue); font-weight: bold; }
 
 .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; position: relative; z-index: 1; }
 
 .card-modulo { background: var(--dark-green); border: 1px solid var(--glass-border); border-radius: 12px; padding: 25px; backdrop-filter: blur(15px); box-shadow: inset 0 0 20px rgba(0,255,102,0.01); }
 .card-title { font-family: var(--font-title); font-size: 1.8rem; color: #FFF; letter-spacing: 2px; margin-bottom: 20px; border-left: 4px solid var(--neon-green); padding-left: 10px; display: flex; justify-content: space-between; align-items: center; }
 
-/* Elementos de Input do Terminal */
 .input-terminal { width: 100%; background: rgba(0,0,0,0.7); border: 1px solid var(--glass-border); padding: 14px; font-family: var(--font-mono); color: #FFF; border-radius: 6px; margin-bottom: 15px; outline: none; font-size: 0.9rem; transition: border-color 0.2s; }
 .input-terminal:focus { border-color: var(--neon-green); }
 select.input-terminal { color: rgba(255,255,255,0.8); cursor: pointer; }
-select.input-terminal option { background: var(--void); color: #FFF; }
 
 .btn-terminal { background: var(--neon-green); color: var(--void); border: none; font-family: var(--font-title); font-size: 1.3rem; padding: 12px 20px; border-radius: 6px; cursor: pointer; letter-spacing: 1px; font-weight: bold; transition: transform 0.1s, opacity 0.2s; width: 100%; }
 .btn-terminal:hover { opacity: 0.9; transform: translateY(-1px); }
-.btn-terminal:active { transform: translateY(0); }
 
-/* Listagens Dinâmicas */
 .product-list { display: grid; grid-template-columns: 1fr; gap: 15px; max-height: 280px; overflow-y: auto; padding-right: 5px; }
 .product-list::-webkit-scrollbar { width: 4px; }
 .product-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
 
-.product-item { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; transition: border-color 0.2s; }
-.product-item:hover { border-color: rgba(0,255,102,0.2); }
+.product-item { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
 .product-info h4 { font-family: var(--font-mono); font-size: 0.95rem; color: #FFF; margin-bottom: 4px; }
 .product-info p { font-size: 0.8rem; color: rgba(255,255,255,0.4); font-family: var(--font-mono); }
 .btn-buy { background: transparent; border: 1px solid var(--neon-green); color: var(--neon-green); font-family: var(--font-mono); font-size: 0.75rem; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s, color 0.2s; }
 .btn-buy:hover { background: var(--neon-green); color: var(--void); }
 
-/* Sistema de Links de Afiliados */
 .afiliado-box { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.02); padding: 15px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.6); line-height: 1.6; }
 
-/* Navegação Inferior */
 nav { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: rgba(5,5,7,0.95); border: 1px solid var(--glass-border); padding: 14px 35px; border-radius: 30px; display: flex; gap: 30px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
-nav a { color: rgba(255,255,255,0.3); text-decoration: none; font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; transition: color 0.2s; }
+nav a { color: rgba(255,255,255,0.3); text-decoration: none; font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; }
 nav a.active { color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,102,0.3); }
-nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
 </style>
 </head>
 <body>
@@ -95,7 +86,7 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
         <button class="btn-buy" onclick="comprarProduto('{{ prod._id }}')">ADQUIRIR ({{ "%.2f"|format(prod.preco_sugerido) }} KZ)</button>
       </div>
       {% else %}
-      <p style="font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Nenhum ativo digital gerado na malha do mercado...</p>
+      <p style="font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Nenhum ativo digital gerado na malha...</p>
       {% endfor %}
     </div>
   </div>
@@ -124,7 +115,7 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
         <button class="btn-buy" onclick="comprarItemUsado('{{ item._id }}')">COMPRAR ITEM ({{ "%.2f"|format(item.preco) }} KZ)</button>
       </div>
       {% else %}
-      <p style="font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Nenhum item físico listado de momento para economia circular.</p>
+      <p style="font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Nenhum item físico listado de momento.</p>
       {% endfor %}
     </div>
   </div>
@@ -134,52 +125,29 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
     <div class="afiliado-box">
       <p style="margin-bottom: 12px; color: #FFF;">// Link de Indicação único para o Ecossistema:</p>
       <input type="text" class="input-terminal" style="margin-bottom: 10px; color: var(--neon-green);" readonly value="{{ request.url_root }}modulo/mercado?ref={{ codigo_afiliado }}">
-      <p style="font-size: 0.75rem;">Ao espalhar este nexo, ganhas automaticamente uma comissão parametrizável de 40% sobre qualquer infoproduto adquirido através da tua referência.</p>
-    </div>
-  </div>
-
-  <div class="card-modulo" style="grid-column: span 2;">
-    <div class="card-title">OS MEUS ATIVOS ADQUIRIDOS // INVENTÁRIO</div>
-    <div class="product-list" style="max-height: none; grid-template-columns: 1fr 1fr; gap: 20px;">
-      {% for ativo in ativos_comprados %}
-      <div class="product-item" style="border-color: rgba(0,255,102,0.2); background: rgba(0,255,102,0.01);">
-        <div class="product-info">
-          <h4 style="color: var(--neon-green);">{{ ativo.titulo }}</h4>
-          <p>TIPO: {{ ativo.tipo|upper if ativo.tipo else 'DIGITAL' }} | ACESSO: LIBERADO</p>
-        </div>
-        <button class="btn-buy" style="background: var(--neon-green); color: var(--void);" onclick="alert('Conexão estabelecida! A abrir o conteúdo do ativo digital...');">ACEDER AO CONTEÚDO</button>
-      </div>
-      {% else %}
-      <p style="grid-column: span 2; font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Ainda não adquiriste nenhum ativo digital neste ciclo...</p>
-      {% endfor %}
+      <p style="font-size: 0.75rem;">Ao espalhar este nexo, ganhas automaticamente uma comissão de 40% sobre qualquer infoproduto adquirido.</p>
     </div>
   </div>
 </div>
 
 <nav>
   <a href="/modulo/mercado" class="active">Mercado</a>
-  <a href="#" style="opacity:0.3; cursor:not-allowed;">Matrix</a>
-  <a href="#" style="opacity:0.3; cursor:not-allowed;">Saúde Yeto</a>
 </nav>
 
 <script>
-// Captura dinamicamente o link do afiliado via URL (?ref=)
 function obterCodigoAfiliado() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get('ref') || 'DIRETO';
 }
 
-// MOTOR DO CORE IA
 async function gerarAtivoIA() {
   const temaInput = document.getElementById('tema-ia').value.trim();
   const tipoSelect = document.getElementById('tipo-ia').value;
   
   if(!temaInput) {
-    alert("Por favor, introduz um tema válido antes de disparar o Core IA.");
+    alert("Por favor, introduz um tema válido.");
     return;
   }
-  
-  alert("Diretriz captada! Conectando com a malha neural para gerar o ativo...");
   
   try {
     const res = await fetch('/api/mercado/gerar-infoproduto', {
@@ -189,26 +157,24 @@ async function gerarAtivoIA() {
     });
     
     const data = await res.json();
-    
     if(data.success) {
-      alert("Sucesso! " + data.message + "\nAtivo: " + data.produto);
+      alert(data.message + "\nProduto: " + data.produto);
       window.location.reload();
     } else {
-      alert("Aviso do Servidor: " + data.error);
+      alert("Erro: " + data.error);
     }
   } catch (err) {
-    alert("Falha de rede! Verifica se o teu Render está ligado.");
+    alert("Falha de rede.");
   }
 }
 
-// MOTOR DO MARKETPLACE CIRCULAR
 async function anunciarItemFisico() {
   const nome = document.getElementById('nome-item').value.trim();
   const condicao = document.getElementById('condicao-item').value;
   const preco = document.getElementById('preco-item').value.trim();
   
   if(!nome || !preco) {
-    alert("Por favor, preenche o nome e o preço do item físico.");
+    alert("Preenche o nome e o preço.");
     return;
   }
   
@@ -220,55 +186,39 @@ async function anunciarItemFisico() {
     });
     
     const data = await res.json();
-    
     if(data.success) {
-      alert(data.message + "\nItem: " + data.item);
+      alert(data.message);
       window.location.reload();
     } else {
-      alert("Erro ao anunciar: " + data.error);
+      alert("Erro: " + data.error);
     }
   } catch (err) {
-    alert("Erro de comunicação com o servidor.");
+    alert("Erro de comunicação.");
   }
 }
 
-// MOTOR DE COMPRA DE INFOPRODUTOS COM DETEÇÃO DE AFILIADOS
 async function comprarProduto(id) {
-  if (!confirm("Confirmar execução de transação no Ledger do ecossistema?")) return;
-  
+  if (!confirm("Confirmar execução da transação no Ledger?")) return;
   const afiliadoCod = obterCodigoAfiliado();
   
   try {
     const res = await fetch('/api/mercado/comprar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        produto_id: id,
-        comprador_id: "SESSÃO_ATUAL", // O backend tratará de validar o id real do utilizador logado
-        afiliado_cod: afiliadoCod
-      })
+      body: JSON.stringify({ produto_id: id, afiliado_cod: afiliadoCod })
     });
     
     const data = await res.json();
-    if(data.success) {
-      if (data.whatsapp_url) {
-        // Redireciona para o fluxo seguro via WhatsApp configurado no main.py
-        window.location.href = data.whatsapp_url;
-      } else {
-        alert(data.message + "\nDistribuição de lucros concluída no Ledger!");
-        window.location.reload();
-      }
-    } else {
-      alert("Erro na Operação: " + data.error);
+    if(data.success && data.whatsapp_url) {
+      window.location.href = data.whatsapp_url;
     }
   } catch (err) {
-    alert("Falha de comunicação com o servidor.");
+    alert("Erro.");
   }
 }
 
-// MOTOR DE TRANSAÇÃO P2P
 async function comprarItemUsado(id) {
-  if (!confirm("Confirmar envio de fundos P2P para o vendedor deste item?")) return;
+  if (!confirm("Confirmar negociação P2P para este item?")) return;
   
   try {
     const res = await fetch('/api/mercado/comprar-usado', {
@@ -278,15 +228,13 @@ async function comprarItemUsado(id) {
     });
     
     const data = await res.json();
-    
-    if(data.success) {
-      alert(data.message);
-      window.location.reload();
+    if(data.success && data.whatsapp_url) {
+      window.location.href = data.whatsapp_url;
     } else {
-      alert("Erro na transação P2P: " + data.error);
+      alert("Erro ao processar a compra P2P.");
     }
   } catch (err) {
-    alert("Falha de comunicação com a rede P2P.");
+    alert("Falha ao comunicar com a rede.");
   }
 }
 </script>
