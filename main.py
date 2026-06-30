@@ -28,7 +28,7 @@ db_mongo = MockDB()
 # ROTAS DE RENDERIZAÇÃO (FRONTEND)
 # =======================================================
 
-@app.route('/modulo/mercado')
+@app.route('/mercado')
 def renderizar_mercado():
     # Simulação de dados de sessão do utilizador logado (HASTA)
     # Na fase final, estes dados virão diretamente do MongoDB
