@@ -20,9 +20,47 @@ header { padding: 30px; border-bottom: 1px solid var(--glass-border); position: 
 header h1 { font-family: var(--font-title); font-size: 2.5rem; letter-spacing: 4px; color: var(--neon-green); text-shadow: 0 0 15px rgba(0,255,102,0.2); }
 
 .wallet-panel { background: rgba(0,0,0,0.6); border: 1px solid var(--glass-border); padding: 12px 24px; border-radius: 8px; font-family: var(--font-mono); font-size: 0.85rem; text-align: right; line-height: 1.4; }
-.wallet-panel span { color: var(--neon-blue); font-weight: bold; }
+.wallet-panel span { color: var(--neon-green); font-weight: bold; }
 
 .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; position: relative; z-index: 1; }
+
+/* Prateleira de Exposição - Destaque Principal */
+.prateleira-exposicao {
+  grid-column: span 2;
+  background: linear-gradient(135deg, rgba(0,255,102,0.05) 0%, rgba(5,5,7,0.8) 100%);
+  border: 2px solid var(--neon-green);
+  border-radius: 12px;
+  padding: 30px;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 0 25px rgba(0,255,102,0.15);
+  margin-bottom: 10px;
+}
+.destaque-header {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: var(--neon-green);
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.destaque-conteudo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+.destaque-info h2 {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.destaque-info p {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.6);
+}
 
 .card-modulo { background: var(--dark-green); border: 1px solid var(--glass-border); border-radius: 12px; padding: 25px; backdrop-filter: blur(15px); box-shadow: inset 0 0 20px rgba(0,255,102,0.01); }
 .card-title { font-family: var(--font-title); font-size: 1.8rem; color: #FFF; letter-spacing: 2px; margin-bottom: 20px; border-left: 4px solid var(--neon-green); padding-left: 10px; display: flex; justify-content: space-between; align-items: center; }
@@ -64,6 +102,25 @@ nav a.active { color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,102,0.
 </header>
 
 <div class="container">
+  <!-- 🌟 PRATELEIRA DE EXPOSIÇÃO / MONTRA DE DESTAQUES -->
+  <div class="prateleira-exposicao">
+    <div class="destaque-header">
+      <span style="width: 8px; height: 8px; background: var(--neon-green); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--neon-green);"></span>
+      PRODUTO EM EXPOSIÇÃO // DESTAQUE DA REDE
+    </div>
+    <div class="destaque-conteudo">
+      <div class="destaque-info">
+        <h2>{{ produto_destaque.titulo }}</h2>
+        <p>{{ produto_destaque.descricao }}</p>
+        <small style="font-family: var(--font-mono); color: rgba(0,255,102,0.7); display:block; margin-top:8px;">CRIADOR: {{ produto_destaque.criador }}</small>
+      </div>
+      <button class="btn-buy" style="padding: 15px 30px; font-size: 0.9rem; background: var(--neon-green); color: var(--void);" onclick="comprarProduto('{{ produto_destaque._id }}')">
+        ADQUIRIR DESTAQUE ({{ "%.2f"|format(produto_destaque.preco_sugerido) }} KZ)
+      </button>
+    </div>
+  </div>
+
+  <!-- BLCO 1: INFOPRODUTOS IA -->
   <div class="card-modulo">
     <div class="card-title">FÁBRICA DE ATIVOS // CORE IA</div>
     <input type="text" id="tema-ia" class="input-terminal" placeholder="// Insira o tema ou nicho do Infoproduto...">
@@ -74,6 +131,7 @@ nav a.active { color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,102,0.
     <button class="btn-terminal" onclick="gerarAtivoIA()">DISPARAR ENGENHARIA DE FUNIL</button>
   </div>
 
+  <!-- BLOCO 2: LISTA DE INFOPRODUTOS VIVOS -->
   <div class="card-modulo">
     <div class="card-title">PRODUTOS ATIVOS NA REDE</div>
     <div class="product-list">
@@ -91,6 +149,7 @@ nav a.active { color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,102,0.
     </div>
   </div>
 
+  <!-- BLOCO 3: ADICIONAR ITEM USADO -->
   <div class="card-modulo">
     <div class="card-title">ANUNCIAR ITEM // CIRCULAR</div>
     <input type="text" id="nome-item" class="input-terminal" placeholder="// Nome do item (Ex: Smartphone, Livro...)">
@@ -103,6 +162,7 @@ nav a.active { color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,102,0.
     <button class="btn-terminal" onclick="anunciarItemFisico()">PUBLICAR NO MARKETPLACE</button>
   </div>
 
+  <!-- BLOCO 4: LISTA DE USADOS DO MERCADO -->
   <div class="card-modulo">
     <div class="card-title">MARKETPLACE DE USADOS // CIRCULAR</div>
     <div class="product-list">
@@ -120,6 +180,27 @@ nav a.active { color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,102,0.
     </div>
   </div>
 
+  <!-- 🌟 BLOCO 5: OS MEUS ATIVOS ADQUIRIDOS // INVENTÁRIO REAIS -->
+  <div class="card-modulo" style="grid-column: span 2;">
+    <div class="card-title">OS MEUS ATIVOS ADQUIRIDOS // INVENTÁRIO</div>
+    <div class="product-list" style="max-height: none; grid-template-columns: 1fr 1fr; gap: 20px;">
+      {% for ativo in ativos_comprados %}
+      <div class="product-item" style="border-color: rgba(0,255,102,0.2); background: rgba(0,255,102,0.01);">
+        <div class="product-info">
+          <h4 style="color: var(--neon-green);">{{ ativo.titulo }}</h4>
+          <p>TIPO: {{ ativo.tipo|upper }} | ACESSO: LIBERADO</p>
+        </div>
+        <button class="btn-buy" style="background: var(--neon-green); color: var(--void);" onclick="window.open('{{ ativo.download_url }}', '_blank');">
+          DESCARREGAR E-BOOK (PDF)
+        </button>
+      </div>
+      {% else %}
+      <p style="grid-column: span 2; font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Ainda não tens nenhum e-book real libertado no teu inventário...</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- SISTEMA DE AFILIADOS -->
   <div class="card-modulo" style="grid-column: span 2;">
     <div class="card-title">SISTEMA DE AFILIAÇÃO DE ELITE</div>
     <div class="afiliado-box">
@@ -158,7 +239,7 @@ async function gerarAtivoIA() {
     
     const data = await res.json();
     if(data.success) {
-      alert(data.message + "\nProduto: " + data.produto);
+      alert(data.message + "\nProduto em processamento: " + data.produto);
       window.location.reload();
     } else {
       alert("Erro: " + data.error);
@@ -198,7 +279,7 @@ async function anunciarItemFisico() {
 }
 
 async function comprarProduto(id) {
-  if (!confirm("Confirmar execução da transação no Ledger?")) return;
+  if (!confirm("Confirmar execução da transação no Ledger da Rede Vagalume?")) return;
   const afiliadoCod = obterCodigoAfiliado();
   
   try {
@@ -213,12 +294,12 @@ async function comprarProduto(id) {
       window.location.href = data.whatsapp_url;
     }
   } catch (err) {
-    alert("Erro.");
+    alert("Erro ao processar transação.");
   }
 }
 
 async function comprarItemUsado(id) {
-  if (!confirm("Confirmar negociação P2P para este item?")) return;
+  if (!confirm("Confirmar negociação P2P para este item físico?")) return;
   
   try {
     const res = await fetch('/api/mercado/comprar-usado', {
