@@ -304,7 +304,7 @@ def processar_compra_real():
         )
         
         texto_codificado = urllib.parse.quote(msg_whatsapp)
-        whatsapp_num = os.getenv("WHATSAPP_SUPORTE_NUM", "244923000000") 
+        whatsapp_num = os.getenv("WHATSAPP_SUPORTE_NUM", "244929894589") 
         whatsapp_url = f"https://api.whatsapp.com/send?phone={whatsapp_num}&text={texto_codificado}"
         
         return jsonify({"success": True, "transacao_id": transacao_id, "whatsapp_url": whatsapp_url})
