@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-AO">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -122,6 +122,7 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
           <p>CONDIÇÃO: {{ item.condicao }} | VENDEDOR: {{ item.vendedor }}</p>
         </div>
         <button class="btn-buy" onclick="comprarItemUsado('{{ item._id }}')">COMPRAR ITEM ({{ "%.2f"|format(item.preco) }} KZ)</button>
+      </div>
       {% else %}
       <p style="font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Nenhum item físico listado de momento para economia circular.</p>
       {% endfor %}
@@ -134,7 +135,9 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
       <p style="margin-bottom: 12px; color: #FFF;">// Link de Indicação único para o Ecossistema:</p>
       <input type="text" class="input-terminal" style="margin-bottom: 10px; color: var(--neon-green);" readonly value="{{ request.url_root }}modulo/mercado?ref={{ codigo_afiliado }}">
       <p style="font-size: 0.75rem;">Ao espalhar este nexo, ganhas automaticamente uma comissão parametrizável de 40% sobre qualquer infoproduto adquirido através da tua referência.</p>
-  <!-- NOVO PILAR: INVENTÁRIO DE ATIVOS ADQUIRIDOS -->
+    </div>
+  </div>
+
   <div class="card-modulo" style="grid-column: span 2;">
     <div class="card-title">OS MEUS ATIVOS ADQUIRIDOS // INVENTÁRIO</div>
     <div class="product-list" style="max-height: none; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -142,15 +145,13 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
       <div class="product-item" style="border-color: rgba(0,255,102,0.2); background: rgba(0,255,102,0.01);">
         <div class="product-info">
           <h4 style="color: var(--neon-green);">{{ ativo.titulo }}</h4>
-          <p>TIPO: {{ ativo.tipo|upper }} | ACESSO: LIBERADO</p>
+          <p>TIPO: {{ ativo.tipo|upper if ativo.tipo else 'DIGITAL' }} | ACESSO: LIBERADO</p>
         </div>
-       <button class="btn-buy" style="background: var(--neon-green); color: var(--void);" onclick="alert('Conexão estabelecida! A abrir o conteúdo do ativo digital...');">ACEDER AO CONTEÚDO</button>
+        <button class="btn-buy" style="background: var(--neon-green); color: var(--void);" onclick="alert('Conexão estabelecida! A abrir o conteúdo do ativo digital...');">ACEDER AO CONTEÚDO</button>
       </div>
       {% else %}
       <p style="grid-column: span 2; font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Ainda não adquiriste nenhum ativo digital neste ciclo...</p>
       {% endfor %}
-    </div>
-  </div>
     </div>
   </div>
 </div>
@@ -162,6 +163,12 @@ nav a:hover:not(.active) { color: rgba(255,255,255,0.7); }
 </nav>
 
 <script>
+// Captura dinamicamente o link do afiliado via URL (?ref=)
+function obterCodigoAfiliado() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('ref') || 'DIRETO';
+}
+
 // MOTOR DO CORE IA
 async function gerarAtivoIA() {
   const temaInput = document.getElementById('tema-ia').value.trim();
@@ -194,7 +201,7 @@ async function gerarAtivoIA() {
   }
 }
 
-// MOTOR DO MARKETPLACE CIRCULAR (NOVO)
+// MOTOR DO MARKETPLACE CIRCULAR
 async function anunciarItemFisico() {
   const nome = document.getElementById('nome-item').value.trim();
   const condicao = document.getElementById('condicao-item').value;
@@ -216,7 +223,7 @@ async function anunciarItemFisico() {
     
     if(data.success) {
       alert(data.message + "\nItem: " + data.item);
-      window.location.reload(); // Atualiza a página para o item aparecer na lista!
+      window.location.reload();
     } else {
       alert("Erro ao anunciar: " + data.error);
     }
@@ -229,19 +236,28 @@ async function anunciarItemFisico() {
 async function comprarProduto(id) {
   if (!confirm("Confirmar execução de transação no Ledger do ecossistema?")) return;
   
+  const afiliadoCod = obterCodigoAfiliado();
+  
   try {
     const res = await fetch('/api/mercado/comprar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        produto_id: id
+        produto_id: id,
+        comprador_id: "SESSÃO_ATUAL", // O backend tratará de validar o id real do utilizador logado
+        afiliado_cod: afiliadoCod
       })
     });
     
     const data = await res.json();
     if(data.success) {
-      alert(data.message + "\nDistribuição de lucros concluída no Ledger!");
-      window.location.reload();
+      if (data.whatsapp_url) {
+        // Redireciona para o fluxo seguro via WhatsApp configurado no main.py
+        window.location.href = data.whatsapp_url;
+      } else {
+        alert(data.message + "\nDistribuição de lucros concluída no Ledger!");
+        window.location.reload();
+      }
     } else {
       alert("Erro na Operação: " + data.error);
     }
@@ -249,7 +265,8 @@ async function comprarProduto(id) {
     alert("Falha de comunicação com o servidor.");
   }
 }
-  // MOTOR DE TRANSAÇÃO P2P
+
+// MOTOR DE TRANSAÇÃO P2P
 async function comprarItemUsado(id) {
   if (!confirm("Confirmar envio de fundos P2P para o vendedor deste item?")) return;
   
@@ -264,7 +281,7 @@ async function comprarItemUsado(id) {
     
     if(data.success) {
       alert(data.message);
-      window.location.reload(); // Atualiza para recalcular saldos e sumir com o item vendido
+      window.location.reload();
     } else {
       alert("Erro na transação P2P: " + data.error);
     }
