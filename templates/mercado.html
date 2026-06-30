@@ -3,216 +3,435 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VAGALUME90 — Módulo Mercado</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+<title>VAGALUME90 // Portal de Conexão Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --void: #050507; --neon-green: #00FF66; --dark-green: rgba(0,255,102,0.02);
-  --glass-border: rgba(0,255,102,0.12); --font-title: 'Bebas Neue', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --void-deep: #030305;
+  --neon-pulse: #00FF66;
+  --neon-glow: rgba(0, 255, 102, 0.4);
+  --glass-surface: rgba(10, 25, 15, 0.6);
+  --glass-border: rgba(0, 255, 102, 0.15);
+  --text-main: #E0FFE5;
+  --font-future: 'Orbitron', sans-serif;
+  --font-clean: 'Plus Jakarta Sans', sans-serif;
 }
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--void); color: #FFF; font-family: 'Outfit', sans-serif; min-height: 100vh; padding-bottom: 100px; overflow-x: hidden; }
+body { 
+  background: var(--void-deep); 
+  color: var(--text-main); 
+  font-family: var(--font-clean); 
+  min-height: 100vh; 
+  padding-bottom: 120px; 
+  overflow-x: hidden;
+  position: relative;
+}
 
-.hud-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(0,255,102,0.01) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,102,0.01) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+/* Grelha de Energia Dinâmica (Plano de Fundo Vivo) */
+.fundo-vibrante {
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(0, 255, 102, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 102, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 0;
+  animation: pulsaRede 10s infinite linear;
+}
 
-header { padding: 30px; border-bottom: 1px solid var(--glass-border); position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; background: rgba(5,5,7,0.8); backdrop-filter: blur(10px); }
-header h1 { font-family: var(--font-title); font-size: 2.5rem; letter-spacing: 4px; color: var(--neon-green); text-shadow: 0 0 15px rgba(0,255,102,0.2); }
+@keyframes pulsaRede {
+  0% { background-position: 0 0; }
+  100% { background-position: 50px 50px; }
+}
 
-.wallet-panel { background: rgba(0,0,0,0.6); border: 1px solid var(--glass-border); padding: 12px 24px; border-radius: 8px; font-family: var(--font-mono); font-size: 0.85rem; text-align: right; line-height: 1.4; }
-.wallet-panel span { color: var(--neon-green); font-weight: bold; }
+/* Partículas de Luz pelo Ecrã */
+.aurora {
+  position: fixed;
+  top: -20%; left: -10%;
+  width: 60vw; height: 60vh;
+  background: radial-gradient(circle, rgba(0,255,102,0.04) 0%, transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+/* Cabeçalho Organismo */
+header { 
+  padding: 30px; 
+  border-bottom: 1px solid var(--glass-border); 
+  position: relative; 
+  z-index: 1; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  background: rgba(3, 3, 5, 0.85); 
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 30px rgba(0, 255, 102, 0.02);
+}
+
+.logo-universo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo-universo h1 { 
+  font-family: var(--font-future); 
+  font-size: 2rem; 
+  letter-spacing: 5px; 
+  color: #FFF;
+  text-shadow: 0 0 10px var(--neon-glow); 
+}
+
+.indicador-vida {
+  width: 12px; height: 12px;
+  background: var(--neon-pulse);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--neon-pulse);
+  animation: respirar 2s infinite ease-in-out;
+}
+
+@keyframes respirar {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 18px var(--neon-pulse); }
+}
+
+.painel-status-nave { 
+  background: var(--glass-surface); 
+  border: 1px solid var(--glass-border); 
+  padding: 15px 25px; 
+  border-radius: 16px; 
+  font-family: var(--font-future); 
+  font-size: 0.8rem; 
+  text-align: right; 
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+.painel-status-nave span { color: var(--neon-pulse); font-weight: bold; text-shadow: 0 0 5px var(--neon-glow); }
 
 .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; position: relative; z-index: 1; }
 
-/* Prateleira de Exposição - Destaque Principal */
+/* 🌟 A PRATELEIRA DE EXPOSIÇÃO VIVA (Grande Destaque do Universo) */
 .prateleira-exposicao {
   grid-column: span 2;
-  background: linear-gradient(135deg, rgba(0,255,102,0.05) 0%, rgba(5,5,7,0.8) 100%);
-  border: 2px solid var(--neon-green);
-  border-radius: 12px;
-  padding: 30px;
-  backdrop-filter: blur(15px);
-  box-shadow: 0 0 25px rgba(0,255,102,0.15);
-  margin-bottom: 10px;
+  background: linear-gradient(135deg, rgba(0, 255, 102, 0.08) 0%, rgba(10, 25, 15, 0.4) 100%);
+  border: 2px solid var(--neon-pulse);
+  border-radius: 20px;
+  padding: 35px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 0 35px rgba(0, 255, 102, 0.15), inset 0 0 20px rgba(0, 255, 102, 0.05);
+  position: relative;
+  overflow: hidden;
 }
+
+.prateleira-exposicao::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0,255,102,0.1), transparent);
+  animation: varrimento 6s infinite linear;
+}
+
+@keyframes varrimento {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
 .destaque-header {
-  font-family: var(--font-title);
-  font-size: 1rem;
-  color: var(--neon-green);
-  letter-spacing: 3px;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
+  font-family: var(--font-future);
+  font-size: 0.85rem;
+  color: var(--neon-pulse);
+  letter-spacing: 4px;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+}
+
+.destaque-conteudo { display: flex; justify-content: space-between; align-items: center; gap: 30px; }
+.destaque-info h2 { font-family: var(--font-future); font-size: 1.8rem; margin-bottom: 10px; color: #FFF; }
+.destaque-info p { font-size: 0.95rem; color: rgba(224, 255, 229, 0.7); line-height: 1.5; }
+
+/* Cartões Orgânicos do Futuro */
+.card-universo { 
+  background: var(--glass-surface); 
+  border: 1px solid var(--glass-border); 
+  border-radius: 20px; 
+  padding: 30px; 
+  backdrop-filter: blur(20px); 
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  transition: border-color 0.3s, transform 0.3s;
+}
+.card-universo:hover {
+  border-color: rgba(0, 255, 102, 0.4);
+  transform: translateY(-2px);
+}
+
+.card-title { 
+  font-family: var(--font-future); 
+  font-size: 1.2rem; 
+  color: #FFF; 
+  letter-spacing: 2px; 
+  margin-bottom: 25px; 
+  display: flex; 
+  align-items: center; 
   gap: 10px;
 }
-.destaque-conteudo {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-}
-.destaque-info h2 {
-  font-family: var(--font-mono);
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-.destaque-info p {
-  font-size: 0.9rem;
-  color: rgba(255,255,255,0.6);
+.card-title::before {
+  content: '';
+  width: 6px; height: 18px;
+  background: var(--neon-pulse);
+  border-radius: 3px;
+  box-shadow: 0 0 8px var(--neon-pulse);
 }
 
-.card-modulo { background: var(--dark-green); border: 1px solid var(--glass-border); border-radius: 12px; padding: 25px; backdrop-filter: blur(15px); box-shadow: inset 0 0 20px rgba(0,255,102,0.01); }
-.card-title { font-family: var(--font-title); font-size: 1.8rem; color: #FFF; letter-spacing: 2px; margin-bottom: 20px; border-left: 4px solid var(--neon-green); padding-left: 10px; display: flex; justify-content: space-between; align-items: center; }
+.input-universo { 
+  width: 100%; 
+  background: rgba(0, 0, 0, 0.4); 
+  border: 1px solid var(--glass-border); 
+  padding: 16px; 
+  font-family: var(--font-clean); 
+  color: #FFF; 
+  border-radius: 12px; 
+  margin-bottom: 18px; 
+  outline: none; 
+  font-size: 0.95rem; 
+  transition: all 0.3s; 
+}
+.input-universo:focus { 
+  border-color: var(--neon-pulse); 
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 10px rgba(0, 255, 102, 0.1);
+}
+select.input-universo { color: rgba(255,255,255,0.9); }
 
-.input-terminal { width: 100%; background: rgba(0,0,0,0.7); border: 1px solid var(--glass-border); padding: 14px; font-family: var(--font-mono); color: #FFF; border-radius: 6px; margin-bottom: 15px; outline: none; font-size: 0.9rem; transition: border-color 0.2s; }
-.input-terminal:focus { border-color: var(--neon-green); }
-select.input-terminal { color: rgba(255,255,255,0.8); cursor: pointer; }
+.btn-portal { 
+  background: linear-gradient(135deg, #00FF66 0%, #00CC52 100%); 
+  color: var(--void-deep); 
+  border: none; 
+  font-family: var(--font-future); 
+  font-size: 1rem; 
+  padding: 15px 25px; 
+  border-radius: 12px; 
+  cursor: pointer; 
+  letter-spacing: 2px; 
+  font-weight: 700; 
+  transition: all 0.3s; 
+  width: 100%; 
+  box-shadow: 0 4px 20px rgba(0, 255, 102, 0.2);
+}
+.btn-portal:hover { 
+  opacity: 0.95; 
+  box-shadow: 0 0 25px var(--neon-pulse);
+  transform: scale(1.01);
+}
 
-.btn-terminal { background: var(--neon-green); color: var(--void); border: none; font-family: var(--font-title); font-size: 1.3rem; padding: 12px 20px; border-radius: 6px; cursor: pointer; letter-spacing: 1px; font-weight: bold; transition: transform 0.1s, opacity 0.2s; width: 100%; }
-.btn-terminal:hover { opacity: 0.9; transform: translateY(-1px); }
+.lista-viva { display: grid; grid-template-columns: 1fr; gap: 15px; max-height: 320px; overflow-y: auto; padding-right: 5px; }
+.lista-viva::-webkit-scrollbar { width: 5px; }
+.lista-viva::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
 
-.product-list { display: grid; grid-template-columns: 1fr; gap: 15px; max-height: 280px; overflow-y: auto; padding-right: 5px; }
-.product-list::-webkit-scrollbar { width: 4px; }
-.product-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
+.item-vivo { 
+  background: rgba(3,3,5,0.4); 
+  border: 1px solid rgba(0, 255, 102, 0.05); 
+  padding: 18px; 
+  border-radius: 14px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  transition: background 0.2s;
+}
+.item-vivo:hover { background: rgba(0, 255, 102, 0.02); }
 
-.product-item { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-.product-info h4 { font-family: var(--font-mono); font-size: 0.95rem; color: #FFF; margin-bottom: 4px; }
-.product-info p { font-size: 0.8rem; color: rgba(255,255,255,0.4); font-family: var(--font-mono); }
-.btn-buy { background: transparent; border: 1px solid var(--neon-green); color: var(--neon-green); font-family: var(--font-mono); font-size: 0.75rem; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s, color 0.2s; }
-.btn-buy:hover { background: var(--neon-green); color: var(--void); }
+.item-info h4 { font-family: var(--font-clean); font-size: 1rem; color: #FFF; font-weight: 600; margin-bottom: 4px; }
+.item-info p { font-size: 0.8rem; color: rgba(224, 255, 229, 0.5); font-family: var(--font-future); }
 
-.afiliado-box { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.02); padding: 15px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.6); line-height: 1.6; }
+.btn-conectar { 
+  background: transparent; 
+  border: 1px solid var(--neon-pulse); 
+  color: var(--neon-pulse); 
+  font-family: var(--font-future); 
+  font-size: 0.8rem; 
+  padding: 10px 20px; 
+  border-radius: 8px; 
+  cursor: pointer; 
+  font-weight: bold; 
+  transition: all 0.2s; 
+}
+.btn-conectar:hover { 
+  background: var(--neon-pulse); 
+  color: var(--void-deep); 
+  box-shadow: 0 0 15px var(--neon-glow);
+}
 
-nav { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: rgba(5,5,7,0.95); border: 1px solid var(--glass-border); padding: 14px 35px; border-radius: 30px; display: flex; gap: 30px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
-nav a { color: rgba(255,255,255,0.3); text-decoration: none; font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; }
-nav a.active { color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,102,0.3); }
+.caixa-afiliado { 
+  background: rgba(0,0,0,0.3); 
+  border: 1px solid rgba(0, 255, 102, 0.05); 
+  padding: 20px; 
+  border-radius: 14px; 
+  font-size: 0.9rem; 
+  color: rgba(224, 255, 229, 0.7); 
+  line-height: 1.6; 
+}
+
+/* Navegação Flutuante Orgânica */
+nav { 
+  position: fixed; 
+  bottom: 30px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  background: rgba(3, 3, 5, 0.9); 
+  border: 1px solid var(--glass-border); 
+  padding: 16px 40px; 
+  border-radius: 40px; 
+  display: flex; 
+  gap: 40px; 
+  z-index: 100; 
+  box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 20px rgba(0,255,102,0.02);
+  backdrop-filter: blur(20px);
+}
+nav a { 
+  color: rgba(224, 255, 229, 0.4); 
+  text-decoration: none; 
+  font-family: var(--font-future); 
+  font-size: 0.85rem; 
+  letter-spacing: 2px; 
+  text-transform: uppercase; 
+  font-weight: 700; 
+  transition: color 0.3s;
+}
+nav a.active { 
+  color: var(--neon-pulse); 
+  text-shadow: 0 0 12px var(--neon-glow); 
+}
 </style>
 </head>
 <body>
-<div class="hud-grid"></div>
+<div class="fundo-vibrante"></div>
+<div class="aurora"></div>
 
 <header>
-  <h1>MÓDULO MERCADO</h1>
-  <div class="wallet-panel">
-    <div>NEXUS STATUS: <span>{{ rank }}</span></div>
-    <div>SALDO DISPONÍVEL: <span>{{ "%.2f"|format(saldo_disponivel) }} KZ</span></div>
-    <div style="font-size: 0.75rem; opacity: 0.5;">SALDO PENDENTE: {{ "%.2f"|format(saldo_pendente) }} KZ</div>
+  <div class="logo-universo">
+    <div class="indicador-vida"></div>
+    <h1>VAGALUME90</h1>
+  </div>
+  <div class="painel-status-nave">
+    <div>NEXUS PILOTO: <span>{{ rank }}</span></div>
+    <div>ENERGIA DISPONÍVEL: <span>{{ "%.2f"|format(saldo_disponivel) }} KZ</span></div>
+    <div style="font-size: 0.7rem; opacity: 0.4; margin-top: 3px;">RESERVA EM TRÂNSITO: {{ "%.2f"|format(saldo_pendente) }} KZ</div>
   </div>
 </header>
 
 <div class="container">
-  <!-- 🌟 PRATELEIRA DE EXPOSIÇÃO / MONTRA DE DESTAQUES -->
+  
+  <!-- 🌟 PRATELEIRA DE EXPOSIÇÃO (O Coração do Ecossistema) -->
   <div class="prateleira-exposicao">
-    <div class="destaque-header">
-      <span style="width: 8px; height: 8px; background: var(--neon-green); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--neon-green);"></span>
-      PRODUTO EM EXPOSIÇÃO // DESTAQUE DA REDE
-    </div>
+    <div class="destaque-header">// ATIVO DE MÁXIMA CONVERGÊNCIA EM EXPOSIÇÃO</div>
     <div class="destaque-conteudo">
       <div class="destaque-info">
         <h2>{{ produto_destaque.titulo }}</h2>
         <p>{{ produto_destaque.descricao }}</p>
-        <small style="font-family: var(--font-mono); color: rgba(0,255,102,0.7); display:block; margin-top:8px;">CRIADOR: {{ produto_destaque.criador }}</small>
+        <small style="font-family: var(--font-future); color: var(--neon-pulse); opacity: 0.8; display:block; margin-top:12px; font-size: 0.75rem;">ARQUITETO DA REDE: {{ produto_destaque.criador }}</small>
       </div>
-      <button class="btn-buy" style="padding: 15px 30px; font-size: 0.9rem; background: var(--neon-green); color: var(--void);" onclick="comprarProduto('{{ produto_destaque._id }}')">
-        ADQUIRIR DESTAQUE ({{ "%.2f"|format(produto_destaque.preco_sugerido) }} KZ)
+      <button class="btn-conectar" style="padding: 16px 32px; font-size: 0.9rem; background: var(--neon-pulse); color: var(--void-deep); border: none;" onclick="comprarProduto('{{ produto_destaque._id }}')">
+        CONECTAR ATIVO ({{ "%.2f"|format(produto_destaque.preco_sugerido) }} KZ)
       </button>
     </div>
   </div>
 
-  <!-- BLCO 1: INFOPRODUTOS IA -->
-  <div class="card-modulo">
-    <div class="card-title">FÁBRICA DE ATIVOS // CORE IA</div>
-    <input type="text" id="tema-ia" class="input-terminal" placeholder="// Insira o tema ou nicho do Infoproduto...">
-    <select id="tipo-ia" class="input-terminal">
-      <option value="ebook">E-Book Estruturado + Funil de Vendas</option>
-      <option value="curso">Curso Masterclass + Sequência de E-mails</option>
+  <!-- FÁBRICA DE ATIVOS -->
+  <div class="card-universo">
+    <div class="card-title">MANIFESTAR NOVO ATIVO // CORE IA</div>
+    <input type="text" id="tema-ia" class="input-universo" placeholder="Qual o conhecimento ou nicho que queres materializar?">
+    <select id="tipo-ia" class="input-universo">
+      <option value="ebook">E-Book de Alta Conversão + Funil Digital</option>
+      <option value="curso">Estrutura Masterclass + Roteiros Neurais</option>
     </select>
-    <button class="btn-terminal" onclick="gerarAtivoIA()">DISPARAR ENGENHARIA DE FUNIL</button>
+    <button class="btn-portal" onclick="gerarAtivoIA()">DISPARAR ENGENHARIA DE FUNIL</button>
   </div>
 
-  <!-- BLOCO 2: LISTA DE INFOPRODUTOS VIVOS -->
-  <div class="card-modulo">
-    <div class="card-title">PRODUTOS ATIVOS NA REDE</div>
-    <div class="product-list">
+  <!-- PRODUTOS ATIVOS -->
+  <div class="card-universo">
+    <div class="card-title">ATIVOS MANIFESTADOS NA REDE</div>
+    <div class="lista-viva">
       {% for prod in produtos %}
-      <div class="product-item">
-        <div class="product-info">
+      <div class="item-vivo">
+        <div class="item-info">
           <h4>{{ prod.titulo }}</h4>
-          <p>CRIADOR: {{ prod.criador }} | VENDAS: {{ prod.numero_vendas|default(0) }}</p>
+          <p>FONTE: {{ prod.criador }} | SINAPSE: {{ prod.numero_vendas|default(0) }} DOWNLOADS</p>
         </div>
-        <button class="btn-buy" onclick="comprarProduto('{{ prod._id }}')">ADQUIRIR ({{ "%.2f"|format(prod.preco_sugerido) }} KZ)</button>
+        <button class="btn-conectar" onclick="comprarProduto('{{ prod._id }}')">ADQUIRIR ({{ "%.2f"|format(prod.preco_sugerido) }} KZ)</button>
       </div>
       {% else %}
-      <p style="font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Nenhum ativo digital gerado na malha...</p>
+      <p style="font-family: var(--font-future); font-size: 0.8rem; color: rgba(224,255,229,0.3);">// Aguardando manifestação do primeiro ativo na malha...</p>
       {% endfor %}
     </div>
   </div>
 
-  <!-- BLOCO 3: ADICIONAR ITEM USADO -->
-  <div class="card-modulo">
-    <div class="card-title">ANUNCIAR ITEM // CIRCULAR</div>
-    <input type="text" id="nome-item" class="input-terminal" placeholder="// Nome do item (Ex: Smartphone, Livro...)">
-    <select id="condicao-item" class="input-terminal">
-      <option value="Excelente - Como Novo">Excelente - Como Novo</option>
-      <option value="Usado - Em bom estado">Usado - Em bom estado</option>
-      <option value="Sinais de Uso Aceitáveis">Sinais de Uso Aceitáveis</option>
+  <!-- MATERIALIZAR USADO -->
+  <div class="card-universo">
+    <div class="card-title">DISPONIBILIZAR ITEM NO ECOSSISTEMA</div>
+    <input type="text" id="nome-item" class="input-universo" placeholder="O que vais passar para outro utilizador? (Telemóvel, Livro...)">
+    <select id="condicao-item" class="input-universo">
+      <option value="Excelente - Como Novo">Estado Perfeito // Praticamente Novo</option>
+      <option value="Usado - Em bom estado">Estado Fluido // Em pleno funcionamento</option>
+      <option value="Sinais de Uso Aceitáveis">Histórico Visível // Sinais de uso aceitáveis</option>
     </select>
-    <input type="number" id="preco-item" class="input-terminal" placeholder="// Preço em Kwanzas (Ex: 15000)">
-    <button class="btn-terminal" onclick="anunciarItemFisico()">PUBLICAR NO MARKETPLACE</button>
+    <input type="number" id="preco-item" class="input-universo" placeholder="Valor de troca em Kwanzas (KZ)">
+    <button class="btn-portal" onclick="anunciarItemFisico()">DISPONIBILIZAR NO MARKETPLACE</button>
   </div>
 
-  <!-- BLOCO 4: LISTA DE USADOS DO MERCADO -->
-  <div class="card-modulo">
-    <div class="card-title">MARKETPLACE DE USADOS // CIRCULAR</div>
-    <div class="product-list">
+  <!-- MARKETPLACE DE USADOS -->
+  <div class="card-universo">
+    <div class="card-title">FLUXO DE TROCAS CIRCULARES</div>
+    <div class="lista-viva">
       {% for item in usados %}
-      <div class="product-item">
-        <div class="product-info">
+      <div class="item-vivo">
+        <div class="item-info">
           <h4>{{ item.nome }}</h4>
-          <p>CONDIÇÃO: {{ item.condicao }} | VENDEDOR: {{ item.vendedor }}</p>
+          <p>INTEGRIDADE: {{ item.condicao }} | OPERADOR: {{ item.vendedor }}</p>
         </div>
-        <button class="btn-buy" onclick="comprarItemUsado('{{ item._id }}')">COMPRAR ITEM ({{ "%.2f"|format(item.preco) }} KZ)</button>
+        <button class="btn-conectar" onclick="comprarItemUsado('{{ item._id }}')">INTERMEDIAR ({{ "%.2f"|format(item.preco) }} KZ)</button>
       </div>
       {% else %}
-      <p style="font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Nenhum item físico listado de momento.</p>
+      <p style="font-family: var(--font-future); font-size: 0.8rem; color: rgba(224,255,229,0.3);">// Nenhum objeto físico em circulação na malha.</p>
       {% endfor %}
     </div>
   </div>
 
-  <!-- 🌟 BLOCO 5: OS MEUS ATIVOS ADQUIRIDOS // INVENTÁRIO REAIS -->
-  <div class="card-modulo" style="grid-column: span 2;">
-    <div class="card-title">OS MEUS ATIVOS ADQUIRIDOS // INVENTÁRIO</div>
-    <div class="product-list" style="max-height: none; grid-template-columns: 1fr 1fr; gap: 20px;">
+  <!-- INVENTÁRIO REAL -->
+  <div class="card-universo" style="grid-column: span 2;">
+    <div class="card-title">O TEU COFRE DE ATIVOS INTEGRADOS // INVENTÁRIO</div>
+    <div class="lista-viva" style="max-height: none; grid-template-columns: 1fr 1fr; gap: 20px;">
       {% for ativo in ativos_comprados %}
-      <div class="product-item" style="border-color: rgba(0,255,102,0.2); background: rgba(0,255,102,0.01);">
-        <div class="product-info">
-          <h4 style="color: var(--neon-green);">{{ ativo.titulo }}</h4>
-          <p>TIPO: {{ ativo.tipo|upper }} | ACESSO: LIBERADO</p>
+      <div class="item-vivo" style="border-color: rgba(0,255,102,0.2); background: rgba(0,255,102,0.02);">
+        <div class="item-info">
+          <h4 style="color: var(--neon-pulse);">{{ ativo.titulo }}</h4>
+          <p>MATRIZ: DIGITAL | STATUS: LIBERADO</p>
         </div>
-        <button class="btn-buy" style="background: var(--neon-green); color: var(--void);" onclick="window.open('{{ ativo.download_url }}', '_blank');">
-          DESCARREGAR E-BOOK (PDF)
+        <button class="btn-conectar" style="background: var(--neon-pulse); color: var(--void-deep); border: none;" onclick="window.open('{{ ativo.download_url }}', '_blank');">
+          DESCARREGAR ATIVO (PDF)
         </button>
       </div>
       {% else %}
-      <p style="grid-column: span 2; font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.25);">// Ainda não tens nenhum e-book real libertado no teu inventário...</p>
+      <p style="grid-column: span 2; font-family: var(--font-future); font-size: 0.8rem; color: rgba(224,255,229,0.35); text-align: center; padding: 20px 0;">// O teu cofre pessoal está vazio. Conecta o teu primeiro ativo acima.</p>
       {% endfor %}
     </div>
   </div>
 
   <!-- SISTEMA DE AFILIADOS -->
-  <div class="card-modulo" style="grid-column: span 2;">
-    <div class="card-title">SISTEMA DE AFILIAÇÃO DE ELITE</div>
-    <div class="afiliado-box">
-      <p style="margin-bottom: 12px; color: #FFF;">// Link de Indicação único para o Ecossistema:</p>
-      <input type="text" class="input-terminal" style="margin-bottom: 10px; color: var(--neon-green);" readonly value="{{ request.url_root }}modulo/mercado?ref={{ codigo_afiliado }}">
-      <p style="font-size: 0.75rem;">Ao espalhar este nexo, ganhas automaticamente uma comissão de 40% sobre qualquer infoproduto adquirido.</p>
+  <div class="card-universo" style="grid-column: span 2;">
+    <div class="card-title">REDE DE EXPANSÃO COLETIVA (AFILIADOS)</div>
+    <div class="caixa-afiliado">
+      <p style="margin-bottom: 12px;">// Partilha a tua assinatura de rede e expande o ecossistema:</p>
+      <input type="text" class="input-universo" style="margin-bottom: 12px; color: var(--neon-pulse); font-family: var(--font-future);" readonly value="{{ request.url_root }}modulo/mercado?ref={{ codigo_afiliado }}">
+      <p style="font-size: 0.8rem; opacity: 0.6;">Ao expandir este nexo para outros jovens, asseguras 40% de retorno direto de energia sobre qualquer ativo manifestado por eles.</p>
     </div>
   </div>
 </div>
 
 <nav>
-  <a href="/modulo/mercado" class="active">Mercado</a>
+  <a href="/modulo/mercado" class="active">Ecossistema</a>
 </nav>
 
 <script>
@@ -225,10 +444,7 @@ async function gerarAtivoIA() {
   const temaInput = document.getElementById('tema-ia').value.trim();
   const tipoSelect = document.getElementById('tipo-ia').value;
   
-  if(!temaInput) {
-    alert("Por favor, introduz um tema válido.");
-    return;
-  }
+  if(!temaInput) return alert("Indica um tema para iniciarmos a engenharia.");
   
   try {
     const res = await fetch('/api/mercado/gerar-infoproduto', {
@@ -236,17 +452,12 @@ async function gerarAtivoIA() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tema: temaInput, tipo: tipoSelect })
     });
-    
     const data = await res.json();
     if(data.success) {
-      alert(data.message + "\nProduto em processamento: " + data.produto);
+      alert("Sinal enviado à rede! O teu ativo está a ser fundido: " + data.produto);
       window.location.reload();
-    } else {
-      alert("Erro: " + data.error);
     }
-  } catch (err) {
-    alert("Falha de rede.");
-  }
+  } catch (err) { alert("Falha de sincronização com a rede."); }
 }
 
 async function anunciarItemFisico() {
@@ -254,10 +465,7 @@ async function anunciarItemFisico() {
   const condicao = document.getElementById('condicao-item').value;
   const preco = document.getElementById('preco-item').value.trim();
   
-  if(!nome || !preco) {
-    alert("Preenche o nome e o preço.");
-    return;
-  }
+  if(!nome || !preco) return alert("Fornece os dados do item para materialização.");
   
   try {
     const res = await fetch('/api/mercado/anunciar-usado', {
@@ -265,58 +473,36 @@ async function anunciarItemFisico() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nome: nome, condicao: condicao, preco: preco })
     });
-    
     const data = await res.json();
-    if(data.success) {
-      alert(data.message);
-      window.location.reload();
-    } else {
-      alert("Erro: " + data.error);
-    }
-  } catch (err) {
-    alert("Erro de comunicação.");
-  }
+    if(data.success) window.location.reload();
+  } catch (err) { alert("Erro de comunicação."); }
 }
 
 async function comprarProduto(id) {
-  if (!confirm("Confirmar execução da transação no Ledger da Rede Vagalume?")) return;
+  if (!confirm("Iniciar canal de aquisição deste ativo digital?")) return;
   const afiliadoCod = obterCodigoAfiliado();
-  
   try {
     const res = await fetch('/api/mercado/comprar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ produto_id: id, afiliado_cod: afiliadoCod })
     });
-    
     const data = await res.json();
-    if(data.success && data.whatsapp_url) {
-      window.location.href = data.whatsapp_url;
-    }
-  } catch (err) {
-    alert("Erro ao processar transação.");
-  }
+    if(data.success && data.whatsapp_url) window.location.href = data.whatsapp_url;
+  } catch (err) { alert("Erro no link de conexão."); }
 }
 
 async function comprarItemUsado(id) {
-  if (!confirm("Confirmar negociação P2P para este item físico?")) return;
-  
+  if (!confirm("Abrir canal direto P2P com o operador detentor do item?")) return;
   try {
     const res = await fetch('/api/mercado/comprar-usado', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ item_id: id })
     });
-    
     const data = await res.json();
-    if(data.success && data.whatsapp_url) {
-      window.location.href = data.whatsapp_url;
-    } else {
-      alert("Erro ao processar a compra P2P.");
-    }
-  } catch (err) {
-    alert("Falha ao comunicar com a rede.");
-  }
+    if(data.success && data.whatsapp_url) window.location.href = data.whatsapp_url;
+  } catch (err) { alert("Falha na ponte de comunicação."); }
 }
 </script>
 </body>
