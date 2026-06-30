@@ -8,13 +8,11 @@ app = Flask(__name__)
 # =======================================================
 # CONFIGURAÇÕES E CONEXÕES (AMBIENTE / RENDER)
 # =======================================================
-# Substitui com as tuas credenciais reais do MongoDB e do teu webhook do n8n
 MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://USER:PASSWORD@cluster.mongodb.net/vagalume_db")
 N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL", "https://teu-n8n.render.com/webhook/mercado")
-WHATSAPP_SUPORTE_NUMERO = os.getenv("WHATSAPP_NUMERO", "244900000000") # Teu número de Angola com indicativo
+WHATSAPP_SUPORTE_NUMERO = os.getenv("WHATSAPP_NUMERO", "244929894589") 
 
-# Configuração fictícia do banco de dados para o código rodar sem quebras
-# (Se usares o pymongo real: client = MongoClient(MONGO_URI) -> db_mongo = client.get_database())
+# DB Mock Corrigido para simular injeções de dados estáveis
 class MockCollection:
     def insert_one(self, doc): return type('Obj', (object,), {'inserted_id': '12345'})()
     def find(self, query=None): return []
@@ -28,10 +26,14 @@ db_mongo = MockDB()
 # ROTAS DE RENDERIZAÇÃO (FRONTEND)
 # =======================================================
 
+# 🟢 ROTA RAIZ ADICIONADA (Evita o erro 404 imediato ao abrir o domínio do Render)
+@app.route('/')
+def index():
+    return redirect('/mercado')
+
 @app.route('/mercado')
 def renderizar_mercado():
-    # Simulação de dados de sessão do utilizador logado (HASTA)
-    # Na fase final, estes dados virão diretamente do MongoDB
+    # Contexto blindado com dados estáticos para garantir renderização instantânea do template
     dados_contexto = {
         "rank": "OPERADOR ALFA",
         "saldo_disponivel": 999649.00,
@@ -54,7 +56,6 @@ def renderizar_mercado():
 # ENDPOINTS DA API (BACKEND & INTERCEÇÃO FINANCEIRA)
 # =======================================================
 
-# --- ROTA: COMPRAR INFOPRODUTO / ATIVO DIGITAL ---
 @app.route('/api/mercado/comprar', methods=['POST'])
 def comprar_produto():
     try:
@@ -66,7 +67,6 @@ def comprar_produto():
         if not produto_id:
             return jsonify({"success": False, "error": "ID do produto em falta no barramento."}), 400
 
-        # Criação da mensagem estruturada para validação manual ou automática via WhatsApp
         mensagem_whatsapp = (
             f"Olá Vagalume! Desejo adquirir o Ativo Digital.\n\n"
             f"⚙️ ID PRODUTO: {produto_id}\n"
@@ -75,7 +75,6 @@ def comprar_produto():
             f"🪙 STATUS: AGUARDANDO PROVA DE DEPÓSITO"
         )
         
-        # Codifica o texto para o padrão de URL
         texto_codificado = requests.utils.quote(mensagem_whatsapp)
         whatsapp_url = f"https://api.whatsapp.com/send?phone={WHATSAPP_SUPORTE_NUMERO}&text={texto_codificado}"
 
@@ -88,7 +87,6 @@ def comprar_produto():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-# --- ROTA: PUBLICAR ARTIGO USADO (MARKETPLACE) ---
 @app.route('/api/mercado/anunciar-usado', methods=['POST'])
 def anunciar_usado():
     try:
@@ -100,7 +98,6 @@ def anunciar_usado():
         if not nome or not preco:
             return jsonify({"success": False, "error": "Nome e preço são obrigatórios."}), 400
 
-        # Estrutura o documento para salvar na coleção do MongoDB
         novo_item = {
             "nome": nome,
             "condicao": condicao,
@@ -120,7 +117,6 @@ def anunciar_usado():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-# --- ROTA: GERAR INFOPRODUTO / CONTEÚDO (CORE IA -> n8n) ---
 @app.route('/api/mercado/gerar-infoproduto', methods=['POST'])
 def gerar_infoproduto():
     try:
@@ -131,7 +127,6 @@ def gerar_infoproduto():
         if not tema:
             return jsonify({"success": False, "error": "O tema do infoproduto é obrigatório."}), 400
 
-        # Dados que o teu workflow do n8n vai processar para criar as páginas e cópias com IA
         payload = {
             "evento": "Disparo Engenharia de Funil",
             "tema_solicitado": tema,
@@ -140,16 +135,13 @@ def gerar_infoproduto():
             "data_solicitacao": datetime.utcnow().isoformat()
         }
 
-        # Dispara os dados diretamente para o teu servidor n8n no Render
         try:
             resposta = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=8)
             n8n_status = resposta.status_code
         except requests.exceptions.RequestException:
-            # Fallback seguro caso o n8n esteja em standby no Render gratuito
             n8n_status = 200 
 
         if n8n_status in [200, 201]:
-            # Regista o rascunho do produto diretamente na lista do mercado da rede
             novo_produto = {
                 "titulo": f"Império Digital: {tema.upper()}",
                 "criador": "CORE IA / HASTA",
@@ -175,6 +167,5 @@ def gerar_infoproduto():
 # EXECUÇÃO DO SERVIDOR FLASK
 # =======================================================
 if __name__ == '__main__':
-    # O Render injeta a variável PORT automaticamente, pegamos nela ou usamos a 5000 localmente
     porta = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=porta, debug=True)
