@@ -8,29 +8,29 @@ from bson.objectid import ObjectId
 app = Flask(__name__)
 
 # =======================================================
-# CONFIGURAÇÕES E CONEXÃO REAL COM O MONGODB
+# CONFIGURAÇÕES E CONEXÕES REAIS
 # =======================================================
-# O Render vai injetar automaticamente a tua string de conexão real aqui
 MONGO_URI = os.getenv("MONGO_URI")
 N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL", "https://teu-n8n.render.com/webhook/mercado")
+FASTAPI_URL = os.getenv("FASTAPI_URL")
 
-# ✅ O teu número real de Angola configurado com o prefixo internacional correto
+# Número de suporte de Angola para contingência visual ou rotas P2P
 WHATSAPP_SUPORTE_NUMERO = os.getenv("WHATSAPP_NUMERO", "244929894589")
 
-# Inicialização do Cliente MongoDB Real
+# Inicialização do Cliente MongoDB Real (Apenas leitura de Catálogo e Usados)
 if MONGO_URI:
     client = MongoClient(MONGO_URI)
-    db = client.get_database("vagalume_db")  # Cria ou usa a base de dados vagalume_db
+    db = client.get_database("vagalume_db")
 else:
     raise ValueError("⚠️ ERRO CRÍTICO: A variável MONGO_URI não foi detetada no ambiente do Render!")
 
-# Definição das Coleções Reais no MongoDB
+# Coleções locais do Flask (Catálogos estáticos e rascunhos)
 colecao_produtos = db["produtos"]
 colecao_usados = db["usados"]
-colecao_transacoes = db["transacoes"]
+colecao_transacoes = db["transacoes"] # Mantida apenas para leitura do inventário de e-books liberados
 
 # =======================================================
-# ROTAS DE RENDERIZAÇÃO (FRONTEND DINÂMICO)
+# ROTAS DE RENDERIZAÇÃO (FRONTEND VIVO)
 # =======================================================
 
 @app.route('/')
@@ -40,29 +40,25 @@ def index():
 @app.route('/mercado')
 @app.route('/modulo/mercado')
 def renderizar_mercado():
-    # 👤 Identificador do utilizador atual (Integrar com o teu sistema de login futuramente)
     id_comprador_atual = "USER_HASTA_90"
     
-    # Puxar dados reais das coleções do MongoDB para exibir na tela
     lista_produtos = list(colecao_produtos.find({}))
     lista_usados = list(colecao_usados.find({}))
     
-    # Procurar no banco de dados quais os e-books que este utilizador já comprou e já foram LIBERADOS
+    # O inventário lê as transações que o motor financeiro já validou e marcou como LIBERADO
     transacoes_aprovadas = list(colecao_transacoes.find({
         "comprador_id": id_comprador_atual,
         "status": "LIBERADO"
     }))
     
-    # Mapear os e-books libertados para o formato que o teu inventário espera
     ativos_comprados = []
     for transacao in transacoes_aprovadas:
         ativos_comprados.append({
             "titulo": transacao.get("produto_titulo", "Ativo Digital"),
             "tipo": "digital",
-            "download_url": transacao.get("download_url", "#")  # Link real do PDF para o cliente baixar
+            "download_url": transacao.get("download_url", "#")
         })
 
-    # Produto em Destaque Principal fixo na Prateleira de Exposição
     produto_destaque = {
         "_id": "PROD_DESTAQUE_01",
         "titulo": "Fórmula Tráfego Angola (Acesso Vitalício)",
@@ -84,10 +80,10 @@ def renderizar_mercado():
     return render_template('mercado.html', **dados_contexto)
 
 # =======================================================
-# ENDPOINTS DA API (INTERCONEXÃO E GRAVAÇÃO DE DADOS)
+# ENDPOINTS DA API (INTEGRAÇÃO COM MOTOR FINANCEIRO)
 # =======================================================
 
-# --- ORDEM DE COMPRA (Gera intenção e envia para o teu WhatsApp) ---
+# --- ORDEM DE COMPRA (Delega a lógica financeira para o FastAPI) ---
 @app.route('/api/mercado/comprar', methods=['POST'])
 def comprar_produto():
     try:
@@ -96,31 +92,45 @@ def comprar_produto():
         afiliado_cod = dados.get("afiliado_cod", "DIRETO")
         id_comprador_atual = "USER_HASTA_90"
         
-        # Procura o título correto do produto no MongoDB para anexar à ordem
+        # 1. Validação da URL do motor financeiro FastAPI
+        if not FASTAPI_URL:
+            return jsonify({"success": False, "error": "Variável de ambiente FASTAPI_URL não configurada no Render."}), 500
+            
+        endpoint_fastapi = f"{FASTAPI_URL.rstrip('/')}/api/mercado/comprar"
+
+        # 2. Payload estruturado para disparar o motor financeiro
+        payload_fastapi = {
+            "produto_id": produto_id,
+            "comprador_id": id_comprador_atual,
+            "afiliado_cod": afiliado_cod
+        }
+
+        # 3. Comunicação direta com o backend FastAPI
+        try:
+            resposta_fastapi = requests.post(endpoint_fastapi, json=payload_fastapi, timeout=10)
+            resposta_dados = resposta_fastapi.json()
+        except requests.exceptions.RequestException as e:
+            return jsonify({"success": False, "error": f"Falha crítica de comunicação com o Motor Financeiro: {str(e)}"}), 502
+
+        # 4. Tratamento de regras e recusas do motor financeiro
+        if resposta_fastapi.status_code != 200 or not resposta_dados.get("success"):
+            erro_msg = resposta_dados.get("error", "Erro desconhecido no processamento financeiro.")
+            return jsonify({"success": False, "error": f"FastAPI rejeitou a ordem: {erro_msg}"}), resposta_fastapi.status_code
+
+        # Captura o ID real gerado pela lógica financeira
+        transacao_id = resposta_dados.get("transacao_id")
+
+        # 5. Localiza o título do produto para compor a mensagem do WhatsApp
         titulo_produto = "Fórmula Tráfego Angola"
         if produto_id != "PROD_DESTAQUE_01":
             prod_db = colecao_produtos.find_one({"_id": ObjectId(produto_id) if ObjectId.is_valid(produto_id) else produto_id})
             if prod_db:
                 titulo_produto = prod_db.get("titulo")
 
-        # 💸 GRAVA A ORDEM REAL NO MONGODB
-        nova_ordem = {
-            "produto_id": produto_id,
-            "produto_titulo": titulo_produto,
-            "comprador_id": id_comprador_atual,
-            "afiliado_cod": afiliado_cod,
-            "status": "AGUARDANDO PROVA DE DEPÓSITO",
-            "data_ordem": datetime.utcnow(),
-            "download_url": ""  # Será preenchido por ti ao validar o pagamento no banco
-        }
-        
-        resultado = colecao_transacoes.insert_one(nova_ordem)
-        ordem_id = str(resultado.inserted_id)
-
-        # Prepara a mensagem exata para cair no teu WhatsApp 929894589
+        # 6. Geração do link dinâmico de pagamento via WhatsApp com o ID do FastAPI
         mensagem_whatsapp = (
             f"Olá Vagalume! Desejo adquirir o Ativo Digital.\n\n"
-            f"⚙️ ID ORDEM: {ordem_id}\n"
+            f"⚙️ ID ORDEM: {transacao_id}\n"
             f"📘 ATIVO: {titulo_produto}\n"
             f"👤 COMPRADOR: {id_comprador_atual}\n"
             f"🔗 REF AFILIADO: {afiliado_cod}\n"
@@ -132,14 +142,16 @@ def comprar_produto():
 
         return jsonify({
             "success": True,
-            "message": "Ordem gerada com sucesso no MongoDB!",
+            "message": "Ordem processada e integrada ao motor financeiro!",
+            "transacao_id": transacao_id,
             "whatsapp_url": whatsapp_url
         })
+
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"success": False, "error": f"Erro interno no gateway Flask: {str(e)}"}), 500
 
 
-# --- PUBLICAR ARTIGO USADO (Grava permanentemente no MongoDB) ---
+# --- PUBLICAR ARTIGO USADO ---
 @app.route('/api/mercado/anunciar-usado', methods=['POST'])
 def anunciar_usado():
     try:
@@ -159,20 +171,15 @@ def anunciar_usado():
           "data_publicacao": datetime.utcnow()
         }
 
-        # Grava na coleção real do banco de dados
         resultado = colecao_usados.insert_one(novo_item)
         novo_item["_id"] = str(resultado.inserted_id)
         
-        return jsonify({
-            "success": True, 
-            "message": "Artigo guardado permanentemente no MongoDB!",
-            "item": nome
-        })
+        return jsonify({"success": True, "message": "Artigo guardado no MongoDB!", "item": nome})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-# --- FÁBRICA DE ATIVOS (Cria rascunho e dispara Engenharia de Funil no n8n) ---
+# --- FÁBRICA DE ATIVOS (n8n) ---
 @app.route('/api/mercado/gerar-infoproduto', methods=['POST'])
 def gerar_infoproduto():
     try:
@@ -183,7 +190,6 @@ def gerar_infoproduto():
         if not tema:
             return jsonify({"success": False, "error": "O tema do infoproduto é obrigatório."}), 400
 
-        # Regista o início do processo no MongoDB
         novo_produto = {
             "titulo": f"Império Digital: {tema.upper()}",
             "criador": "CORE IA / HASTA",
@@ -196,7 +202,6 @@ def gerar_infoproduto():
         resultado = colecao_produtos.insert_one(novo_produto)
         produto_id = str(resultado.inserted_id)
 
-        # Payload direcionado para o teu fluxo automatizado do n8n
         payload = {
             "produto_id": produto_id,
             "tema_solicitado": tema,
@@ -206,17 +211,11 @@ def gerar_infoproduto():
         }
 
         try:
-            # Envia a ordem de criação de ficheiros para o n8n
-            resposta = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=8)
-            n8n_status = resposta.status_code
+            requests.post(N8N_WEBHOOK_URL, json=payload, timeout=8)
         except requests.exceptions.RequestException:
-            n8n_status = 200 # Fallback local de segurança se o barramento demorar
+            pass 
 
-        return jsonify({
-            "success": True, 
-            "message": "Ordem de criação enviada para o n8n e registada no MongoDB!",
-            "produto": novo_produto["titulo"]
-        })
+        return jsonify({"success": True, "message": "Ordem enviada para o n8n!", "produto": novo_produto["titulo"]})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -232,11 +231,7 @@ def comprar_usado_p2p():
         texto_codificado = requests.utils.quote(mensagem)
         whatsapp_url = f"https://api.whatsapp.com/send?phone={WHATSAPP_SUPORTE_NUMERO}&text={texto_codificado}"
         
-        return jsonify({
-            "success": True,
-            "message": "Redirecionando para o chat de negociação P2P...",
-            "whatsapp_url": whatsapp_url
-        })
+        return jsonify({"success": True, "whatsapp_url": whatsapp_url})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
