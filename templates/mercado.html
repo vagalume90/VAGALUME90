@@ -9,300 +9,60 @@
 :root {
   --void-deep: #030305;
   --neon-pulse: #00FF66;
-  --neon-glow: rgba(0, 255, 102, 0.4);
+  --neon-glow: rgba(0, 25, 102, 0.4);
   --glass-surface: rgba(10, 25, 15, 0.6);
   --glass-border: rgba(0, 255, 102, 0.15);
   --text-main: #E0FFE5;
   --font-future: 'Orbitron', sans-serif;
   --font-clean: 'Plus Jakarta Sans', sans-serif;
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { 
-  background: var(--void-deep); 
-  color: var(--text-main); 
-  font-family: var(--font-clean); 
-  min-height: 100vh; 
-  padding-bottom: 120px; 
-  overflow-x: hidden;
-  position: relative;
-}
+body { background: var(--void-deep); color: var(--text-main); font-family: var(--font-clean); min-height: 100vh; padding-bottom: 120px; overflow-x: hidden; position: relative; }
 
-/* Grelha de Energia Dinâmica (Plano de Fundo Vivo) */
-.fundo-vibrante {
-  position: fixed;
-  inset: 0;
-  background-image: 
-    linear-gradient(rgba(0, 255, 102, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 102, 0.02) 1px, transparent 1px);
-  background-size: 50px 50px;
-  pointer-events: none;
-  z-index: 0;
-  animation: pulsaRede 10s infinite linear;
-}
+.fundo-vibrante { position: fixed; inset: 0; background-image: linear-gradient(rgba(0, 255, 102, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 102, 0.02) 1px, transparent 1px); background-size: 50px 50px; pointer-events: none; z-index: 0; animation: pulsaRede 10s infinite linear; }
+@keyframes pulsaRede { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
 
-@keyframes pulsaRede {
-  0% { background-position: 0 0; }
-  100% { background-position: 50px 50px; }
-}
+.aurora { position: fixed; top: -20%; left: -10%; width: 60vw; height: 60vh; background: radial-gradient(circle, rgba(0,255,102,0.04) 0%, transparent 70%); z-index: 0; pointer-events: none; filter: blur(40px); }
 
-/* Partículas de Luz pelo Ecrã */
-.aurora {
-  position: fixed;
-  top: -20%; left: -10%;
-  width: 60vw; height: 60vh;
-  background: radial-gradient(circle, rgba(0,255,102,0.04) 0%, transparent 70%);
-  z-index: 0;
-  pointer-events: none;
-  filter: blur(40px);
-}
+header { padding: 30px; border-bottom: 1px solid var(--glass-border); position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; background: rgba(3, 3, 5, 0.85); backdrop-filter: blur(20px); }
+.logo-universo { display: flex; align-items: center; gap: 15px; }
+.logo-universo h1 { font-family: var(--font-future); font-size: 2rem; letter-spacing: 5px; color: #FFF; text-shadow: 0 0 10px var(--neon-glow); }
+.indicador-vida { width: 12px; height: 12px; background: var(--neon-pulse); border-radius: 50%; box-shadow: 0 0 12px var(--neon-pulse); animation: respirar 2s infinite ease-in-out; }
+@keyframes respirar { 0%, 100% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.3); opacity: 1; } }
 
-/* Cabeçalho Organismo */
-header { 
-  padding: 30px; 
-  border-bottom: 1px solid var(--glass-border); 
-  position: relative; 
-  z-index: 1; 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  background: rgba(3, 3, 5, 0.85); 
-  backdrop-filter: blur(20px);
-  box-shadow: 0 4px 30px rgba(0, 255, 102, 0.02);
-}
-
-.logo-universo {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.logo-universo h1 { 
-  font-family: var(--font-future); 
-  font-size: 2rem; 
-  letter-spacing: 5px; 
-  color: #FFF;
-  text-shadow: 0 0 10px var(--neon-glow); 
-}
-
-.indicador-vida {
-  width: 12px; height: 12px;
-  background: var(--neon-pulse);
-  border-radius: 50%;
-  box-shadow: 0 0 12px var(--neon-pulse);
-  animation: respirar 2s infinite ease-in-out;
-}
-
-@keyframes respirar {
-  0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 18px var(--neon-pulse); }
-}
-
-.painel-status-nave { 
-  background: var(--glass-surface); 
-  border: 1px solid var(--glass-border); 
-  padding: 15px 25px; 
-  border-radius: 16px; 
-  font-family: var(--font-future); 
-  font-size: 0.8rem; 
-  text-align: right; 
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-}
-.painel-status-nave span { color: var(--neon-pulse); font-weight: bold; text-shadow: 0 0 5px var(--neon-glow); }
+.painel-status-nave { background: var(--glass-surface); border: 1px solid var(--glass-border); padding: 15px 25px; border-radius: 16px; font-family: var(--font-future); font-size: 0.8rem; text-align: right; backdrop-filter: blur(10px); }
+.painel-status-nave span { color: var(--neon-pulse); font-weight: bold; }
 
 .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; position: relative; z-index: 1; }
 
-/* A PRATELEIRA DE EXPOSIÇÃO VIVA */
-.prateleira-exposicao {
-  grid-column: span 2;
-  background: linear-gradient(135deg, rgba(0, 255, 102, 0.08) 0%, rgba(10, 25, 15, 0.4) 100%);
-  border: 2px solid var(--neon-pulse);
-  border-radius: 20px;
-  padding: 35px;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 0 35px rgba(0, 255, 102, 0.15), inset 0 0 20px rgba(0, 255, 102, 0.05);
-  position: relative;
-  overflow: hidden;
-}
+.prateleira-exposicao { grid-column: span 2; background: linear-gradient(135deg, rgba(0, 255, 102, 0.08) 0%, rgba(10, 25, 15, 0.4) 100%); border: 2px solid var(--neon-pulse); border-radius: 20px; padding: 35px; backdrop-filter: blur(20px); box-shadow: 0 0 35px rgba(0, 255, 102, 0.15); position: relative; overflow: hidden; }
+.prateleira-exposicao::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(0,255,102,0.1), transparent); animation: varrimento 6s infinite linear; }
+@keyframes varrimento { 0% { left: -100%; } 100% { left: 200%; } }
 
-.prateleira-exposicao::before {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%;
-  width: 50%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0,255,102,0.1), transparent);
-  animation: varrimento 6s infinite linear;
-}
-
-@keyframes varrimento {
-  0% { left: -100%; }
-  100% { left: 200%; }
-}
-
-.destaque-header {
-  font-family: var(--font-future);
-  font-size: 0.85rem;
-  color: var(--neon-pulse);
-  letter-spacing: 4px;
-  margin-bottom: 15px;
-  text-transform: uppercase;
-}
-
+.destaque-header { font-family: var(--font-future); font-size: 0.85rem; color: var(--neon-pulse); letter-spacing: 4px; margin-bottom: 15px; }
 .destaque-conteudo { display: flex; justify-content: space-between; align-items: center; gap: 30px; }
-.destaque-info h2 { font-family: var(--font-future); font-size: 1.8rem; margin-bottom: 10px; color: #FFF; }
-.destaque-info p { font-size: 0.95rem; color: rgba(224, 255, 229, 0.7); line-height: 1.5; }
+.destaque-info h2 { font-family: var(--font-future); font-size: 1.8rem; color: #FFF; }
 
-/* Cartões Orgânicos */
-.card-universo { 
-  background: var(--glass-surface); 
-  border: 1px solid var(--glass-border); 
-  border-radius: 20px; 
-  padding: 30px; 
-  backdrop-filter: blur(20px); 
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  transition: border-color 0.3s, transform 0.3s;
-}
-.card-universo:hover {
-  border-color: rgba(0, 255, 102, 0.4);
-  transform: translateY(-2px);
-}
+.card-universo { background: var(--glass-surface); border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; backdrop-filter: blur(20px); transition: border-color 0.3s, transform 0.3s; }
+.card-universo:hover { border-color: rgba(0, 255, 102, 0.4); transform: translateY(-2px); }
+.card-title { font-family: var(--font-future); font-size: 1.2rem; color: #FFF; letter-spacing: 2px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+.card-title::before { content: ''; width: 6px; height: 18px; background: var(--neon-pulse); border-radius: 3px; }
 
-.card-title { 
-  font-family: var(--font-future); 
-  font-size: 1.2rem; 
-  color: #FFF; 
-  letter-spacing: 2px; 
-  margin-bottom: 25px; 
-  display: flex; 
-  align-items: center; 
-  gap: 10px;
-}
-.card-title::before {
-  content: '';
-  width: 6px; height: 18px;
-  background: var(--neon-pulse);
-  border-radius: 3px;
-  box-shadow: 0 0 8px var(--neon-pulse);
-}
+.input-universo { width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--glass-border); padding: 16px; color: #FFF; border-radius: 12px; margin-bottom: 18px; outline: none; font-size: 0.95rem; }
+.input-universo:focus { border-color: var(--neon-pulse); background: rgba(0, 0, 0, 0.6); }
 
-.input-universo { 
-  width: 100%; 
-  background: rgba(0, 0, 0, 0.4); 
-  border: 1px solid var(--glass-border); 
-  padding: 16px; 
-  font-family: var(--font-clean); 
-  color: #FFF; 
-  border-radius: 12px; 
-  margin-bottom: 18px; 
-  outline: none; 
-  font-size: 0.95rem; 
-  transition: all 0.3s; 
-}
-.input-universo:focus { 
-  border-color: var(--neon-pulse); 
-  background: rgba(0, 0, 0, 0.6);
-  box-shadow: 0 0 10px rgba(0, 255, 102, 0.1);
-}
-select.input-universo { color: rgba(255,255,255,0.9); }
+.btn-portal { background: linear-gradient(135deg, #00FF66 0%, #00CC52 100%); color: var(--void-deep); border: none; font-family: var(--font-future); font-size: 1rem; padding: 15px 25px; border-radius: 12px; cursor: pointer; letter-spacing: 2px; font-weight: 700; width: 100%; box-shadow: 0 4px 20px rgba(0, 255, 102, 0.2); }
+.btn-portal:hover { box-shadow: 0 0 25px var(--neon-pulse); }
 
-.btn-portal { 
-  background: linear-gradient(135deg, #00FF66 0%, #00CC52 100%); 
-  color: var(--void-deep); 
-  border: none; 
-  font-family: var(--font-future); 
-  font-size: 1rem; 
-  padding: 15px 25px; 
-  border-radius: 12px; 
-  cursor: pointer; 
-  letter-spacing: 2px; 
-  font-weight: 700; 
-  transition: all 0.3s; 
-  width: 100%; 
-  box-shadow: 0 4px 20px rgba(0, 255, 102, 0.2);
-}
-.btn-portal:hover { 
-  opacity: 0.95; 
-  box-shadow: 0 0 25px var(--neon-pulse);
-  transform: scale(1.01);
-}
+.lista-viva { display: grid; grid-template-columns: 1fr; gap: 15px; max-height: 320px; overflow-y: auto; }
+.item-vivo { background: rgba(3,3,5,0.4); border: 1px solid rgba(0, 255, 102, 0.05); padding: 18px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; }
 
-.lista-viva { display: grid; grid-template-columns: 1fr; gap: 15px; max-height: 320px; overflow-y: auto; padding-right: 5px; }
-.lista-viva::-webkit-scrollbar { width: 5px; }
-.lista-viva::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+.btn-conectar { background: transparent; border: 1px solid var(--neon-pulse); color: var(--neon-pulse); font-family: var(--font-future); font-size: 0.8rem; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+.btn-conectar:hover { background: var(--neon-pulse); color: var(--void-deep); }
 
-.item-vivo { 
-  background: rgba(3,3,5,0.4); 
-  border: 1px solid rgba(0, 255, 102, 0.05); 
-  padding: 18px; 
-  border-radius: 14px; 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  transition: background 0.2s;
-}
-.item-vivo:hover { background: rgba(0, 255, 102, 0.02); }
-
-.item-info h4 { font-family: var(--font-clean); font-size: 1rem; color: #FFF; font-weight: 600; margin-bottom: 4px; }
-.item-info p { font-size: 0.8rem; color: rgba(224, 255, 229, 0.5); font-family: var(--font-future); }
-
-.btn-conectar { 
-  background: transparent; 
-  border: 1px solid var(--neon-pulse); 
-  color: var(--neon-pulse); 
-  font-family: var(--font-future); 
-  font-size: 0.8rem; 
-  padding: 10px 20px; 
-  border-radius: 8px; 
-  cursor: pointer; 
-  font-weight: bold; 
-  transition: all 0.2s; 
-}
-.btn-conectar:hover { 
-  background: var(--neon-pulse); 
-  color: var(--void-deep); 
-  box-shadow: 0 0 15px var(--neon-glow);
-}
-
-.caixa-afiliado { 
-  background: rgba(0,0,0,0.3); 
-  border: 1px solid rgba(0, 255, 102, 0.05); 
-  padding: 20px; 
-  border-radius: 14px; 
-  font-size: 0.9rem; 
-  color: rgba(224, 255, 229, 0.7); 
-  line-height: 1.6; 
-}
-
-/* Menu Flutuante */
-nav { 
-  position: fixed; 
-  bottom: 30px; 
-  left: 50%; 
-  transform: translateX(-50%); 
-  background: rgba(3, 3, 5, 0.9); 
-  border: 1px solid var(--glass-border); 
-  padding: 16px 40px; 
-  border-radius: 40px; 
-  display: flex; 
-  gap: 40px; 
-  z-index: 100; 
-  box-shadow: 0 15px 35px rgba(0,0,0,0.8);
-  backdrop-filter: blur(20px);
-}
-nav a { 
-  color: rgba(224, 255, 229, 0.4); 
-  text-decoration: none; 
-  font-family: var(--font-future); 
-  font-size: 0.85rem; 
-  letter-spacing: 2px; 
-  text-transform: uppercase; 
-  font-weight: 700; 
-}
-nav a.active { 
-  color: var(--neon-pulse); 
-  text-shadow: 0 0 12px var(--neon-glow); 
-}
+.caixa-afiliado { background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 255, 102, 0.05); padding: 20px; border-radius: 14px; font-size: 0.9rem; line-height: 1.6; }
+nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(3, 3, 5, 0.9); border: 1px solid var(--glass-border); padding: 16px 40px; border-radius: 40px; display: flex; z-index: 100; backdrop-filter: blur(20px); }
+nav a { color: var(--neon-pulse); text-decoration: none; font-family: var(--font-future); font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; text-shadow: 0 0 12px var(--neon-glow); }
 </style>
 </head>
 <body>
@@ -366,11 +126,10 @@ nav a.active {
 
   <div class="card-universo">
     <div class="card-title">DISPONIBILIZAR ITEM NO ECOSSISTEMA</div>
-    <input type="text" id="nome-item" class="input-universo" placeholder="O que vais passar para outro utilizador? (Telemóvel, Livro...)">
+    <input type="text" id="nome-item" class="input-universo" placeholder="O que vais passar para outro utilizador?">
     <select id="condicao-item" class="input-universo">
       <option value="Excelente - Como Novo">Estado Perfeito // Praticamente Novo</option>
       <option value="Usado - Em bom estado">Estado Fluido // Em pleno funcionamento</option>
-      <option value="Sinais de Uso Aceitáveis">Histórico Visível // Sinais de uso aceitáveis</option>
     </select>
     <input type="number" id="preco-item" class="input-universo" placeholder="Valor de troca em Kwanzas (KZ)">
     <button class="btn-portal" onclick="anunciarItemFisico()">DISPONIBILIZAR NO MARKETPLACE</button>
@@ -407,7 +166,7 @@ nav a.active {
         </button>
       </div>
       {% else %}
-      <p style="grid-column: span 2; font-family: var(--font-future); font-size: 0.8rem; color: rgba(224,255,229,0.35); text-align: center; padding: 20px 0;">// O teu cofre pessoal está vazio. Conecta o teu primeiro ativo acima.</p>
+      <p style="grid-column: span 2; font-family: var(--font-future); font-size: 0.8rem; color: rgba(224,255,229,0.35); text-align: center; padding: 20px 0;">// O teu cofre pessoal está vazio.</p>
       {% endfor %}
     </div>
   </div>
@@ -417,46 +176,63 @@ nav a.active {
     <div class="caixa-afiliado">
       <p style="margin-bottom: 12px;">// Partilha a tua assinatura de rede e expande o ecossistema:</p>
       <input type="text" class="input-universo" style="margin-bottom: 12px; color: var(--neon-pulse); font-family: var(--font-future);" readonly value="{{ request.url_root }}modulo/mercado?ref={{ codigo_afiliado }}">
-      <p style="font-size: 0.8rem; opacity: 0.6;">Ao expandir este nexo para outros jovens, asseguras 40% de retorno direto de energia sobre qualquer ativo manifestado por eles.</p>
     </div>
   </div>
 </div>
 
 <nav>
-  <a href="/modulo/mercado" class="active">Ecossistema</a>
+  <a href="/modulo/mercado">Ecossistema</a>
 </nav>
 
 <script>
-function obterCodigoAfiliado() {
+function obtenerCodigoAfiliado() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get('ref') || 'DIRETO';
+}
+
+async function comprarProduto(id) {
+  if (!confirm("Iniciar canal de aquisição deste ativo digital?")) return;
+  const afiliadoCod = obterCodigoAfiliado();
+  const xUserId = "USER_HASTA_90"; 
+  
+  try {
+    const res = await fetch('/api/mercado/comprar', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-USER-ID': xUserId
+      },
+      body: JSON.stringify({ produto_id: id, afiliado_cod: afiliadoCod })
+    });
+    
+    const data = await res.json();
+    if(data.success && data.whatsapp_url) {
+      window.location.href = data.whatsapp_url;
+    } else {
+      alert("Erro do Motor Financeiro: " + (data.error || "Recusa de conexão."));
+    }
+  } catch (err) { alert("Falha crítica de comunicação com o gateway."); }
 }
 
 async function gerarAtivoIA() {
   const temaInput = document.getElementById('tema-ia').value.trim();
   const tipoSelect = document.getElementById('tipo-ia').value;
-  if(!temaInput) return alert("Indica um tema para iniciarmos a engenharia.");
-  
+  if(!temaInput) return alert("Indica um tema.");
   try {
     const res = await fetch('/api/mercado/gerar-infoproduto', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tema: temaInput, tipo: tipoSelect })
     });
-    const data = await res.json();
-    if(data.success) {
-      alert("Sinal enviado à rede! O teu ativo está a ser fundido.");
-      window.location.reload();
-    }
-  } catch (err) { alert("Falha de sincronização com a rede."); }
+    if(res.ok) window.location.reload();
+  } catch (err) { alert("Erro ao contactar n8n."); }
 }
 
 async function anunciarItemFisico() {
   const nome = document.getElementById('nome-item').value.trim();
   const condicao = document.getElementById('condicao-item').value;
   const preco = document.getElementById('preco-item').value.trim();
-  if(!nome || !preco) return alert("Fornece os dados do item para materialização.");
-  
+  if(!nome || !preco) return alert("Preenche todos os dados.");
   try {
     const res = await fetch('/api/mercado/anunciar-usado', {
       method: 'POST',
@@ -464,30 +240,10 @@ async function anunciarItemFisico() {
       body: JSON.stringify({ nome: nome, condicao: condicao, preco: preco })
     });
     if(res.ok) window.location.reload();
-  } catch (err) { alert("Erro de comunicação."); }
-}
-
-async function comprarProduto(id) {
-  if (!confirm("Iniciar canal de aquisição deste ativo digital?")) return;
-  const afiliadoCod = obterCodigoAfiliado();
-  
-  try {
-    const res = await fetch('/api/mercado/comprar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ produto_id: id, afiliado_cod: afiliadoCod })
-    });
-    const data = await res.json();
-    if(data.success && data.whatsapp_url) {
-      window.location.href = data.whatsapp_url;
-    } else {
-      alert("Erro do Motor Financeiro: " + (data.error || "Recusa de processamento"));
-    }
-  } catch (err) { alert("Erro no link de conexão."); }
+  } catch (err) { alert("Falha de comunicação."); }
 }
 
 async function comprarItemUsado(id) {
-  if (!confirm("Abrir canal direto P2P com o operador detentor do item?")) return;
   try {
     const res = await fetch('/api/mercado/comprar-usado', {
       method: 'POST',
@@ -496,7 +252,7 @@ async function comprarItemUsado(id) {
     });
     const data = await res.json();
     if(data.success && data.whatsapp_url) window.location.href = data.whatsapp_url;
-  } catch (err) { alert("Falha na ponte de comunicação."); }
+  } catch (err) { alert("Erro de ponte."); }
 }
 </script>
 </body>
