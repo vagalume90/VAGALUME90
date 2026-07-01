@@ -113,7 +113,7 @@ header {
 
 .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; position: relative; z-index: 1; }
 
-/* 🌟 A PRATELEIRA DE EXPOSIÇÃO VIVA (Grande Destaque do Universo) */
+/* A PRATELEIRA DE EXPOSIÇÃO VIVA */
 .prateleira-exposicao {
   grid-column: span 2;
   background: linear-gradient(135deg, rgba(0, 255, 102, 0.08) 0%, rgba(10, 25, 15, 0.4) 100%);
@@ -153,7 +153,7 @@ header {
 .destaque-info h2 { font-family: var(--font-future); font-size: 1.8rem; margin-bottom: 10px; color: #FFF; }
 .destaque-info p { font-size: 0.95rem; color: rgba(224, 255, 229, 0.7); line-height: 1.5; }
 
-/* Cartões Orgânicos do Futuro */
+/* Cartões Orgânicos */
 .card-universo { 
   background: var(--glass-surface); 
   border: 1px solid var(--glass-border); 
@@ -274,7 +274,7 @@ select.input-universo { color: rgba(255,255,255,0.9); }
   line-height: 1.6; 
 }
 
-/* Navegação Flutuante Orgânica */
+/* Menu Flutuante */
 nav { 
   position: fixed; 
   bottom: 30px; 
@@ -287,7 +287,7 @@ nav {
   display: flex; 
   gap: 40px; 
   z-index: 100; 
-  box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 20px rgba(0,255,102,0.02);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.8);
   backdrop-filter: blur(20px);
 }
 nav a { 
@@ -298,7 +298,6 @@ nav a {
   letter-spacing: 2px; 
   text-transform: uppercase; 
   font-weight: 700; 
-  transition: color 0.3s;
 }
 nav a.active { 
   color: var(--neon-pulse); 
@@ -324,14 +323,13 @@ nav a.active {
 
 <div class="container">
   
-  <!-- 🌟 PRATELEIRA DE EXPOSIÇÃO (O Coração do Ecossistema) -->
   <div class="prateleira-exposicao">
     <div class="destaque-header">// ATIVO DE MÁXIMA CONVERGÊNCIA EM EXPOSIÇÃO</div>
     <div class="destaque-conteudo">
       <div class="destaque-info">
         <h2>{{ produto_destaque.titulo }}</h2>
         <p>{{ produto_destaque.descricao }}</p>
-        <small style="font-family: var(--font-future); color: var(--neon-pulse); opacity: 0.8; display:block; margin-top:12px; font-size: 0.75rem;">ARQUITETO DA REDE: {{ produto_destaque.criador }}</small>
+        <small style="font-family: var(--font-future); color: var(--neon-pulse); display:block; margin-top:12px; font-size: 0.75rem;">ARQUITETO DA REDE: {{ produto_destaque.criador }}</small>
       </div>
       <button class="btn-conectar" style="padding: 16px 32px; font-size: 0.9rem; background: var(--neon-pulse); color: var(--void-deep); border: none;" onclick="comprarProduto('{{ produto_destaque._id }}')">
         CONECTAR ATIVO ({{ "%.2f"|format(produto_destaque.preco_sugerido) }} KZ)
@@ -339,7 +337,6 @@ nav a.active {
     </div>
   </div>
 
-  <!-- FÁBRICA DE ATIVOS -->
   <div class="card-universo">
     <div class="card-title">MANIFESTAR NOVO ATIVO // CORE IA</div>
     <input type="text" id="tema-ia" class="input-universo" placeholder="Qual o conhecimento ou nicho que queres materializar?">
@@ -350,7 +347,6 @@ nav a.active {
     <button class="btn-portal" onclick="gerarAtivoIA()">DISPARAR ENGENHARIA DE FUNIL</button>
   </div>
 
-  <!-- PRODUTOS ATIVOS -->
   <div class="card-universo">
     <div class="card-title">ATIVOS MANIFESTADOS NA REDE</div>
     <div class="lista-viva">
@@ -368,7 +364,6 @@ nav a.active {
     </div>
   </div>
 
-  <!-- MATERIALIZAR USADO -->
   <div class="card-universo">
     <div class="card-title">DISPONIBILIZAR ITEM NO ECOSSISTEMA</div>
     <input type="text" id="nome-item" class="input-universo" placeholder="O que vais passar para outro utilizador? (Telemóvel, Livro...)">
@@ -381,7 +376,6 @@ nav a.active {
     <button class="btn-portal" onclick="anunciarItemFisico()">DISPONIBILIZAR NO MARKETPLACE</button>
   </div>
 
-  <!-- MARKETPLACE DE USADOS -->
   <div class="card-universo">
     <div class="card-title">FLUXO DE TROCAS CIRCULARES</div>
     <div class="lista-viva">
@@ -399,7 +393,6 @@ nav a.active {
     </div>
   </div>
 
-  <!-- INVENTÁRIO REAL -->
   <div class="card-universo" style="grid-column: span 2;">
     <div class="card-title">O TEU COFRE DE ATIVOS INTEGRADOS // INVENTÁRIO</div>
     <div class="lista-viva" style="max-height: none; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -419,7 +412,6 @@ nav a.active {
     </div>
   </div>
 
-  <!-- SISTEMA DE AFILIADOS -->
   <div class="card-universo" style="grid-column: span 2;">
     <div class="card-title">REDE DE EXPANSÃO COLETIVA (AFILIADOS)</div>
     <div class="caixa-afiliado">
@@ -443,7 +435,6 @@ function obterCodigoAfiliado() {
 async function gerarAtivoIA() {
   const temaInput = document.getElementById('tema-ia').value.trim();
   const tipoSelect = document.getElementById('tipo-ia').value;
-  
   if(!temaInput) return alert("Indica um tema para iniciarmos a engenharia.");
   
   try {
@@ -454,7 +445,7 @@ async function gerarAtivoIA() {
     });
     const data = await res.json();
     if(data.success) {
-      alert("Sinal enviado à rede! O teu ativo está a ser fundido: " + data.produto);
+      alert("Sinal enviado à rede! O teu ativo está a ser fundido.");
       window.location.reload();
     }
   } catch (err) { alert("Falha de sincronização com a rede."); }
@@ -464,7 +455,6 @@ async function anunciarItemFisico() {
   const nome = document.getElementById('nome-item').value.trim();
   const condicao = document.getElementById('condicao-item').value;
   const preco = document.getElementById('preco-item').value.trim();
-  
   if(!nome || !preco) return alert("Fornece os dados do item para materialização.");
   
   try {
@@ -473,14 +463,14 @@ async function anunciarItemFisico() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nome: nome, condicao: condicao, preco: preco })
     });
-    const data = await res.json();
-    if(data.success) window.location.reload();
+    if(res.ok) window.location.reload();
   } catch (err) { alert("Erro de comunicação."); }
 }
 
 async function comprarProduto(id) {
   if (!confirm("Iniciar canal de aquisição deste ativo digital?")) return;
   const afiliadoCod = obterCodigoAfiliado();
+  
   try {
     const res = await fetch('/api/mercado/comprar', {
       method: 'POST',
@@ -488,7 +478,11 @@ async function comprarProduto(id) {
       body: JSON.stringify({ produto_id: id, afiliado_cod: afiliadoCod })
     });
     const data = await res.json();
-    if(data.success && data.whatsapp_url) window.location.href = data.whatsapp_url;
+    if(data.success && data.whatsapp_url) {
+      window.location.href = data.whatsapp_url;
+    } else {
+      alert("Erro do Motor Financeiro: " + (data.error || "Recusa de processamento"));
+    }
   } catch (err) { alert("Erro no link de conexão."); }
 }
 
