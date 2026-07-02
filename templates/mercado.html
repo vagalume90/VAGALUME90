@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VAGALUME90 // Portal de Conexão Digital</title>
+<title>VAGALUME90 // Mercado de Ativos</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -17,51 +17,48 @@
   --font-clean: 'Plus Jakarta Sans', sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--void-deep); color: var(--text-main); font-family: var(--font-clean); min-height: 100vh; padding-bottom: 120px; }
+body { background: var(--void-deep); color: var(--text-main); font-family: var(--font-clean); min-height: 100vh; padding-bottom: 80px; }
 
-header { padding: 30px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; background: rgba(3, 3, 5, 0.85); backdrop-filter: blur(20px); position: relative; z-index: 1; }
-.logo-universo h1 { font-family: var(--font-future); font-size: 2rem; letter-spacing: 5px; color: #FFF; text-shadow: 0 0 10px var(--neon-glow); }
-.painel-status-nave { background: var(--glass-surface); border: 1px solid var(--glass-border); padding: 15px 25px; border-radius: 16px; font-family: var(--font-future); font-size: 0.8rem; text-align: right; }
-.painel-status-nave span { color: var(--neon-pulse); font-weight: bold; }
+header { padding: 30px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; background: rgba(3, 3, 5, 0.85); backdrop-filter: blur(20px); }
+.logo h1 { font-family: var(--font-future); font-size: 2rem; letter-spacing: 5px; color: #FFF; text-shadow: 0 0 10px var(--neon-glow); }
+.status-bar { background: var(--glass-surface); border: 1px solid var(--glass-border); padding: 15px 25px; border-radius: 16px; font-family: var(--font-future); font-size: 0.8rem; text-align: right; }
+.status-bar span { color: var(--neon-pulse); font-weight: bold; }
 
 .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-.prateleira-exposicao { grid-column: span 2; background: linear-gradient(135deg, rgba(0, 255, 102, 0.08) 0%, rgba(10, 25, 15, 0.4) 100%); border: 2px solid var(--neon-pulse); border-radius: 20px; padding: 35px; backdrop-filter: blur(20px); }
-.destaque-header { font-family: var(--font-future); font-size: 0.85rem; color: var(--neon-pulse); letter-spacing: 4px; margin-bottom: 15px; }
+.destaque { grid-column: span 2; background: linear-gradient(135deg, rgba(0, 255, 102, 0.08) 0%, rgba(10, 25, 15, 0.4) 100%); border: 2px solid var(--neon-pulse); border-radius: 20px; padding: 35px; backdrop-filter: blur(20px); }
 .destaque-conteudo { display: flex; justify-content: space-between; align-items: center; gap: 30px; }
-.destaque-info h2 { font-family: var(--font-future); font-size: 1.8rem; color: #FFF; }
 
-.card-universo { background: var(--glass-surface); border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; backdrop-filter: blur(20px); }
+.card { background: var(--glass-surface); border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; backdrop-filter: blur(20px); }
 .card-title { font-family: var(--font-future); font-size: 1.1rem; color: #FFF; letter-spacing: 2px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
 .card-title::before { content: ''; width: 6px; height: 18px; background: var(--neon-pulse); border-radius: 3px; }
 
-label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-future); letter-spacing: 1px; display: block; margin-bottom: 6px; }
-.input-universo { width: 100%; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--glass-border); padding: 14px; color: #FFF; border-radius: 10px; margin-bottom: 18px; outline: none; font-size: 0.9rem; }
+label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-future); display: block; margin-bottom: 6px; }
+.input-universo { width: 100%; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--glass-border); padding: 14px; color: #FFF; border-radius: 10px; margin-bottom: 18px; outline: none; }
 .btn-portal { background: linear-gradient(135deg, #00FF66 0%, #00CC52 100%); color: var(--void-deep); border: none; font-family: var(--font-future); font-size: 1rem; padding: 15px 25px; border-radius: 12px; cursor: pointer; font-weight: 700; width: 100%; letter-spacing: 1px; }
 
-.lista-viva { display: grid; grid-template-columns: 1fr; gap: 15px; max-height: 480px; overflow-y: auto; }
-.item-vivo { background: rgba(3,3,5,0.6); border: 1px solid rgba(0, 255, 102, 0.08); padding: 18px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; }
-.item-info h4 { font-family: var(--font-future); color: #FFF; font-size: 1rem; margin-bottom: 4px; }
-.item-info p { font-size: 0.8rem; color: rgba(224, 255, 229, 0.6); }
-.btn-conectar { background: transparent; border: 1px solid var(--neon-pulse); color: var(--neon-pulse); font-family: var(--font-future); font-size: 0.8rem; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+.lista { display: grid; grid-template-columns: 1fr; gap: 15px; max-height: 480px; overflow-y: auto; }
+.item { background: rgba(3,3,5,0.6); border: 1px solid rgba(0, 255, 102, 0.08); padding: 18px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; }
+.btn-conectar { background: transparent; border: 1px solid var(--neon-pulse); color: var(--neon-pulse); font-family: var(--font-future); font-size: 0.8rem; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
 .btn-conectar:hover { background: var(--neon-pulse); color: var(--void-deep); }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo-universo"><h1>VAGALUME90</h1></div>
-  <div class="painel-status-nave">
-    <div>NEXUS OPERADOR: <span>{{ rank }}</span></div>
+  <div class="logo"><h1>VAGALUME90</h1></div>
+  <div class="status-bar">
+    <div>NEXUS: <span>{{ rank }}</span></div>
     <div>SALDO TERMINAL: <span>{{ "%.2f"|format(saldo_disponivel) }} KZ</span></div>
   </div>
 </header>
 
 <div class="container">
   
-  <div class="prateleira-exposicao">
-    <div class="destaque-header">// ATIVO DESTAQUE EM EXPOSIÇÃO</div>
+  <!-- MONTRA -->
+  <div class="destaque">
+    <div style="font-family: var(--font-future); font-size: 0.85rem; color: var(--neon-pulse); margin-bottom: 15px;">// ATIVO DESTAQUE EM EXPOSIÇÃO</div>
     <div class="destaque-conteudo">
-      <div class="destaque-info">
+      <div>
         <h2>{{ produto_destaque.titulo }}</h2>
         <p style="margin-top: 10px; color: rgba(224, 255, 229, 0.7);">{{ produto_destaque.descricao }}</p>
       </div>
@@ -71,57 +68,45 @@ label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-fu
     </div>
   </div>
 
-  <div class="card-universo">
+  <!-- CRIADOR DUPLO -->
+  <div class="card">
     <div class="card-title">MANIFESTAR OU DEPOSITAR ATIVO</div>
     
-    <div style="border-bottom: 1px dashed var(--glass-border); padding-bottom: 25px; margin-bottom: 25px;">
-      <label style="color: #00FFFF;">// DISPARAR GERADOR DE PRODUTOS AUTOMÁTICO (IA):</label>
-      <input type="text" id="nicho-ia" class="input-universo" placeholder="Indica o nicho para a IA manifestar (Ex: Saúde, Vídeos)..." style="margin-bottom: 12px; border-color: rgba(0, 255, 255, 0.2);">
+    <!-- BLOCO IA -->
+    <div style="border-bottom: 1px dashed var(--glass-border); padding-bottom: 20px; margin-bottom: 20px;">
+      <label style="color: #00FFFF;">// DISPARAR GERADOR AUTOMÁTICO (IA):</label>
+      <input type="text" id="nicho-ia" class="input-universo" placeholder="Indica o nicho (Ex: Saúde, Vídeos)..." style="border-color: rgba(0, 255, 255, 0.2);">
       <button class="btn-portal" style="background: linear-gradient(135deg, #00FFFF 0%, #0088FF 100%); color: #000;" onclick="dispararGeradorIA()">DISPARAR FUNIL DA IA</button>
     </div>
 
+    <!-- BLOCO MANUAL -->
     <div>
-      <label>// DEPOSITAR O TEU PRÓPRIO PRODUTO (HOSPEDAGEM REAL):</label>
+      <label>// DEPOSITAR O TEU PRÓPRIO PRODUTO (REAL):</label>
       <input type="text" id="titulo-prod" class="input-universo" placeholder="Título do teu produto real...">
       <input type="number" id="preco-prod" class="input-universo" placeholder="Preço em Kwanzas (KZ)...">
-      <input type="url" id="url-prod" class="input-universo" placeholder="Link do teu Google Drive, Mega ou MediaFire...">
-      <input type="text" id="desc-prod" class="input-universo" placeholder="Breve descrição do produto para a montra...">
+      <input type="url" id="url-prod" class="input-universo" placeholder="Link do Google Drive ou Mega...">
+      <input type="text" id="desc-prod" class="input-universo" placeholder="Breve descrição do produto...">
       <button class="btn-portal" onclick="depositarAtivoManual()">LANÇAR ATIVO MANUAL NA REDE</button>
     </div>
   </div>
 
-  <div class="card-universo">
+  <!-- CATALOGO -->
+  <div class="card">
     <div class="card-title">ATIVOS DISPONÍVEIS NA REDE</div>
-    <div class="lista-viva">
+    <div class="lista">
       {% if produtos %}
         {% for prod in produtos %}
-        <div class="item-vivo">
-          <div class="item-info">
+        <div class="item">
+          <div>
             <h4>{{ prod.titulo }}</h4>
-            <p>{{ prod.descricao }}</p>
-            <span style="color: var(--neon-pulse); font-size: 0.85rem; font-family: var(--font-future); display:block; margin-top:5px;">{{ "%.2f"|format(prod.preco_sugerido) }} KZ</span>
+            <p style="font-size: 0.8rem; color: rgba(224, 255, 229, 0.6);">{{ prod.descricao }}</p>
+            <span style="color: var(--neon-pulse); font-size: 0.85rem; display:block; margin-top:5px;">{{ "%.2f"|format(prod.preco_sugerido) }} KZ</span>
           </div>
           <button class="btn-conectar" onclick="comprarProduto('{{ prod.id }}')">COMPRAR</button>
         </div>
         {% endfor %}
       {% else %}
-        <p style="padding: 20px; color: rgba(255,255,255,0.3); text-align: center;">Nenhum produto em catálogo. Usa o painel lateral para popular o Neon.</p>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="card-universo" style="grid-column: span 2;">
-    <div class="card-title">O TEU COFRE DE ATIVOS (HISTÓRICO PERMANENTE)</div>
-    <div class="lista-viva" style="grid-template-columns: 1fr 1fr; gap: 20px; max-height: none;">
-      {% if ativos_comprados %}
-        {% for ativo in ativos_comprados %}
-        <div class="item-vivo">
-          <div class="item-info"><h4 style="color: var(--neon-pulse);">{{ ativo.produto_titulo }}</h4></div>
-          <button class="btn-conectar" onclick="window.open('{{ ativo.download_url }}', '_blank');">DESCARREGAR</button>
-        </div>
-        {% endfor %}
-      {% else %}
-        <p style="padding: 20px; color: rgba(255,255,255,0.3); grid-column: span 2; text-align: center;">Os teus ativos validados e liberados aparecerão aqui após verificação do suporte.</p>
+        <p style="padding: 20px; color: rgba(255,255,255,0.3); text-align: center;">Nenhum produto em catálogo.</p>
       {% endif %}
     </div>
   </div>
@@ -129,38 +114,25 @@ label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-fu
 </div>
 
 <script>
-function obterCodigoAfiliado() {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('ref') || 'DIRETO';
-}
-
 async function comprarProduto(id) {
-  if (!confirm("Iniciar canal de aquisição segura para este ativo digital?")) return;
-  
-  const afiliadoCod = obterCodigoAfiliado();
-  
   try {
     const res = await fetch('/api/mercado/comprar', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-USER-ID': 'USER_HASTA_90' },
-      body: JSON.stringify({ produto_id: id, afiliado_cod: afiliadoCod })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ produto_id: id })
     });
-    
     const data = await res.json();
     if (data.success && data.whatsapp_url) {
       window.location.href = data.whatsapp_url;
-    } else {
-      alert("Erro do Sistema: " + (data.error || "Recusa de processamento."));
     }
   } catch (err) {
-    alert("Falha crítica de conexão com o servidor.");
+    alert("Falha ao processar requisição.");
   }
 }
 
 async function dispararGeradorIA() {
   const tema = document.getElementById('nicho-ia').value;
-  if (!tema) return alert("Por favor, digita um nicho para o gerador de IA!");
-  
+  if (!tema) return alert("Insere um nicho!");
   try {
     const res = await fetch('/api/mercado/gerar-infoproduto', {
       method: 'POST',
@@ -168,12 +140,9 @@ async function dispararGeradorIA() {
       body: JSON.stringify({ tipo: 'ia', tema: tema })
     });
     const data = await res.json();
-    if (data.success) {
-      alert("✅ O Vagalume Core IA manifestou um novo infoproduto no catálogo!");
-      window.location.reload();
-    }
+    if (data.success) window.location.reload();
   } catch (err) {
-    alert("Erro ao acionar o gerador de IA.");
+    alert("Erro na IA.");
   }
 }
 
@@ -183,29 +152,17 @@ async function depositarAtivoManual() {
   const url = document.getElementById('url-prod').value;
   const desc = document.getElementById('desc-prod').value;
   
-  if (!titulo || !preco || !url) {
-    return alert("⚠️ Preenche o Título, o Preço e insere o Link do teu Drive/Mega!");
-  }
-  
+  if (!titulo || !preco || !url) return alert("Preenche todos os campos!");
   try {
     const res = await fetch('/api/mercado/gerar-infoproduto', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        tipo: 'manual',
-        titulo: titulo,
-        preco: parseFloat(preco),
-        download_url: url,
-        descricao: desc
-      })
+      body: JSON.stringify({ tipo: 'manual', titulo: titulo, preco: parseFloat(preco), download_url: url, descricao: desc })
     });
     const data = await res.json();
-    if (data.success) {
-      alert("✅ Teu ativo real foi hospedado e registado com sucesso no Neon!");
-      window.location.reload();
-    }
+    if (data.success) window.location.reload();
   } catch (err) {
-    alert("Falha ao comunicar depósito manual.");
+    alert("Erro no depósito manual.");
   }
 }
 </script>
