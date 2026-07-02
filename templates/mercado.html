@@ -17,86 +17,111 @@
   --font-clean: 'Plus Jakarta Sans', sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--void-deep); color: var(--text-main); font-family: var(--font-clean); min-height: 100vh; padding-bottom: 120px; overflow-x: hidden; }
+body { background: var(--void-deep); color: var(--text-main); font-family: var(--font-clean); min-height: 100vh; padding-bottom: 120px; }
 
-.fundo-vibrante { position: fixed; inset: 0; background-image: linear-gradient(rgba(0, 255, 102, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 102, 0.02) 1px, transparent 1px); background-size: 50px 50px; pointer-events: none; z-index: 0; }
 header { padding: 30px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; background: rgba(3, 3, 5, 0.85); backdrop-filter: blur(20px); position: relative; z-index: 1; }
 .logo-universo h1 { font-family: var(--font-future); font-size: 2rem; letter-spacing: 5px; color: #FFF; text-shadow: 0 0 10px var(--neon-glow); }
 .painel-status-nave { background: var(--glass-surface); border: 1px solid var(--glass-border); padding: 15px 25px; border-radius: 16px; font-family: var(--font-future); font-size: 0.8rem; text-align: right; }
 .painel-status-nave span { color: var(--neon-pulse); font-weight: bold; }
 
-.container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; position: relative; z-index: 1; }
+.container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
 .prateleira-exposicao { grid-column: span 2; background: linear-gradient(135deg, rgba(0, 255, 102, 0.08) 0%, rgba(10, 25, 15, 0.4) 100%); border: 2px solid var(--neon-pulse); border-radius: 20px; padding: 35px; backdrop-filter: blur(20px); }
 .destaque-header { font-family: var(--font-future); font-size: 0.85rem; color: var(--neon-pulse); letter-spacing: 4px; margin-bottom: 15px; }
 .destaque-conteudo { display: flex; justify-content: space-between; align-items: center; gap: 30px; }
 .destaque-info h2 { font-family: var(--font-future); font-size: 1.8rem; color: #FFF; }
 
 .card-universo { background: var(--glass-surface); border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; backdrop-filter: blur(20px); }
-.card-title { font-family: var(--font-future); font-size: 1.2rem; color: #FFF; letter-spacing: 2px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+.card-title { font-family: var(--font-future); font-size: 1.1rem; color: #FFF; letter-spacing: 2px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
 .card-title::before { content: ''; width: 6px; height: 18px; background: var(--neon-pulse); border-radius: 3px; }
 
-.input-universo { width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--glass-border); padding: 16px; color: #FFF; border-radius: 12px; margin-bottom: 18px; outline: none; }
-.btn-portal { background: linear-gradient(135deg, #00FF66 0%, #00CC52 100%); color: var(--void-deep); border: none; font-family: var(--font-future); font-size: 1rem; padding: 15px 25px; border-radius: 12px; cursor: pointer; font-weight: 700; width: 100%; }
+label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-future); letter-spacing: 1px; display: block; margin-bottom: 6px; }
+.input-universo { width: 100%; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--glass-border); padding: 14px; color: #FFF; border-radius: 10px; margin-bottom: 18px; outline: none; font-size: 0.9rem; }
+.btn-portal { background: linear-gradient(135deg, #00FF66 0%, #00CC52 100%); color: var(--void-deep); border: none; font-family: var(--font-future); font-size: 1rem; padding: 15px 25px; border-radius: 12px; cursor: pointer; font-weight: 700; width: 100%; letter-spacing: 1px; }
 
-.lista-viva { display: grid; grid-template-columns: 1fr; gap: 15px; max-height: 320px; overflow-y: auto; }
-.item-vivo { background: rgba(3,3,5,0.4); border: 1px solid rgba(0, 255, 102, 0.05); padding: 18px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; }
+.lista-viva { display: grid; grid-template-columns: 1fr; gap: 15px; max-height: 480px; overflow-y: auto; }
+.item-vivo { background: rgba(3,3,5,0.6); border: 1px solid rgba(0, 255, 102, 0.08); padding: 18px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; }
+.item-info h4 { font-family: var(--font-future); color: #FFF; font-size: 1rem; margin-bottom: 4px; }
+.item-info p { font-size: 0.8rem; color: rgba(224, 255, 229, 0.6); }
 .btn-conectar { background: transparent; border: 1px solid var(--neon-pulse); color: var(--neon-pulse); font-family: var(--font-future); font-size: 0.8rem; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 .btn-conectar:hover { background: var(--neon-pulse); color: var(--void-deep); }
 </style>
 </head>
 <body>
-<div class="fundo-vibrante"></div>
 
 <header>
   <div class="logo-universo"><h1>VAGALUME90</h1></div>
   <div class="painel-status-nave">
-    <div>NEXUS PILOTO: <span>{{ rank }}</span></div>
-    <div>ENERGIA: <span>{{ "%.2f"|format(saldo_disponivel) }} KZ</span></div>
+    <div>NEXUS OPERADOR: <span>{{ rank }}</span></div>
+    <div>SALDO TERMINAL: <span>{{ "%.2f"|format(saldo_disponivel) }} KZ</span></div>
   </div>
 </header>
 
 <div class="container">
   
   <div class="prateleira-exposicao">
-    <div class="destaque-header">// ATIVO EM EXPOSIÇÃO</div>
+    <div class="destaque-header">// ATIVO DESTAQUE EM EXPOSIÇÃO</div>
     <div class="destaque-conteudo">
       <div class="destaque-info">
         <h2>{{ produto_destaque.titulo }}</h2>
-        <p>{{ produto_destaque.descricao }}</p>
+        <p style="margin-top: 10px; color: rgba(224, 255, 229, 0.7);">{{ produto_destaque.descricao }}</p>
       </div>
-      <button class="btn-conectar" style="padding: 16px 32px; font-size: 0.9rem; background: var(--neon-pulse); color: var(--void-deep);" onclick="comprarProduto('{{ produto_destaque._id }}')">
-        CONECTAR ATIVO ({{ "%.2f"|format(produto_destaque.preco_sugerido) }} KZ)
+      <button class="btn-conectar" style="padding: 16px 32px; font-size: 0.9rem; background: var(--neon-pulse); color: var(--void-deep);" onclick="comprarProduto('{{ produto_destaque.id }}')">
+        ADQUIRIR ({{ "%.2f"|format(produto_destaque.preco_sugerido) }} KZ)
       </button>
     </div>
   </div>
 
   <div class="card-universo">
-    <div class="card-title">MANIFESTAR NOVO ATIVO</div>
-    <input type="text" id="tema-ia" class="input-universo" placeholder="Indica o nicho/tema">
-    <button class="btn-portal" onclick="gerarAtivoIA()">DISPARAR FUNIL</button>
+    <div class="card-title">DEPOSITAR NOVO ATIVO NO MERCADO</div>
+    
+    <label>TÍTULO DO INFOPRODUTO:</label>
+    <input type="text" id="titulo-prod" class="input-universo" placeholder="Ex: Método Tráfego Pago Angola">
+    
+    <label>PREÇO DE VENDA (KZ):</label>
+    <input type="number" id="preco-prod" class="input-universo" placeholder="Ex: 5000">
+    
+    <label>LINK DE HOSPEDAGEM (GOOGLE DRIVE / MEGA / MEDIAFIRE):</label>
+    <input type="url" id="url-prod" class="input-universo" placeholder="https://drive.google.com/file/d/...">
+    
+    <label>DESCRIÇÃO DO CONTEÚDO:</label>
+    <input type="text" id="desc-prod" class="input-universo" placeholder="Explica resumidamente o que o comprador vai receber...">
+
+    <button class="btn-portal" onclick="depositarAtivo()">LANÇAR ATIVO NA REDE</button>
   </div>
 
   <div class="card-universo">
-    <div class="card-title">ATIVOS NA REDE</div>
+    <div class="card-title">ATIVOS DISPONÍVEIS NA REDE</div>
     <div class="lista-viva">
-      {% for prod in produtos %}
-      <div class="item-vivo">
-        <div class="item-info"><h4>{{ prod.titulo }}</h4></div>
-        <button class="btn-conectar" onclick="comprarProduto('{{ prod._id }}')">ADQUIRIR</button>
-      </div>
-      {% endfor %}
+      {% if produtos %}
+        {% for prod in produtos %}
+        <div class="item-vivo">
+          <div class="item-info">
+            <h4>{{ prod.titulo }}</h4>
+            <p>{{ prod.descricao }}</p>
+            <span style="color: var(--neon-pulse); font-size: 0.85rem; font-family: var(--font-future); display:block; margin-top:5px;">{{ "%.2f"|format(prod.preco_sugerido) }} KZ</span>
+          </div>
+          <button class="btn-conectar" onclick="comprarProduto('{{ prod.id }}')">COMPRAR</button>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="padding: 20px; color: rgba(255,255,255,0.3); text-align: center;">Nenhum produto depositado no Neon até ao momento.</p>
+      {% endif %}
     </div>
   </div>
 
   <div class="card-universo" style="grid-column: span 2;">
-    <div class="card-title">O TEU COFRE DE ATIVOS INTEGRADOS</div>
-    <div class="lista-viva" style="grid-template-columns: 1fr 1fr; gap: 20px;">
-      {% for ativo in ativos_comprados %}
-      <div class="item-vivo">
-        <div class="item-info"><h4 style="color: var(--neon-pulse);">{{ ativo.titulo }}</h4></div>
-        <button class="btn-conectar" onclick="window.open('{{ ativo.download_url }}', '_blank');">DESCARREGAR</button>
-      </div>
-      {% endfor %}
+    <div class="card-title">O TEU COFRE DE ATIVOS (HISTÓRICO PERMANENTE)</div>
+    <div class="lista-viva" style="grid-template-columns: 1fr 1fr; gap: 20px; max-height: none;">
+      {% if ativos_comprados %}
+        {% for ativo in ativos_comprados %}
+        <div class="item-vivo">
+          <div class="item-info"><h4 style="color: var(--neon-pulse);">{{ ativo.produto_titulo }}</h4></div>
+          <button class="btn-conectar" onclick="window.open('{{ ativo.download_url }}', '_blank');">DESCARREGAR</button>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="padding: 20px; color: rgba(255,255,255,0.3); grid-column: span 2; text-align: center;">Os teus ativos validados e liberados aparecerão aqui após verificação.</p>
+      {% endif %}
     </div>
   </div>
 
@@ -109,49 +134,60 @@ function obterCodigoAfiliado() {
 }
 
 async function comprarProduto(id) {
-  // 1. Confirmação do Utilizador
-  if (!confirm("Iniciar canal de aquisição deste ativo digital?")) return;
+  if (!confirm("Iniciar canal de aquisição segura para este ativo digital?")) return;
   
-  console.log("🚀 [DEBUG] Iniciando fluxo de compra para ID:", id);
   const afiliadoCod = obterCodigoAfiliado();
-  const xUserId = "USER_HASTA_90"; 
   
   try {
-    console.log("📡 [DEBUG] Enviando fetch para o Flask...");
     const res = await fetch('/api/mercado/comprar', {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'X-USER-ID': xUserId
-      },
+      headers: { 'Content-Type': 'application/json', 'X-USER-ID': 'USER_HASTA_90' },
       body: JSON.stringify({ produto_id: id, afiliado_cod: afiliadoCod })
     });
     
-    console.log("📥 [DEBUG] Resposta HTTP recebida. Status:", res.status);
     const data = await res.json();
-    console.log("📊 [DEBUG] Dados JSON extraídos:", data);
-    
     if (data.success && data.whatsapp_url) {
-      console.log("📲 [DEBUG] Sucesso! Redirecionando para:", data.whatsapp_url);
       window.location.href = data.whatsapp_url;
     } else {
-      console.error("❌ [DEBUG] Erro retornado pela API:", data.error);
-      alert("Erro no Motor Financeiro: " + (data.error || "Recusa de processamento."));
+      alert("Erro do Sistema: " + (data.error || "Recusa de processamento."));
     }
-  } catch (err) { 
-    console.error("❌ [DEBUG] Falha no bloco try/catch:", err);
-    alert("Falha de rede ou gateway offline. Verifica a Consola (F12)."); 
+  } catch (err) {
+    alert("Falha crítica de conexão à API.");
   }
 }
 
-async function gerarAtivoIA() {
-  const tema = document.getElementById('tema-ia').value;
-  await fetch('/api/mercado/gerar-infoproduto', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tema: tema })
-  });
-  window.location.reload();
+async function depositarAtivo() {
+  const titulo = document.getElementById('titulo-prod').value;
+  const preco = document.getElementById('preco-prod').value;
+  const url = document.getElementById('url-prod').value;
+  const desc = document.getElementById('desc-prod').value;
+  
+  if (!titulo || !preco || !url) {
+    return alert("⚠️ Por favor, preenche o Título, o Preço e insere o Link de Hospedagem!");
+  }
+  
+  try {
+    const res = await fetch('/api/mercado/generar-infoproduto', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        titulo: titulo,
+        preco: parseFloat(preco),
+        download_url: url,
+        descricao: desc
+      })
+    });
+    
+    const data = await res.json();
+    if (data.success) {
+      alert("✅ Ativo depositado e hospedado com sucesso no Neon PostgreSQL!");
+      window.location.reload();
+    } else {
+      alert("Erro ao depositar: " + data.error);
+    }
+  } catch (err) {
+    alert("Falha na comunicação com o servidor.");
+  }
 }
 </script>
 </body>
