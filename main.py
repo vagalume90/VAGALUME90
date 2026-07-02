@@ -8,24 +8,24 @@ from psycopg2.extras import RealDictCursor
 app = Flask(__name__)
 
 # =======================================================
-# CONEXÃO PERMANENTE AO NEON POSTGRESQL
+# CONFIGURAÇÕES DE AMBIENTE (SISTEMA INTEGRADO NEON)
 # =======================================================
 DATABASE_URL = os.getenv("DATABASE_URL")
 WHATSAPP_SUPORTE_NUMERO = os.getenv("WHATSAPP_NUMERO", "244929894589")
+# O n8n agora é opcional. Se não houver URL, o sistema ignora silenciosamente.
+N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL", "")
 
 if not DATABASE_URL:
     raise ValueError("⚠️ ERRO CRÍTICO: A variável DATABASE_URL está ausente no Render!")
 
 def obter_conexao():
-    # Liga de forma segura ao Neon usando SSL obrigatório
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 def inicializar_banco():
-    """Cria as tabelas necessárias no Neon se ainda não existirem"""
+    """Garante a infraestrutura estável no Neon PostgreSQL"""
     conn = obter_conexao()
     cur = conn.cursor()
     
-    # 1. Tabela de Perfis
     cur.execute("""
         CREATE TABLE IF NOT EXISTS perfis_utilizadores (
             id TEXT PRIMARY KEY,
@@ -35,7 +35,6 @@ def inicializar_banco():
         );
     """)
     
-    # 2. Tabela de Produtos / Ativos (Suporta IA e Uploads Manuais)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS produtos_ativos (
             id SERIAL PRIMARY KEY,
@@ -47,7 +46,6 @@ def inicializar_banco():
         );
     """)
     
-    # 3. Tabela de Transações (Histórico Permanente e Protegido)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS transacoes_fluxo (
             id SERIAL PRIMARY KEY,
@@ -61,7 +59,6 @@ def inicializar_banco():
         );
     """)
     
-    # Garante o perfil piloto padrão ativo
     cur.execute("""
         INSERT INTO perfis_utilizadores (id, rank, saldo_disponivel, codigo_afiliado)
         VALUES ('USER_HASTA_90', 'OPERADOR ALFA', 999649.00, 'HASTA90')
@@ -71,13 +68,12 @@ def inicializar_banco():
     conn.commit()
     cur.close()
     conn.close()
-    print("🚀 [Neon Core] Base de dados sincronizada e indestrutível!")
+    print("🚀 [Neon Core] Sincronização concluída com sucesso.")
 
-# Inicializa as tabelas ao arrancar a aplicação
 inicializar_banco()
 
 # =======================================================
-# ROTAS DE VISUALIZAÇÃO DO MERCADO
+# ROTAS DE INTERAÇÃO
 # =======================================================
 
 @app.route('/')
@@ -87,19 +83,15 @@ def index():
 @app.route('/modulo/mercado')
 def renderizar_mercado():
     id_comprador_atual = "USER_HASTA_90"
-    
     conn = obter_conexao()
     cur = conn.cursor()
     
-    # Procura os dados reais de perfil guardados no Neon
     cur.execute("SELECT * FROM perfis_utilizadores WHERE id = %s", (id_comprador_atual,))
     perfil = cur.fetchone()
     
-    # Lista todos os ativos disponíveis por ordem recente
     cur.execute("SELECT * FROM produtos_ativos ORDER BY id DESC")
     lista_produtos = cur.fetchall()
     
-    # Filtra os teus ativos já LIBERADOS para download no teu cofre pessoal
     cur.execute("""
         SELECT produto_titulo, download_url 
         FROM transacoes_fluxo 
@@ -111,7 +103,6 @@ def renderizar_mercado():
     cur.close()
     conn.close()
 
-    # Produto estático de Destaque da Montra
     produto_destaque = {
         "id": "PROD_DESTAQUE_01",
         "titulo": "Fórmula Tráfego Angola (Acesso Vitalício)",
@@ -129,17 +120,13 @@ def renderizar_mercado():
     }
     return render_template('mercado.html', **dados_contexto)
 
-# =======================================================
-# WORKFLOW E ROTAS DA API INTERNA
-# =======================================================
-
 @app.route('/api/mercado/comprar', methods=['POST'])
 def comprar_produto():
     try:
         dados = request.get_json() or {}
         produto_id = dados.get("produto_id")
         afiliado_cod = dados.get("afiliado_cod", "DIRETO")
-        id_comprador_atual = request.headers.get("X-USER-ID", "USER_HASTA_90")
+        id_comprador_atual = "USER_HASTA_90"
         
         titulo_produto = "Fórmula Tráfego Angola"
         download_url = "#"
@@ -147,7 +134,6 @@ def comprar_produto():
         conn = obter_conexao()
         cur = conn.cursor()
         
-        # Se for um produto dinâmico, extrai o título e link real do Neon
         if str(produto_id) != "PROD_DESTAQUE_01":
             cur.execute("SELECT titulo, download_url FROM produtos_ativos WHERE id = %s", (int(produto_id),))
             prod = cur.fetchone()
@@ -157,9 +143,8 @@ def comprar_produto():
 
         transacao_id = f"TX_{int(datetime.utcnow().timestamp())}"
 
-        # Regista a intenção de compra sem perdas no banco permanente
         cur.execute("""
-            INSERT INTO transacoes_fluxo (comprador_id, produto_id, produto_titulo, afiliado_cod, status, download_url)
+            INSERT INTO transacoes_fluxo (comprador_id, product_id, produto_titulo, afiliado_cod, status, download_url)
             VALUES (%s, %s, %s, %s, 'AGUARDANDO PROVA', %s)
         """, (id_comprador_atual, str(produto_id), titulo_produto, afiliado_cod, download_url))
         
@@ -167,24 +152,29 @@ def comprar_produto():
         cur.close()
         conn.close()
 
-        # Prepara a mensagem encriptada para o WhatsApp de Suporte
+        # DISPARO SEGURO PARA O n8n (Só envia se o fluxo existir e a URL estiver configurada)
+        if N8N_WEBHOOK_URL:
+            try:
+                requests.post(N8N_WEBHOOK_URL, json={
+                    "transacao_id": transacao_id,
+                    "produto": titulo_produto,
+                    "comprador": id_comprador_atual,
+                    "afiliado": afiliado_cod
+                }, timeout=2)
+            except Exception:
+                pass # Ignora falhas se o n8n não responder
+
+        # Redirecionamento direto para validação manual via WhatsApp
         mensagem_whatsapp = (
-            f"Olá Vagalume! Desejo adquirir o Ativo Digital.\n\n"
-            f"⚙️ ID ORDEM: {transacao_id}\n"
-            f"📘 ATIVO: {titulo_produto}\n"
-            f"👤 COMPRADOR: {id_comprador_atual}\n"
-            f"🔗 REF AFILIADO: {afiliado_cod}\n"
-            f"🪙 STATUS: AGUARDANDO VERIFICAÇÃO"
+            f"Olá! Quero validar o meu Ativo Digital.\n\n"
+            f"⚙️ ORDEM ID: {transacao_id}\n"
+            f"📘 INFOPRODUTO: {titulo_produto}\n"
+            f"👤 OPERADOR: {id_comprador_atual}"
         )
         texto_codificado = requests.utils.quote(mensagem_whatsapp)
         whatsapp_url = f"https://api.whatsapp.com/send?phone={WHATSAPP_SUPORTE_NUMERO}&text={texto_codificado}"
 
-        return jsonify({
-            "success": True, 
-            "transacao_id": transacao_id, 
-            "whatsapp_url": whatsapp_url
-        })
-
+        return jsonify({"success": True, "whatsapp_url": whatsapp_url})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -192,29 +182,26 @@ def comprar_produto():
 def gerar_infoproduto():
     try:
         dados = request.get_json() or {}
-        tipo_acao = dados.get("tipo", "manual") # Identifica a origem ('ia' ou 'manual')
+        tipo_acao = dados.get("tipo", "manual")
         
         conn = obter_conexao()
         cur = conn.cursor()
         
         if tipo_acao == "ia":
-            # SISTEMA IA: Gera o produto dinamicamente com base no nicho informado
             tema = dados.get("tema", "Geral")
             titulo = f"Império Digital: {tema.upper()}"
             preco = 3500.00
-            descricao = f"Infoproduto estratégico gerado automaticamente focado no nicho de {tema}."
+            descricao = f"Infoproduto gerado automaticamente no nicho de {tema}."
             download_url = "https://vagalume90.com/downloads/pack-ia"
         else:
-            # SISTEMA MANUAL: Recolhe o teu produto real com link de hospedagem
             titulo = dados.get("titulo")
             preco = dados.get("preco", 3500.00)
             download_url = dados.get("download_url", "#")
             descricao = dados.get("descricao", "Sem descrição disponível.")
             
             if not titulo:
-                return jsonify({"success": False, "error": "Título obrigatório no depósito manual"}), 400
+                return jsonify({"success": False, "error": "Título em falta"}), 400
 
-        # Grava a manifestação do produto no Neon de forma definitiva
         cur.execute("""
             INSERT INTO produtos_ativos (titulo, criador, preco_sugerido, descricao, download_url)
             VALUES (%s, %s, %s, %s, %s)
