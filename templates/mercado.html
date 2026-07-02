@@ -72,21 +72,22 @@ label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-fu
   </div>
 
   <div class="card-universo">
-    <div class="card-title">DEPOSITAR NOVO ATIVO NO MERCADO</div>
+    <div class="card-title">MANIFESTAR OU DEPOSITAR ATIVO</div>
     
-    <label>TÍTULO DO INFOPRODUTO:</label>
-    <input type="text" id="titulo-prod" class="input-universo" placeholder="Ex: Método Tráfego Pago Angola">
-    
-    <label>PREÇO DE VENDA (KZ):</label>
-    <input type="number" id="preco-prod" class="input-universo" placeholder="Ex: 5000">
-    
-    <label>LINK DE HOSPEDAGEM (GOOGLE DRIVE / MEGA / MEDIAFIRE):</label>
-    <input type="url" id="url-prod" class="input-universo" placeholder="https://drive.google.com/file/d/...">
-    
-    <label>DESCRIÇÃO DO CONTEÚDO:</label>
-    <input type="text" id="desc-prod" class="input-universo" placeholder="Explica resumidamente o que o comprador vai receber...">
+    <div style="border-bottom: 1px dashed var(--glass-border); padding-bottom: 25px; margin-bottom: 25px;">
+      <label style="color: #00FFFF;">// DISPARAR GERADOR DE PRODUTOS AUTOMÁTICO (IA):</label>
+      <input type="text" id="nicho-ia" class="input-universo" placeholder="Indica o nicho para a IA manifestar (Ex: Saúde, Vídeos)..." style="margin-bottom: 12px; border-color: rgba(0, 255, 255, 0.2);">
+      <button class="btn-portal" style="background: linear-gradient(135deg, #00FFFF 0%, #0088FF 100%); color: #000;" onclick="dispararGeradorIA()">DISPARAR FUNIL DA IA</button>
+    </div>
 
-    <button class="btn-portal" onclick="depositarAtivo()">LANÇAR ATIVO NA REDE</button>
+    <div>
+      <label>// DEPOSITAR O TEU PRÓPRIO PRODUTO (HOSPEDAGEM REAL):</label>
+      <input type="text" id="titulo-prod" class="input-universo" placeholder="Título do teu produto real...">
+      <input type="number" id="preco-prod" class="input-universo" placeholder="Preço em Kwanzas (KZ)...">
+      <input type="url" id="url-prod" class="input-universo" placeholder="Link do teu Google Drive, Mega ou MediaFire...">
+      <input type="text" id="desc-prod" class="input-universo" placeholder="Breve descrição do produto para a montra...">
+      <button class="btn-portal" onclick="depositarAtivoManual()">LANÇAR ATIVO MANUAL NA REDE</button>
+    </div>
   </div>
 
   <div class="card-universo">
@@ -104,7 +105,7 @@ label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-fu
         </div>
         {% endfor %}
       {% else %}
-        <p style="padding: 20px; color: rgba(255,255,255,0.3); text-align: center;">Nenhum produto depositado no Neon até ao momento.</p>
+        <p style="padding: 20px; color: rgba(255,255,255,0.3); text-align: center;">Nenhum produto em catálogo. Usa o painel lateral para popular o Neon.</p>
       {% endif %}
     </div>
   </div>
@@ -120,7 +121,7 @@ label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-fu
         </div>
         {% endfor %}
       {% else %}
-        <p style="padding: 20px; color: rgba(255,255,255,0.3); grid-column: span 2; text-align: center;">Os teus ativos validados e liberados aparecerão aqui após verificação.</p>
+        <p style="padding: 20px; color: rgba(255,255,255,0.3); grid-column: span 2; text-align: center;">Os teus ativos validados e liberados aparecerão aqui após verificação do suporte.</p>
       {% endif %}
     </div>
   </div>
@@ -152,41 +153,59 @@ async function comprarProduto(id) {
       alert("Erro do Sistema: " + (data.error || "Recusa de processamento."));
     }
   } catch (err) {
-    alert("Falha crítica de conexão à API.");
+    alert("Falha crítica de conexão com o servidor.");
   }
 }
 
-async function depositarAtivo() {
+async function dispararGeradorIA() {
+  const tema = document.getElementById('nicho-ia').value;
+  if (!tema) return alert("Por favor, digita um nicho para o gerador de IA!");
+  
+  try {
+    const res = await fetch('/api/mercado/gerar-infoproduto', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tipo: 'ia', tema: tema })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert("✅ O Vagalume Core IA manifestou um novo infoproduto no catálogo!");
+      window.location.reload();
+    }
+  } catch (err) {
+    alert("Erro ao acionar o gerador de IA.");
+  }
+}
+
+async function depositarAtivoManual() {
   const titulo = document.getElementById('titulo-prod').value;
   const preco = document.getElementById('preco-prod').value;
   const url = document.getElementById('url-prod').value;
   const desc = document.getElementById('desc-prod').value;
   
   if (!titulo || !preco || !url) {
-    return alert("⚠️ Por favor, preenche o Título, o Preço e insere o Link de Hospedagem!");
+    return alert("⚠️ Preenche o Título, o Preço e insere o Link do teu Drive/Mega!");
   }
   
   try {
-    const res = await fetch('/api/mercado/generar-infoproduto', {
+    const res = await fetch('/api/mercado/gerar-infoproduto', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
+        tipo: 'manual',
         titulo: titulo,
         preco: parseFloat(preco),
         download_url: url,
         descricao: desc
       })
     });
-    
     const data = await res.json();
     if (data.success) {
-      alert("✅ Ativo depositado e hospedado com sucesso no Neon PostgreSQL!");
+      alert("✅ Teu ativo real foi hospedado e registado com sucesso no Neon!");
       window.location.reload();
-    } else {
-      alert("Erro ao depositar: " + data.error);
     }
   } catch (err) {
-    alert("Falha na comunicação com o servidor.");
+    alert("Falha ao comunicar depósito manual.");
   }
 }
 </script>
