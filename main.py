@@ -17,7 +17,7 @@ if not DATABASE_URL:
     raise ValueError("⚠️ ERRO CRÍTICO: A variável DATABASE_URL está ausente no Render!")
 
 def obter_conexao():
-    # Conecta ao Neon usando SSL obrigatório para segurança
+    # Conecta de forma segura ao cluster do Neon com SSL ativado
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 def inicializar_banco():
@@ -35,7 +35,7 @@ def inicializar_banco():
         );
     """)
     
-    # 2. Tabela de Produtos / Ativos na Rede
+    # 2. Tabela de Produtos / Ativos na Rede (Inclui URL de Hospedagem)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS produtos_ativos (
             id SERIAL PRIMARY KEY,
@@ -47,7 +47,7 @@ def inicializar_banco():
         );
     """)
     
-    # 3. Tabela de Transações (Histórico do Fluxo que o Neon protege)
+    # 3. Tabela de Transações e Fluxos (Cofre Histórico Seguro)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS transacoes_fluxo (
             id SERIAL PRIMARY KEY,
@@ -61,7 +61,7 @@ def inicializar_banco():
         );
     """)
     
-    # Garante que o teu perfil padrão existe na base de dados
+    # Inserção automática do teu perfil piloto padrão
     cur.execute("""
         INSERT INTO perfis_utilizadores (id, rank, saldo_disponivel, codigo_afiliado)
         VALUES ('USER_HASTA_90', 'OPERADOR ALFA', 999649.00, 'HASTA90')
@@ -71,9 +71,9 @@ def inicializar_banco():
     conn.commit()
     cur.close()
     conn.close()
-    print("🚀 [Neon Core] Banco de dados verificado e pronto!")
+    print("🚀 [Neon Core] Estrutura de Tabelas unificada com Sucesso!")
 
-# Inicializa o banco de dados do Neon ao arrancar o servidor
+# Inicializa o banco de dados no arranque do Web Service
 inicializar_banco()
 
 # =======================================================
@@ -91,15 +91,15 @@ def renderizar_mercado():
     conn = obter_conexao()
     cur = conn.cursor()
     
-    # Buscar os dados reais do teu utilizador salvos no Neon
+    # Buscar os dados de perfil reais
     cur.execute("SELECT * FROM perfis_utilizadores WHERE id = %s", (id_comprador_atual,))
     perfil = cur.fetchone()
     
-    # Buscar todos os infoprodutos cadastrados na rede
+    # Buscar todos os produtos depositados por ordem de chegada
     cur.execute("SELECT * FROM produtos_ativos ORDER BY id DESC")
     lista_produtos = cur.fetchall()
     
-    # Buscar os ativos que já foram LIBERADOS no teu cofre histórico
+    # Buscar os ativos comprados que já estão "LIBERADOS" no teu cofre histórico
     cur.execute("""
         SELECT produto_titulo, download_url 
         FROM transacoes_fluxo 
@@ -111,7 +111,7 @@ def renderizar_mercado():
     cur.close()
     conn.close()
 
-    # Produto principal da montra (Estático por segurança de interface)
+    # Produto estático de destaque na montra principal
     produto_destaque = {
         "id": "PROD_DESTAQUE_01",
         "titulo": "Fórmula Tráfego Angola (Acesso Vitalício)",
@@ -130,7 +130,7 @@ def renderizar_mercado():
     return render_template('mercado.html', **dados_contexto)
 
 # =======================================================
-# API INTERNA: PROCESSAMENTO LOCAL E LOG NO NEON
+# API: PROCESSAMENTO DE ENTRADAS/SAÍDAS DO MERCADO
 # =======================================================
 
 @app.route('/api/mercado/comprar', methods=['POST'])
@@ -141,26 +141,24 @@ def comprar_produto():
         afiliado_cod = dados.get("afiliado_cod", "DIRETO")
         id_comprador_atual = request.headers.get("X-USER-ID", "USER_HASTA_90")
         
-        print(f"📡 Ordem processada localmente -> Produto: {produto_id} | Comprador: {id_comprador_atual}")
-        
         titulo_produto = "Fórmula Tráfego Angola"
         download_url = "#"
         
         conn = obter_conexao()
         cur = conn.cursor()
         
-        # Se for um produto da lista dinâmica, busca os dados reais dele no Neon
-        if produto_id != "PROD_DESTAQUE_01":
+        # Se for um produto depositado dinamicamente, extrai os metadados reais
+        if str(produto_id) != "PROD_DESTAQUE_01":
             cur.execute("SELECT titulo, download_url FROM produtos_ativos WHERE id = %s", (int(produto_id),))
             prod = cur.fetchone()
             if prod:
                 titulo_produto = prod["titulo"]
                 download_url = prod["download_url"]
 
-        # Cria uma ID única para a transação baseada no timestamp
+        # Gerador interno estável de chaves de transação
         transacao_id = f"TX_{int(datetime.utcnow().timestamp())}"
 
-        # Grava o histórico do clique de forma permanente no teu Neon
+        # Salva o clique e o estado inicial no histórico permanente do Neon
         cur.execute("""
             INSERT INTO transacoes_fluxo (comprador_id, produto_id, produto_titulo, afiliado_cod, status, download_url)
             VALUES (%s, %s, %s, %s, 'AGUARDANDO PROVA', %s)
@@ -170,7 +168,7 @@ def comprar_produto():
         cur.close()
         conn.close()
 
-        # Constrói a mensagem direta do WhatsApp
+        # Compõe o payload em formato de texto para redirecionamento do WhatsApp
         mensagem_whatsapp = (
             f"Olá Vagalume! Desejo adquirir o Ativo Digital.\n\n"
             f"⚙️ ID ORDEM: {transacao_id}\n"
@@ -182,7 +180,6 @@ def comprar_produto():
         texto_codificado = requests.utils.quote(mensagem_whatsapp)
         whatsapp_url = f"https://api.whatsapp.com/send?phone={WHATSAPP_SUPORTE_NUMERO}&text={texto_codificado}"
 
-        print(f"✅ Sucesso! Redirecionamento gerado para o WhatsApp.")
         return jsonify({
             "success": True, 
             "transacao_id": transacao_id, 
@@ -190,29 +187,28 @@ def comprar_produto():
         })
 
     except Exception as e:
-        print(f"❌ Erro crítico no fluxo de compra: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/mercado/gerar-infoproduto', methods=['POST'])
 def gerar_infoproduto():
     try:
         dados = request.get_json() or {}
-        tema = dados.get("tema", "Geral")
+        titulo = dados.get("titulo")
+        preco = dados.get("preco", 3500.00)
+        download_url = dados.get("download_url", "#")
+        descricao = dados.get("descricao", "Sem descrição disponível.")
         
+        if not titulo:
+            return jsonify({"success": False, "error": "Título em falta"}), 400
+
         conn = obter_conexao()
         cur = conn.cursor()
         
-        # Insere um infoproduto novo diretamente nas tabelas estáveis do Neon
+        # Deposita o produto unindo metadados e o link do Drive/Mega de forma indestrutível
         cur.execute("""
             INSERT INTO produtos_ativos (titulo, criador, preco_sugerido, descricao, download_url)
             VALUES (%s, %s, %s, %s, %s)
-        """, (
-            f"Império Digital: {tema.upper()}", 
-            "CORE IA / HASTA", 
-            3500.00, 
-            f"Infoproduto gerado focado no nicho de {tema}.", 
-            "https://vagalume90.com/downloads/pack"
-        ))
+        """, (titulo, "VAGALUME CORE", preco, descricao, download_url))
         
         conn.commit()
         cur.close()
