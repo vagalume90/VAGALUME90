@@ -1,4 +1,5 @@
 import os
+import time
 from datetime import datetime
 import requests
 from flask import Flask, render_template, request, jsonify, redirect
@@ -12,64 +13,77 @@ app = Flask(__name__)
 # =======================================================
 DATABASE_URL = os.getenv("DATABASE_URL")
 WHATSAPP_SUPORTE_NUMERO = os.getenv("WHATSAPP_NUMERO", "244929894589")
-# O n8n agora é opcional. Se não houver URL, o sistema ignora silenciosamente.
 N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL", "")
 
 if not DATABASE_URL:
     raise ValueError("⚠️ ERRO CRÍTICO: A variável DATABASE_URL está ausente no Render!")
 
 def obter_conexao():
-    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    """Tenta ligar ao Neon com sistema de tentativas para mitigar o Cold Start"""
+    tentativas = 5
+    for i in range(tentativas):
+        try:
+            return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+        except psycopg2.OperationalError as e:
+            if i < tentativas - 1:
+                print(f"⏳ [Neon Core] Banco de dados a acordar... Nova tentativa em 1.5s (Tentativa {i+1}/{tentativas})")
+                time.sleep(1.5)
+            else:
+                raise e
 
 def inicializar_banco():
     """Garante a infraestrutura estável no Neon PostgreSQL"""
-    conn = obter_conexao()
-    cur = conn.cursor()
-    
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS perfis_utilizadores (
-            id TEXT PRIMARY KEY,
-            rank TEXT DEFAULT 'OPERADOR ALFA',
-            saldo_disponivel NUMERIC(12, 2) DEFAULT 999649.00,
-            codigo_afiliado TEXT UNIQUE
-        );
-    """)
-    
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS produtos_ativos (
-            id SERIAL PRIMARY KEY,
-            titulo TEXT NOT NULL,
-            criador TEXT NOT NULL,
-            preco_sugerido NUMERIC(12, 2) NOT NULL,
-            descricao TEXT,
-            download_url TEXT DEFAULT '#'
-        );
-    """)
-    
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS transacoes_fluxo (
-            id SERIAL PRIMARY KEY,
-            comprador_id TEXT NOT NULL,
-            produto_id TEXT NOT NULL,
-            produto_titulo TEXT,
-            afiliado_cod TEXT DEFAULT 'DIRETO',
-            status TEXT DEFAULT 'AGUARDANDO PROVA',
-            download_url TEXT DEFAULT '#',
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-        );
-    """)
-    
-    cur.execute("""
-        INSERT INTO perfis_utilizadores (id, rank, saldo_disponivel, codigo_afiliado)
-        VALUES ('USER_HASTA_90', 'OPERADOR ALFA', 999649.00, 'HASTA90')
-        ON CONFLICT (id) DO NOTHING;
-    """)
-    
-    conn.commit()
-    cur.close()
-    conn.close()
-    print("🚀 [Neon Core] Sincronização concluída com sucesso.")
+    try:
+        conn = obter_conexao()
+        cur = conn.cursor()
+        
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS perfis_utilizadores (
+                id TEXT PRIMARY KEY,
+                rank TEXT DEFAULT 'OPERADOR ALFA',
+                saldo_disponivel NUMERIC(12, 2) DEFAULT 999649.00,
+                codigo_afiliado TEXT UNIQUE
+            );
+        """)
+        
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS produtos_ativos (
+                id SERIAL PRIMARY KEY,
+                titulo TEXT NOT NULL,
+                criador TEXT NOT NULL,
+                preco_sugerido NUMERIC(12, 2) NOT NULL,
+                descricao TEXT,
+                download_url TEXT DEFAULT '#'
+            );
+        """)
+        
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS transacoes_fluxo (
+                id SERIAL PRIMARY KEY,
+                comprador_id TEXT NOT NULL,
+                produto_id TEXT NOT NULL,
+                produto_titulo TEXT,
+                afiliado_cod TEXT DEFAULT 'DIRETO',
+                status TEXT DEFAULT 'AGUARDANDO PROVA',
+                download_url TEXT DEFAULT '#',
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            );
+        """)
+        
+        cur.execute("""
+            INSERT INTO perfis_utilizadores (id, rank, saldo_disponivel, codigo_afiliado)
+            VALUES ('USER_HASTA_90', 'OPERADOR ALFA', 999649.00, 'HASTA90')
+            ON CONFLICT (id) DO NOTHING;
+        """)
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        print("🚀 [Neon Core] Sincronização e tabelas validadas com sucesso.")
+    except Exception as e:
+        print(f"⚠️ Erro ao iniciar base de dados: {str(e)}")
 
+# Inicializa o banco de dados de forma segura
 inicializar_banco()
 
 # =======================================================
@@ -83,25 +97,29 @@ def index():
 @app.route('/modulo/mercado')
 def renderizar_mercado():
     id_comprador_atual = "USER_HASTA_90"
-    conn = obter_conexao()
-    cur = conn.cursor()
-    
-    cur.execute("SELECT * FROM perfis_utilizadores WHERE id = %s", (id_comprador_atual,))
-    perfil = cur.fetchone()
-    
-    cur.execute("SELECT * FROM produtos_ativos ORDER BY id DESC")
-    lista_produtos = cur.fetchall()
-    
-    cur.execute("""
-        SELECT produto_titulo, download_url 
-        FROM transacoes_fluxo 
-        WHERE comprador_id = %s AND status = 'LIBERADO'
-        ORDER BY id DESC
-    """, (id_comprador_atual,))
-    ativos_comprados = cur.fetchall()
-    
-    cur.close()
-    conn.close()
+    try:
+        conn = obter_conexao()
+        cur = conn.cursor()
+        
+        cur.execute("SELECT * FROM perfis_utilizadores WHERE id = %s", (id_comprador_atual,))
+        perfil = cur.fetchone()
+        
+        cur.execute("SELECT * FROM produtos_ativos ORDER BY id DESC")
+        lista_produtos = cur.fetchall()
+        
+        cur.execute("""
+            SELECT produto_titulo, download_url 
+            FROM transacoes_fluxo 
+            WHERE comprador_id = %s AND status = 'LIBERADO'
+            ORDER BY id DESC
+        """, (id_comprador_atual,))
+        ativos_comprados = cur.fetchall()
+        
+        cur.close()
+        conn.close()
+    except Exception as e:
+        # Se mesmo com o retry falhar, envia uma resposta amigável em vez de quebrar a app
+        return jsonify({"code": 503, "message": "O Neon está a demorar mais tempo a responder. Atualiza a página dentro de momentos.", "details": str(e)}), 503
 
     produto_destaque = {
         "id": "PROD_DESTAQUE_01",
@@ -144,7 +162,7 @@ def comprar_produto():
         transacao_id = f"TX_{int(datetime.utcnow().timestamp())}"
 
         cur.execute("""
-            INSERT INTO transacoes_fluxo (comprador_id, product_id, produto_titulo, afiliado_cod, status, download_url)
+            INSERT INTO transacoes_fluxo (comprador_id, produto_id, produto_titulo, afiliado_cod, status, download_url)
             VALUES (%s, %s, %s, %s, 'AGUARDANDO PROVA', %s)
         """, (id_comprador_atual, str(produto_id), titulo_produto, afiliado_cod, download_url))
         
@@ -152,7 +170,6 @@ def comprar_produto():
         cur.close()
         conn.close()
 
-        # DISPARO SEGURO PARA O n8n (Só envia se o fluxo existir e a URL estiver configurada)
         if N8N_WEBHOOK_URL:
             try:
                 requests.post(N8N_WEBHOOK_URL, json={
@@ -162,9 +179,8 @@ def comprar_produto():
                     "afiliado": afiliado_cod
                 }, timeout=2)
             except Exception:
-                pass # Ignora falhas se o n8n não responder
+                pass
 
-        # Redirecionamento direto para validação manual via WhatsApp
         mensagem_whatsapp = (
             f"Olá! Quero validar o meu Ativo Digital.\n\n"
             f"⚙️ ORDEM ID: {transacao_id}\n"
