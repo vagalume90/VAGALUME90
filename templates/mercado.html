@@ -54,7 +54,7 @@ label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-fu
 
 <div class="container">
   
-  <!-- MONTRA -->
+  <!-- MONTRA ATIVO DESTAQUE -->
   <div class="destaque">
     <div style="font-family: var(--font-future); font-size: 0.85rem; color: var(--neon-pulse); margin-bottom: 15px;">// ATIVO DESTAQUE EM EXPOSIÇÃO</div>
     <div class="destaque-conteudo">
@@ -62,13 +62,13 @@ label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-fu
         <h2>{{ produto_destaque.titulo }}</h2>
         <p style="margin-top: 10px; color: rgba(224, 255, 229, 0.7);">{{ produto_destaque.descricao }}</p>
       </div>
-      <button class="btn-conectar" style="padding: 16px 32px; font-size: 0.9rem; background: var(--neon-pulse); color: var(--void-deep);" onclick="comprarProduto('{{ produto_destaque.id }}')">
+      <button class="btn-conectar" style="padding: 16px 32px; font-size: 0.9rem; background: var(--neon-pulse); color: var(--void-deep);" onclick="comprarProduto('{{ produto_destaque._id }}')">
         ADQUIRIR ({{ "%.2f"|format(produto_destaque.preco_sugerido) }} KZ)
       </button>
     </div>
   </div>
 
-  <!-- CRIADOR DUPLO -->
+  <!-- GERADOR DE INFOPRODUTOS -->
   <div class="card">
     <div class="card-title">MANIFESTAR OU DEPOSITAR ATIVO</div>
     
@@ -90,7 +90,7 @@ label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-fu
     </div>
   </div>
 
-  <!-- CATALOGO -->
+  <!-- PRODUTOS DO MONGODB -->
   <div class="card">
     <div class="card-title">ATIVOS DISPONÍVEIS NA REDE</div>
     <div class="lista">
@@ -102,11 +102,11 @@ label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-fu
             <p style="font-size: 0.8rem; color: rgba(224, 255, 229, 0.6);">{{ prod.descricao }}</p>
             <span style="color: var(--neon-pulse); font-size: 0.85rem; display:block; margin-top:5px;">{{ "%.2f"|format(prod.preco_sugerido) }} KZ</span>
           </div>
-          <button class="btn-conectar" onclick="comprarProduto('{{ prod.id }}')">COMPRAR</button>
+          <button class="btn-conectar" onclick="comprarProduto('{{ prod._id }}')">COMPRAR</button>
         </div>
         {% endfor %}
       {% else %}
-        <p style="padding: 20px; color: rgba(255,255,255,0.3); text-align: center;">Nenhum produto em catálogo.</p>
+        <p style="padding: 20px; color: rgba(255,255,255,0.3); text-align: center;">Nenhum produto em catálogo no MongoDB Atlas.</p>
       {% endif %}
     </div>
   </div>
@@ -119,20 +119,25 @@ async function comprarProduto(id) {
     const res = await fetch('/api/mercado/comprar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ produto_id: id })
+      body: JSON.stringify({ produto_id: id, afiliado_cod: "HASTA90" })
     });
     const data = await res.json();
+    
     if (data.success && data.whatsapp_url) {
       window.location.href = data.whatsapp_url;
+    } else if (data.whatsapp_url) {
+      window.location.href = data.whatsapp_url;
+    } else {
+      alert("Requisição enviada com sucesso para a FastAPI!");
     }
   } catch (err) {
-    alert("Falha ao processar requisição.");
+    alert("Falha ao processar a requisição de compra através do Flask.");
   }
 }
 
 async function dispararGeradorIA() {
   const tema = document.getElementById('nicho-ia').value;
-  if (!tema) return alert("Insere um nicho!");
+  if (!tema) return alert("Insere um nicho/tema para a IA!");
   try {
     const res = await fetch('/api/mercado/gerar-infoproduto', {
       method: 'POST',
@@ -142,7 +147,7 @@ async function dispararGeradorIA() {
     const data = await res.json();
     if (data.success) window.location.reload();
   } catch (err) {
-    alert("Erro na IA.");
+    alert("Erro ao acionar gerador automático.");
   }
 }
 
@@ -152,7 +157,7 @@ async function depositarAtivoManual() {
   const url = document.getElementById('url-prod').value;
   const desc = document.getElementById('desc-prod').value;
   
-  if (!titulo || !preco || !url) return alert("Preenche todos os campos!");
+  if (!titulo || !preco || !url) return alert("Por favor, preenche todos os campos obrigatórios!");
   try {
     const res = await fetch('/api/mercado/gerar-infoproduto', {
       method: 'POST',
@@ -162,7 +167,7 @@ async function depositarAtivoManual() {
     const data = await res.json();
     if (data.success) window.location.reload();
   } catch (err) {
-    alert("Erro no depósito manual.");
+    alert("Erro ao salvar o produto manualmente.");
   }
 }
 </script>
