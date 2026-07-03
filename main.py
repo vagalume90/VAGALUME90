@@ -3,88 +3,42 @@ import time
 from datetime import datetime
 import requests
 from flask import Flask, render_template, request, jsonify, redirect
-import psycopg2
-from psycopg2.extras import RealDictCursor
+from pymongo import MongoClient
+from pymongo.errors import ServerSelectionTimeoutError
+from bson import ObjectId
 
 app = Flask(__name__)
 
 # =======================================================
-# CONFIGURAÇÕES DE AMBIENTE (SISTEMA INTEGRADO NEON)
+# CONFIGURAÇÕES DE AMBIENTE (SISTEMA INTEGRADO MONGO)
 # =======================================================
-DATABASE_URL = os.getenv("DATABASE_URL")
+MONGO_URI = os.getenv("MONGO_URI")
+FASTAPI_URL = os.getenv("FASTAPI_URL")
 WHATSAPP_SUPORTE_NUMERO = os.getenv("WHATSAPP_NUMERO", "244929894589")
-N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL", "")
 
-if not DATABASE_URL:
-    raise ValueError("⚠️ ERRO CRÍTICO: A variável DATABASE_URL está ausente no Render!")
+if not MONGO_URI:
+    raise ValueError("⚠️ ERRO CRÍTICO: A variável MONGO_URI está ausente no ambiente!")
 
-def obter_conexao():
-    """Tenta ligar ao Neon com sistema de tentativas para mitigar o Cold Start"""
-    tentativas = 5
-    for i in range(tentativas):
+# Lógica de conexão resiliente ao MongoDB Atlas
+def obter_conexao_mongo(uri, max_tentativas=5):
+    for i in range(max_tentativas):
         try:
-            return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
-        except psycopg2.OperationalError as e:
-            if i < tentativas - 1:
-                print(f"⏳ [Neon Core] Banco de dados a acordar... Nova tentativa em 1.5s (Tentativa {i+1}/{tentativas})")
-                time.sleep(1.5)
+            print(f"🔄 [Mongo Core] A conectar ao cluster... (Tentativa {i+1}/{max_tentativas})")
+            client = MongoClient(uri, serverSelectionTimeoutMS=3000)
+            client.server_info() # Força a validação da conexão real
+            return client
+        except ServerSelectionTimeoutError as e:
+            if i < max_tentativas - 1:
+                print("⏳ [Mongo Core] Cluster a inicializar ou ocupado. Aguardando 2s...")
+                time.sleep(2)
             else:
                 raise e
 
-def inicializar_banco():
-    """Garante a infraestrutura estável no Neon PostgreSQL"""
-    try:
-        conn = obter_conexao()
-        cur = conn.cursor()
-        
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS perfis_utilizadores (
-                id TEXT PRIMARY KEY,
-                rank TEXT DEFAULT 'OPERADOR ALFA',
-                saldo_disponivel NUMERIC(12, 2) DEFAULT 999649.00,
-                codigo_afiliado TEXT UNIQUE
-            );
-        """)
-        
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS produtos_ativos (
-                id SERIAL PRIMARY KEY,
-                titulo TEXT NOT NULL,
-                criador TEXT NOT NULL,
-                preco_sugerido NUMERIC(12, 2) NOT NULL,
-                descricao TEXT,
-                download_url TEXT DEFAULT '#'
-            );
-        """)
-        
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS transacoes_fluxo (
-                id SERIAL PRIMARY KEY,
-                comprador_id TEXT NOT NULL,
-                produto_id TEXT NOT NULL,
-                produto_titulo TEXT,
-                afiliado_cod TEXT DEFAULT 'DIRETO',
-                status TEXT DEFAULT 'AGUARDANDO PROVA',
-                download_url TEXT DEFAULT '#',
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-            );
-        """)
-        
-        cur.execute("""
-            INSERT INTO perfis_utilizadores (id, rank, saldo_disponivel, codigo_afiliado)
-            VALUES ('USER_HASTA_90', 'OPERADOR ALFA', 999649.00, 'HASTA90')
-            ON CONFLICT (id) DO NOTHING;
-        """)
-        
-        conn.commit()
-        cur.close()
-        conn.close()
-        print("🚀 [Neon Core] Sincronização e tabelas validadas com sucesso.")
-    except Exception as e:
-        print(f"⚠️ Erro ao iniciar base de dados: {str(e)}")
+client = obter_conexao_mongo(MONGO_URI)
+db = client["vagalume_db"]
 
-# Inicializa o banco de dados de forma segura
-inicializar_banco()
+colecao_produtos = db["produtos"]
+colecao_transacoes = db["transacoes"]
 
 # =======================================================
 # ROTAS DE INTERAÇÃO
@@ -96,110 +50,66 @@ def index():
 
 @app.route('/modulo/mercado')
 def renderizar_mercado():
-    id_comprador_atual = "USER_HASTA_90"
     try:
-        conn = obter_conexao()
-        cur = conn.cursor()
+        # Recupera produtos reais do MongoDB
+        produtos = list(colecao_produtos.find().sort("_id", -1))
         
-        cur.execute("SELECT * FROM perfis_utilizadores WHERE id = %s", (id_comprador_atual,))
-        perfil = cur.fetchone()
-        
-        cur.execute("SELECT * FROM produtos_ativos ORDER BY id DESC")
-        lista_produtos = cur.fetchall()
-        
-        cur.execute("""
-            SELECT produto_titulo, download_url 
-            FROM transacoes_fluxo 
-            WHERE comprador_id = %s AND status = 'LIBERADO'
-            ORDER BY id DESC
-        """, (id_comprador_atual,))
-        ativos_comprados = cur.fetchall()
-        
-        cur.close()
-        conn.close()
+        # Converte ObjectId para String para não quebrar a renderização do Jinja2
+        for p in produtos:
+            p["_id"] = str(p["_id"])
+            
     except Exception as e:
-        # Se mesmo com o retry falhar, envia uma resposta amigável em vez de quebrar a app
-        return jsonify({"code": 503, "message": "O Neon está a demorar mais tempo a responder. Atualiza a página dentro de momentos.", "details": str(e)}), 503
+        return jsonify({
+            "code": 503, 
+            "message": "O banco de dados não está pronto ou está a demorar a responder.", 
+            "details": str(e)}
+        ), 503
 
     produto_destaque = {
-        "id": "PROD_DESTAQUE_01",
+        "_id": "PROD_DESTAQUE_01",
         "titulo": "Fórmula Tráfego Angola (Acesso Vitalício)",
         "preco_sugerido": 7500.00,
         "descricao": "O mapa completo para dominar anúncios e escala digital no mercado angolano."
     }
 
+    # Dados mockados do teu operador sincronizados com o painel visual
     dados_contexto = {
-        "rank": perfil["rank"] if perfil else "OPERADOR ALFA",
-        "saldo_disponivel": float(perfil["saldo_disponivel"]) if perfil else 999649.00,
-        "codigo_afiliado": perfil["codigo_afiliado"] if perfil else "HASTA90",
+        "rank": "OPERADOR ALFA",
+        "saldo_disponivel": 999649.00,
+        "codigo_afiliado": "HASTA90",
         "produto_destaque": produto_destaque,
-        "produtos": lista_produtos,
-        "ativos_comprados": ativos_comprados
+        "produtos": produtos
     }
     return render_template('mercado.html', **dados_contexto)
+
 @app.route('/api/mercado/comprar', methods=['POST'])
 def comprar_produto():
     try:
         dados = request.get_json() or {}
         produto_id = dados.get("produto_id")
         afiliado_cod = dados.get("afiliado_cod", "DIRETO")
-        id_comprador_atual = "USER_HASTA_90"
-
-        if not produto_id:
-            return jsonify({"success": False, "error": "produto_id é obrigatório"}), 400
-
-        FASTAPI_URL = os.getenv("FASTAPI_URL")
-
+        comprador_id = "USER_HASTA_90"
+        
         if not FASTAPI_URL:
-            return jsonify({"success": False, "error": "FASTAPI_URL não configurado"}), 500
+            return jsonify({"success": False, "error": "A variável FASTAPI_URL não foi configurada!"}), 500
 
-        endpoint = f"{FASTAPI_URL.rstrip('/')}/api/mercado/comprar"
-
+        # Rota da FastAPI que processa a tua regra de negócio/automação
+        url_fastapi = f"{FASTAPI_URL.rstrip('/')}/api/mercado/comprar"
+        
         payload = {
-            "produto_id": produto_id,
-            "comprador_id": id_comprador_atual,
+            "produto_id": str(produto_id),
+            "comprador_id": comprador_id,
             "afiliado_cod": afiliado_cod
         }
+        
+        # Comunicação com a tua FastAPI externa
+        resposta = requests.post(url_fastapi, json=payload, timeout=10)
+        
+        if resposta.status_code != 200:
+            return jsonify({"success": False, "error": f"Erro retornado pela FastAPI: {resposta.text}"}), 500
+            
+        return jsonify(resposta.json())
 
-        try:
-            resposta = requests.post(endpoint, json=payload, timeout=10)
-            data = resposta.json()
-        except Exception as e:
-            return jsonify({"success": False, "error": f"Erro ao comunicar com FastAPI: {str(e)}"}), 502
-
-        if not data.get("success"):
-            return jsonify({"success": False, "error": data.get("error", "Erro no motor financeiro")}), 400
-
-        return jsonify({
-            "success": True,
-            "transacao_id": data.get("transacao_id"),
-            "whatsapp_url": data.get("whatsapp_url")
-        })
-
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
-        if N8N_WEBHOOK_URL:
-            try:
-                requests.post(N8N_WEBHOOK_URL, json={
-                    "transacao_id": transacao_id,
-                    "produto": titulo_produto,
-                    "comprador": id_comprador_atual,
-                    "afiliado": afiliado_cod
-                }, timeout=2)
-            except Exception:
-                pass
-
-        mensagem_whatsapp = (
-            f"Olá! Quero validar o meu Ativo Digital.\n\n"
-            f"⚙️ ORDEM ID: {transacao_id}\n"
-            f"📘 INFOPRODUTO: {titulo_produto}\n"
-            f"👤 OPERADOR: {id_comprador_atual}"
-        )
-        texto_codificado = requests.utils.quote(mensagem_whatsapp)
-        whatsapp_url = f"https://api.whatsapp.com/send?phone={WHATSAPP_SUPORTE_NUMERO}&text={texto_codificado}"
-
-        return jsonify({"success": True, "whatsapp_url": whatsapp_url})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -209,15 +119,16 @@ def gerar_infoproduto():
         dados = request.get_json() or {}
         tipo_acao = dados.get("tipo", "manual")
         
-        conn = obter_conexao()
-        cur = conn.cursor()
-        
         if tipo_acao == "ia":
             tema = dados.get("tema", "Geral")
-            titulo = f"Império Digital: {tema.upper()}"
-            preco = 3500.00
-            descricao = f"Infoproduto gerado automaticamente no nicho de {tema}."
-            download_url = "https://vagalume90.com/downloads/pack-ia"
+            produto = {
+                "titulo": f"Império Digital: {tema.upper()}",
+                "preco_sugerido": 3500.00,
+                "descricao": f"Infoproduto gerado automaticamente através da inteligência artificial no nicho de {tema}.",
+                "criador_id": "VAGALUME CORE",
+                "download_url": "https://vagalume90.com/downloads/pack-ia",
+                "created_at": datetime.utcnow()
+            }
         else:
             titulo = dados.get("titulo")
             preco = dados.get("preco", 3500.00)
@@ -225,17 +136,20 @@ def gerar_infoproduto():
             descricao = dados.get("descricao", "Sem descrição disponível.")
             
             if not titulo:
-                return jsonify({"success": False, "error": "Título em falta"}), 400
+                return jsonify({"success": False, "error": "Título do produto está em falta!"}), 400
+                
+            produto = {
+                "titulo": titulo,
+                "preco_sugerido": float(preco),
+                "descricao": descricao,
+                "download_url": download_url,
+                "criador_id": "USER_HASTA_90",
+                "created_at": datetime.utcnow()
+            }
 
-        cur.execute("""
-            INSERT INTO produtos_ativos (titulo, criador, preco_sugerido, descricao, download_url)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (titulo, "VAGALUME CORE", preco, descricao, download_url))
-        
-        conn.commit()
-        cur.close()
-        conn.close()
+        colecao_produtos.insert_one(produto)
         return jsonify({"success": True})
+        
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
