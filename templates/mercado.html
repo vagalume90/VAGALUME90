@@ -33,13 +33,17 @@ header { padding: 30px; border-bottom: 1px solid var(--glass-border); display: f
 .card-title::before { content: ''; width: 6px; height: 18px; background: var(--neon-pulse); border-radius: 3px; }
 
 label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-future); display: block; margin-bottom: 6px; }
-.input-universo { width: 100%; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--glass-border); padding: 14px; color: #FFF; border-radius: 10px; margin-bottom: 18px; outline: none; }
+.input-universo, .select-universo { width: 100%; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--glass-border); padding: 14px; color: #FFF; border-radius: 10px; margin-bottom: 18px; outline: none; }
+.select-universo option { background: var(--void-deep); color: #FFF; }
 .btn-portal { background: linear-gradient(135deg, #00FF66 0%, #00CC52 100%); color: var(--void-deep); border: none; font-family: var(--font-future); font-size: 1rem; padding: 15px 25px; border-radius: 12px; cursor: pointer; font-weight: 700; width: 100%; letter-spacing: 1px; }
 
 .lista { display: grid; grid-template-columns: 1fr; gap: 15px; max-height: 480px; overflow-y: auto; }
 .item { background: rgba(3,3,5,0.6); border: 1px solid rgba(0, 255, 102, 0.08); padding: 18px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; }
 .btn-conectar { background: transparent; border: 1px solid var(--neon-pulse); color: var(--neon-pulse); font-family: var(--font-future); font-size: 0.8rem; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
 .btn-conectar:hover { background: var(--neon-pulse); color: var(--void-deep); }
+
+.toast { position: fixed; bottom: 30px; right: 30px; background: var(--glass-surface); border: 1px solid var(--neon-pulse); padding: 20px 30px; border-radius: 16px; backdrop-filter: blur(20px); z-index: 9999; display: none; }
+.toast.show { display: block; }
 </style>
 </head>
 <body>
@@ -54,7 +58,6 @@ label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-fu
 
 <div class="container">
   
-  <!-- MONTRA ATIVO DESTAQUE -->
   <div class="destaque">
     <div style="font-family: var(--font-future); font-size: 0.85rem; color: var(--neon-pulse); margin-bottom: 15px;">// ATIVO DESTAQUE EM EXPOSIÇÃO</div>
     <div class="destaque-conteudo">
@@ -68,31 +71,39 @@ label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-fu
     </div>
   </div>
 
-  <!-- GERADOR DE INFOPRODUTOS -->
   <div class="card">
     <div class="card-title">MANIFESTAR OU DEPOSITAR ATIVO</div>
     
-    <!-- BLOCO IA -->
     <div style="border-bottom: 1px dashed var(--glass-border); padding-bottom: 20px; margin-bottom: 20px;">
-      <label style="color: #00FFFF;">// DISPARAR GERADOR AUTOMÁTICO (IA):</label>
-      <input type="text" id="nicho-ia" class="input-universo" placeholder="Indica o nicho (Ex: Saúde, Vídeos)..." style="border-color: rgba(0, 255, 255, 0.2);">
-      <button class="btn-portal" style="background: linear-gradient(135deg, #00FFFF 0%, #0088FF 100%); color: #000;" onclick="dispararGeradorIA()">DISPARAR FUNIL DA IA</button>
+      <label style="color: #00FFFF;">// 1. FORMATO DO ATIVO IA:</label>
+      <select id="formato-ia" class="select-universo" onchange="atualizarPrecoSugerido()">
+        <option value="Ebook">Ebook (Sugestão: 3.500 KZ)</option>
+        <option value="Curso">Curso Online (Sugestão: 8.500 KZ)</option>
+        <option value="Tutorial">Tutorial (Sugestão: 2.500 KZ)</option>
+        <option value="Guia">Guia Completo (Sugestão: 4.500 KZ)</option>
+      </select>
+
+      <label style="color: #00FFFF;">// 2. NICHO / TEMA:</label>
+      <input type="text" id="nicho-ia" class="input-universo" placeholder="Ex: Tráfego Pago, Culinária...">
+      
+      <label style="color: #00FFFF;">// 3. PREÇO DO ATIVO (EDITÁVEL):</label>
+      <input type="number" id="preco-ia" class="input-universo" value="3500">
+
+      <button id="btn-ia" class="btn-portal" style="background: linear-gradient(135deg, #00FFFF 0%, #0088FF 100%); color: #000;" onclick="dispararGeradorIA()">DISPARAR FUNIL DA IA</button>
     </div>
 
-    <!-- BLOCO MANUAL -->
     <div>
       <label>// DEPOSITAR O TEU PRÓPRIO PRODUTO (REAL):</label>
       <input type="text" id="titulo-prod" class="input-universo" placeholder="Título do teu produto real...">
       <input type="number" id="preco-prod" class="input-universo" placeholder="Preço em Kwanzas (KZ)...">
       <input type="url" id="url-prod" class="input-universo" placeholder="Link do Google Drive ou Mega...">
       <input type="text" id="desc-prod" class="input-universo" placeholder="Breve descrição do produto...">
-      <button class="btn-portal" onclick="depositarAtivoManual()">LANÇAR ATIVO MANUAL NA REDE</button>
+      <button id="btn-manual" class="btn-portal" onclick="depositarAtivoManual()">LANÇAR ATIVO MANUAL NA REDE</button>
     </div>
   </div>
 
-  <!-- PRODUTOS DO MONGODB -->
   <div class="card">
-    <div class="card-title">ATIVOS DISPONÍVEIS NA REDE</div>
+    <div class="card-title">ATIVOS DISPONÍVEIS NA REDE <span>({{ total_produtos }})</span></div>
     <div class="lista">
       {% if produtos %}
         {% for prod in produtos %}
@@ -106,58 +117,88 @@ label { font-size: 0.75rem; color: var(--neon-pulse); font-family: var(--font-fu
         </div>
         {% endfor %}
       {% else %}
-        <p style="padding: 20px; color: rgba(255,255,255,0.3); text-align: center;">Nenhum produto em catálogo no MongoDB Atlas.</p>
+        <p style="padding: 20px; color: rgba(255,255,255,0.3); text-align: center;">Nenhum produto em catálogo no momento.</p>
       {% endif %}
     </div>
   </div>
 
 </div>
 
+<div id="toast" class="toast"></div>
+
 <script>
+function mostrarToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+function atualizarPrecoSugerido() {
+  const formato = document.getElementById('formato-ia').value;
+  const campoPreco = document.getElementById('preco-ia');
+  const tabela = { 'Ebook': 3500, 'Curso': 8500, 'Tutorial': 2500, 'Guia': 4500 };
+  campoPreco.value = tabela[formato] || 3500;
+}
+
 async function comprarProduto(id) {
   try {
+    mostrarToast("📡 Processando aquisição...");
     const res = await fetch('/api/mercado/comprar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ produto_id: id, afiliado_cod: "HASTA90" })
     });
     const data = await res.json();
-    
-    if (data.success && data.whatsapp_url) {
-      window.location.href = data.whatsapp_url;
-    } else if (data.whatsapp_url) {
+    if (data.whatsapp_url) {
       window.location.href = data.whatsapp_url;
     } else {
-      alert("Requisição enviada com sucesso para a FastAPI!");
+      mostrarToast("Ordem registada no sistema com sucesso!");
     }
   } catch (err) {
-    alert("Falha ao processar a requisição de compra através do Flask.");
+    mostrarToast("Erro ao processar compra externa.");
   }
 }
 
 async function dispararGeradorIA() {
-  const tema = document.getElementById('nicho-ia').value;
-  if (!tema) return alert("Insere um nicho/tema para a IA!");
+  const formato = document.getElementById('formato-ia').value;
+  const tema = document.getElementById('nicho-ia').value.trim();
+  const preco = document.getElementById('preco-ia').value;
+  
+  if(!tema || !preco) return mostrarToast("Preenche o tema e valor!");
+  
+  const btn = document.getElementById('btn-ia');
+  btn.disabled = true;
+  btn.textContent = "GERANDO...";
+
   try {
     const res = await fetch('/api/mercado/gerar-infoproduto', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tipo: 'ia', tema: tema })
+      body: JSON.stringify({ tipo: 'ia', formato: formato, tema: tema, preco: parseFloat(preco) })
     });
     const data = await res.json();
     if (data.success) window.location.reload();
+    else mostrarToast("Falha: " + data.error);
   } catch (err) {
-    alert("Erro ao acionar gerador automático.");
+    mostrarToast("Erro de rede no gerador.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "DISPARAR FUNIL DA IA";
   }
 }
 
 async function depositarAtivoManual() {
-  const titulo = document.getElementById('titulo-prod').value;
+  const titulo = document.getElementById('titulo-prod').value.trim();
   const preco = document.getElementById('preco-prod').value;
-  const url = document.getElementById('url-prod').value;
-  const desc = document.getElementById('desc-prod').value;
+  const url = document.getElementById('url-prod').value.trim();
+  const desc = document.getElementById('desc-prod').value.trim();
   
-  if (!titulo || !preco || !url) return alert("Por favor, preenche todos os campos obrigatórios!");
+  if(!titulo || !preco || !url) return mostrarToast("Preenche os campos obrigatórios!");
+  
+  const btn = document.getElementById('btn-manual');
+  btn.disabled = true;
+  
   try {
     const res = await fetch('/api/mercado/gerar-infoproduto', {
       method: 'POST',
@@ -166,8 +207,10 @@ async function depositarAtivoManual() {
     });
     const data = await res.json();
     if (data.success) window.location.reload();
-  } catch (err) {
-    alert("Erro ao salvar o produto manualmente.");
+  } catch(e) {
+    mostrarToast("Erro ao enviar produto.");
+  } finally {
+    btn.disabled = false;
   }
 }
 </script>
