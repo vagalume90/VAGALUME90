@@ -137,7 +137,6 @@ def renderizar_mercado():
         "ativos_comprados": ativos_comprados
     }
     return render_template('mercado.html', **dados_contexto)
-
 @app.route('/api/mercado/comprar', methods=['POST'])
 def comprar_produto():
     try:
@@ -145,30 +144,40 @@ def comprar_produto():
         produto_id = dados.get("produto_id")
         afiliado_cod = dados.get("afiliado_cod", "DIRETO")
         id_comprador_atual = "USER_HASTA_90"
-        
-        titulo_produto = "Fórmula Tráfego Angola"
-        download_url = "#"
-        
-        conn = obter_conexao()
-        cur = conn.cursor()
-        
-        if str(produto_id) != "PROD_DESTAQUE_01":
-            cur.execute("SELECT titulo, download_url FROM produtos_ativos WHERE id = %s", (int(produto_id),))
-            prod = cur.fetchone()
-            if prod:
-                titulo_produto = prod["titulo"]
-                download_url = prod["download_url"]
 
-        transacao_id = f"TX_{int(datetime.utcnow().timestamp())}"
+        if not produto_id:
+            return jsonify({"success": False, "error": "produto_id é obrigatório"}), 400
 
-        cur.execute("""
-            INSERT INTO transacoes_fluxo (comprador_id, produto_id, produto_titulo, afiliado_cod, status, download_url)
-            VALUES (%s, %s, %s, %s, 'AGUARDANDO PROVA', %s)
-        """, (id_comprador_atual, str(produto_id), titulo_produto, afiliado_cod, download_url))
-        
-        conn.commit()
-        cur.close()
-        conn.close()
+        FASTAPI_URL = os.getenv("FASTAPI_URL")
+
+        if not FASTAPI_URL:
+            return jsonify({"success": False, "error": "FASTAPI_URL não configurado"}), 500
+
+        endpoint = f"{FASTAPI_URL.rstrip('/')}/api/mercado/comprar"
+
+        payload = {
+            "produto_id": produto_id,
+            "comprador_id": id_comprador_atual,
+            "afiliado_cod": afiliado_cod
+        }
+
+        try:
+            resposta = requests.post(endpoint, json=payload, timeout=10)
+            data = resposta.json()
+        except Exception as e:
+            return jsonify({"success": False, "error": f"Erro ao comunicar com FastAPI: {str(e)}"}), 502
+
+        if not data.get("success"):
+            return jsonify({"success": False, "error": data.get("error", "Erro no motor financeiro")}), 400
+
+        return jsonify({
+            "success": True,
+            "transacao_id": data.get("transacao_id"),
+            "whatsapp_url": data.get("whatsapp_url")
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
         if N8N_WEBHOOK_URL:
             try:
