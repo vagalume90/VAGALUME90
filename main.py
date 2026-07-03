@@ -1,49 +1,70 @@
 import os
 import time
+import logging
 from datetime import datetime
+from typing import Dict, List, Optional, Any
 import requests
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify, redirect, session
 from pymongo import MongoClient
-from pymongo.errors import ServerSelectionTimeoutError
+from pymongo.errors import ServerSelectionTimeoutError, DuplicateKeyError
 from bson import ObjectId
+import re
+from functools import wraps
+
+# Configuração de Logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY", "vagalume90-super-secret-key-change-in-production")
 
-# =======================================================
-# CONFIGURAÇÕES DE AMBIENTE (SISTEMA INTEGRADO MONGO)
-# =======================================================
+# ===================== CONFIGURAÇÕES =====================
 MONGO_URI = os.getenv("MONGO_URI")
 FASTAPI_URL = os.getenv("FASTAPI_URL")
 WHATSAPP_SUPORTE_NUMERO = os.getenv("WHATSAPP_NUMERO", "244929894589")
+ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "VAGALUME90_ADMIN_2026")
 
 if not MONGO_URI:
-    raise ValueError("⚠️ ERRO CRÍTICO: A variável MONGO_URI está ausente no ambiente!")
+    logger.error("⚠️ ERRO CRÍTICO: A variável MONGO_URI está ausente!")
+    raise ValueError("MONGO_URI é obrigatória")
 
-# Lógica de conexão resiliente ao MongoDB Atlas
-def obter_conexao_mongo(uri, max_tentativas=5):
+# ===================== CONEXÃO MONGODB =====================
+def obter_conexao_mongo(uri: str, max_tentativas: int = 5) -> MongoClient:
     for i in range(max_tentativas):
         try:
-            print(f"🔄 [Mongo Core] A conectar ao cluster... (Tentativa {i+1}/{max_tentativas})")
-            client = MongoClient(uri, serverSelectionTimeoutMS=3000)
-            client.server_info() # Força a validação da conexão real
+            client = MongoClient(uri, serverSelectionTimeoutMS=3000, maxPoolSize=10)
+            client.server_info()
+            logger.info(f"✅ Conexão com MongoDB estabelecida (tentativa {i+1})")
             return client
         except ServerSelectionTimeoutError as e:
+            logger.warning(f"⚠️ Tentativa {i+1}/{max_tentativas} falhou: {e}")
             if i < max_tentativas - 1:
-                print("⏳ [Mongo Core] Cluster a inicializar ou ocupado. Aguardando 2s...")
                 time.sleep(2)
             else:
+                logger.error("❌ Falha ao conectar ao MongoDB após todas as tentativas")
                 raise e
 
-client = obter_conexao_mongo(MONGO_URI)
-db = client["vagalume_db"]
+try:
+    client = obter_conexao_mongo(MONGO_URI)
+    db = client["vagalume_db"]
+    colecao_produtos = db["produtos"]
+    colecao_compras = db["compras"]
+    logger.info("✅ Coleções do MongoDB mapeadas com sucesso")
+except Exception as e:
+    logger.error(f"❌ Erro ao inicializar MongoDB: {e}")
+    raise
 
-colecao_produtos = db["produtos"]
-colecao_transacoes = db["transacoes"]
+def sanitizar_string(texto: str) -> str:
+    if not texto:
+        return ""
+    texto = re.sub(r'[<>]', '', texto)
+    texto = re.sub(r'[^\w\s\-.,!?]', '', texto)
+    return texto[:200]
 
-# =======================================================
-# ROTAS DE INTERAÇÃO
-# =======================================================
-
+# ===================== ROTAS PRINCIPAIS =====================
 @app.route('/')
 def index():
     return redirect('/modulo/mercado')
@@ -51,34 +72,34 @@ def index():
 @app.route('/modulo/mercado')
 def renderizar_mercado():
     try:
-        # Recupera produtos reais do MongoDB
-        produtos = list(colecao_produtos.find().sort("_id", -1))
+        limit = int(request.args.get('limit', 20))
+        offset = int(request.args.get('offset', 0))
         
-        # Converte ObjectId para String para não quebrar a renderização do Jinja2
-        for p in produtos:
+        produtos_cursor = colecao_produtos.find().sort("_id", -1).skip(offset).limit(limit)
+        produtos = []
+        for p in produtos_cursor:
             p["_id"] = str(p["_id"])
+            p["titulo"] = sanitizar_string(p.get("titulo", ""))
+            p["descricao"] = sanitizar_string(p.get("descricao", ""))
+            produtos.append(p)
             
+        logger.info(f"✅ Renderizando mercado com {len(produtos)} produtos")
     except Exception as e:
-        return jsonify({
-            "code": 503, 
-            "message": "O banco de dados não está pronto ou está a demorar a responder.", 
-            "details": str(e)}
-        ), 503
+        logger.error(f"❌ Erro ao buscar produtos: {e}")
+        produtos = []
 
-    produto_destaque = {
-        "_id": "PROD_DESTAQUE_01",
-        "titulo": "Fórmula Tráfego Angola (Acesso Vitalício)",
-        "preco_sugerido": 7500.00,
-        "descricao": "O mapa completo para dominar anúncios e escala digital no mercado angolano."
-    }
-
-    # Dados mockados do teu operador sincronizados com o painel visual
     dados_contexto = {
         "rank": "OPERADOR ALFA",
         "saldo_disponivel": 999649.00,
         "codigo_afiliado": "HASTA90",
-        "produto_destaque": produto_destaque,
-        "produtos": produtos
+        "produto_destaque": {
+            "_id": "PROD_DESTAQUE_01",
+            "titulo": "Fórmula Tráfego Angola (Acesso Vitalício)",
+            "preco_sugerido": 7500.00,
+            "descricao": "O mapa completo para dominar anúncios e escala digital no mercado angolano."
+        },
+        "produtos": produtos,
+        "total_produtos": len(produtos)
     }
     return render_template('mercado.html', **dados_contexto)
 
@@ -87,30 +108,64 @@ def comprar_produto():
     try:
         dados = request.get_json() or {}
         produto_id = dados.get("produto_id")
-        afiliado_cod = dados.get("afiliado_cod", "DIRETO")
-        comprador_id = "USER_HASTA_90"
+        codigo_afiliado = dados.get("afiliado_cod", "HASTA90").strip()
         
-        if not FASTAPI_URL:
-            return jsonify({"success": False, "error": "A variável FASTAPI_URL não foi configurada!"}), 500
+        if not produto_id:
+            return jsonify({"success": False, "error": "ID do produto é obrigatório"}), 400
+        
+        # Cria um ID de comprador fictício baseado no IP para o ecossistema
+        comprador_ficticio = f"OP_{hashlib.md5(request.remote_addr.encode()).hexdigest()[:6].upper()}"
 
-        # Rota da FastAPI que processa a tua regra de negócio/automação
-        url_fastapi = f"{FASTAPI_URL.rstrip('/')}/api/mercado/comprar"
-        
-        payload = {
-            "produto_id": str(produto_id),
-            "comprador_id": comprador_id,
-            "afiliado_cod": afiliado_cod
+        # 1. Tentar localizar o produto no Mongo local para validar
+        if produto_id == "PROD_DESTAQUE_01":
+            titulo_produto = "Fórmula Tráfego Angola (Acesso Vitalício)"
+            preco_produto = 7500.00
+        else:
+            prod = colecao_produtos.find_one({"_id": ObjectId(produto_id) if ObjectId.is_valid(produto_id) else produto_id})
+            if not prod:
+                return jsonify({"success": False, "error": "Produto não encontrado no catálogo"}), 404
+            titulo_produto = prod.get("titulo")
+            preco_produto = prod.get("preco_sugerido")
+
+        # 2. Guardar log local na coleção de compras do Flask
+        compra_local = {
+            "produto_id": produto_id,
+            "produto_titulo": titulo_produto,
+            "preco": preco_produto,
+            "afiliado_cod": codigo_afiliado,
+            "comprador_id": comprador_ficticio,
+            "status": "AGUARDANDO PROVA",
+            "created_at": datetime.utcnow()
         }
-        
-        # Comunicação com a tua FastAPI externa
-        resposta = requests.post(url_fastapi, json=payload, timeout=10)
-        
-        if resposta.status_code != 200:
-            return jsonify({"success": False, "error": f"Erro retornado pela FastAPI: {resposta.text}"}), 500
-            
-        return jsonify(resposta.json())
+        colecao_compras.insert_one(compra_local)
 
+        # 3. Disparar para o Gestor de Aquisição na FastAPI
+        if FASTAPI_URL:
+            try:
+                url_fastapi = f"{FASTAPI_URL.rstrip('/')}/api/mercado/comprar"
+                payload_fastapi = {
+                    "produto_id": produto_id,
+                    "comprador_id": comprador_ficticio,
+                    "afiliado_cod": codigo_afiliado
+                }
+                resposta = requests.post(url_fastapi, json=payload_fastapi, timeout=8)
+                
+                if resposta.status_code == 200:
+                    return jsonify(resposta.json())
+            except Exception as e:
+                logger.error(f"⚠️ Gestor FastAPI indisponível, usando Fallback Direct Link: {e}")
+
+        # Fallback local caso a FastAPI falhe
+        mensagem_whatsapp = f"Olá! Quero validar o meu Ativo Digital.\n\n📘 INFOPRODUTO: {titulo_produto}\n👤 OPERADOR: {comprador_ficticio}\n🎯 REF: {codigo_afiliado}"
+        link_whatsapp = f"https://api.whatsapp.com/send?phone={WHATSAPP_SUPORTE_NUMERO}&text={requests.utils.quote(mensagem_whatsapp)}"
+        return jsonify({
+            "success": True,
+            "whatsapp_url": link_whatsapp,
+            "mensagem": "Encaminhado via link direto de contingência."
+        })
+        
     except Exception as e:
+        logger.error(f"❌ Erro na rota de compra: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/mercado/gerar-infoproduto', methods=['POST'])
@@ -120,39 +175,45 @@ def gerar_infoproduto():
         tipo_acao = dados.get("tipo", "manual")
         
         if tipo_acao == "ia":
-            tema = dados.get("tema", "Geral")
+            tema = dados.get("tema", "").strip()
+            formato = dados.get("formato", "Ebook").upper()
+            preco = float(dados.get("preco", 3500))
+            
+            if not tema or len(tema) < 3:
+                return jsonify({"success": False, "error": "Tema muito curto!"}), 400
+                
             produto = {
-                "titulo": f"Império Digital: {tema.upper()}",
-                "preco_sugerido": 3500.00,
-                "descricao": f"Infoproduto gerado automaticamente através da inteligência artificial no nicho de {tema}.",
-                "criador_id": "VAGALUME CORE",
+                "titulo": f"{formato}: {sanitizar_string(tema).upper()}",
+                "preco_sugerido": preco,
+                "descricao": f"Infoproduto magnético do tipo [{formato}] gerado por IA focado no mercado de {sanitizar_string(tema)}.",
+                "criador_id": "VAGALUME_CORE_AI",
                 "download_url": "https://vagalume90.com/downloads/pack-ia",
+                "tipo_geracao": "ia",
                 "created_at": datetime.utcnow()
             }
         else:
-            titulo = dados.get("titulo")
-            preco = dados.get("preco", 3500.00)
-            download_url = dados.get("download_url", "#")
-            descricao = dados.get("descricao", "Sem descrição disponível.")
+            titulo = dados.get("titulo", "").strip()
+            preco = float(dados.get("preco", 0))
+            url = dados.get("download_url", "").strip()
+            desc = dados.get("descricao", "").strip()
             
-            if not titulo:
-                return jsonify({"success": False, "error": "Título do produto está em falta!"}), 400
+            if not titulo or not url:
+                return jsonify({"success": False, "error": "Campos obrigatórios em falta!"}), 400
                 
             produto = {
-                "titulo": titulo,
-                "preco_sugerido": float(preco),
-                "descricao": descricao,
-                "download_url": download_url,
+                "titulo": sanitizar_string(titulo),
+                "preco_sugerido": preco,
+                "descricao": sanitizar_string(desc) or "Sem descrição.",
+                "download_url": url,
                 "criador_id": "USER_HASTA_90",
+                "tipo_geracao": "manual",
                 "created_at": datetime.utcnow()
             }
 
         colecao_produtos.insert_one(produto)
-        return jsonify({"success": True})
-        
+        return jsonify({"success": True, "mensagem": "Produto registado com sucesso!"})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == '__main__':
-    porta = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=porta, debug=False)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
