@@ -96,6 +96,8 @@ nav a.active { color:var(--gold); }
         <div class="feedback" id="file-feedback"></div>
       </form>
       <div class="project-list" id="file-list"></div>
+      <h3>Histórico Git</h3>
+      <div class="project-list" id="commit-list"><p class="project-meta">Ainda sem commits.</p></div>
     </article>
   </section>
 </div>
@@ -112,6 +114,7 @@ const filePanel = document.getElementById('file-panel');
 const fileList = document.getElementById('file-list');
 const fileFeedback = document.getElementById('file-feedback');
 const repositoryFeedback = document.getElementById('repository-feedback');
+const commitList = document.getElementById('commit-list');
 let selectedProjectId = null;
 let editingFileId = null;
 
@@ -172,6 +175,59 @@ async function deleteFile(fileId) {
   }
 }
 
+async function loadCommits(projectId) {
+  commitList.replaceChildren();
+  try {
+    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(projectId)}/commits`);
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      const empty = document.createElement('p');
+      empty.className = 'project-meta';
+      empty.textContent = data.error || 'Ainda sem commits.';
+      commitList.appendChild(empty);
+      return;
+    }
+    if (!data.commits.length) {
+      const empty = document.createElement('p');
+      empty.className = 'project-meta';
+      empty.textContent = 'Ainda sem commits.';
+      commitList.appendChild(empty);
+      return;
+    }
+    data.commits.forEach(commit => {
+      const item = document.createElement('p');
+      item.className = 'project-meta';
+      item.textContent = `${commit.sha.slice(0, 8)} · ${commit.mensagem}`;
+      commitList.appendChild(item);
+    });
+  } catch (error) {
+    const item = document.createElement('p');
+    item.className = 'project-meta';
+    item.textContent = `Erro: ${error.message}`;
+    commitList.appendChild(item);
+  }
+}
+
+async function commitFile(fileId) {
+  if (!selectedProjectId) return;
+  const message = window.prompt('Mensagem do commit:', 'Atualiza ficheiro');
+  if (message === null) return;
+  try {
+    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(selectedProjectId)}/ficheiros/${encodeURIComponent(fileId)}/commit`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({mensagem: message})
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível criar o commit.');
+    fileFeedback.textContent = `Commit criado: ${data.commit.sha.slice(0, 8)}`;
+    await loadCommits(selectedProjectId);
+  } catch (error) {
+    fileFeedback.textContent = error.message;
+    fileFeedback.style.color = '#ff7b8a';
+  }
+}
+
 async function loadRepository(projectId) {
   try {
     const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(projectId)}/repositorio`);
@@ -225,7 +281,12 @@ async function loadFiles(projectId) {
       deleteButton.className = 'secondary';
       deleteButton.textContent = 'APAGAR';
       deleteButton.addEventListener('click', () => deleteFile(file.id));
-      card.append(name, content, editButton, deleteButton);
+      const commitButton = document.createElement('button');
+      commitButton.type = 'button';
+      commitButton.className = 'secondary';
+      commitButton.textContent = 'CRIAR COMMIT';
+      commitButton.addEventListener('click', () => commitFile(file.id));
+      card.append(name, content, editButton, deleteButton, commitButton);
       fileList.appendChild(card);
     });
   } catch (error) {
@@ -259,6 +320,7 @@ async function viewProject(projectId) {
     fileFeedback.textContent = '';
     await loadRepository(projectId);
     await loadFiles(projectId);
+    await loadCommits(projectId);
   } catch (error) {
     detail.textContent = `Erro: ${error.message}`;
   }

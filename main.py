@@ -1,6 +1,8 @@
 import os
 import hashlib
 import subprocess
+import shutil
+import tempfile
 from pathlib import Path
 import time
 import logging
@@ -366,6 +368,102 @@ def obter_repositorio_matrix(project_id):
             "tipo": repositorio.get("tipo", "git-bare-local")
         }
     })
+
+@app.route('/api/matrix/projetos/<project_id>/ficheiros/<file_id>/commit', methods=['POST'])
+def criar_commit_ficheiro_matrix(project_id, file_id):
+    try:
+        projeto_id = ObjectId(project_id)
+        ficheiro_id = ObjectId(file_id)
+    except Exception:
+        return jsonify({"success": False, "error": "Identificador inválido."}), 400
+
+    projeto = colecao_projetos.find_one({"_id": projeto_id})
+    ficheiro = colecao_ficheiros.find_one({"_id": ficheiro_id, "projeto_id": projeto_id})
+    repositorio = colecao_repositorios.find_one({"projeto_id": projeto_id})
+    if projeto is None or ficheiro is None:
+        return jsonify({"success": False, "error": "Projeto ou ficheiro não encontrado."}), 404
+    if repositorio is None:
+        return jsonify({"success": False, "error": "Cria primeiro o repositório Git."}), 409
+
+    caminho_bare = Path(repositorio["caminho_local"])
+    if not caminho_bare.exists():
+        return jsonify({"success": False, "error": "O repositório Git local não existe."}), 500
+
+    mensagem = request.get_json(silent=True) or {}
+    mensagem_commit = str(mensagem.get("mensagem", "Atualiza ficheiro" )).strip()[:160]
+    if not mensagem_commit:
+        mensagem_commit = "Atualiza ficheiro"
+
+    try:
+        pasta_temp = tempfile.mkdtemp(prefix="matrix-commit-")
+        try:
+            clone = subprocess.run(
+                ["git", "clone", str(caminho_bare), pasta_temp],
+                capture_output=True, text=True, timeout=30, check=False
+            )
+            if clone.returncode != 0:
+                logger.error("git clone falhou: %s", clone.stderr)
+                return jsonify({"success": False, "error": "Não foi possível preparar o commit."}), 500
+
+            trabalho = Path(pasta_temp)
+            arquivo = trabalho / ficheiro["nome"]
+            arquivo.parent.mkdir(parents=True, exist_ok=True)
+            arquivo.write_text(ficheiro.get("conteudo", ""), encoding="utf-8")
+
+            comandos = [
+                ["git", "-C", str(trabalho), "config", "user.name", "Matrix MVP"],
+                ["git", "-C", str(trabalho), "config", "user.email", "matrix@vagalume90.local"],
+                ["git", "-C", str(trabalho), "add", "--", ficheiro["nome"]],
+                ["git", "-C", str(trabalho), "commit", "-m", mensagem_commit],
+                ["git", "-C", str(trabalho), "push", "origin", "HEAD:main"]
+            ]
+            for comando in comandos:
+                resultado = subprocess.run(comando, capture_output=True, text=True, timeout=30, check=False)
+                if resultado.returncode != 0:
+                    if "commit" in comando and "nothing to commit" in (resultado.stdout + resultado.stderr).lower():
+                        return jsonify({"success": False, "error": "Não existem alterações novas para criar um commit."}), 409
+                    logger.error("Comando Git falhou: %s", resultado.stderr)
+                    return jsonify({"success": False, "error": "O Git não conseguiu criar o commit."}), 500
+
+            sha = subprocess.run(
+                ["git", "-C", str(trabalho), "rev-parse", "HEAD"],
+                capture_output=True, text=True, timeout=15, check=False
+            ).stdout.strip()
+            return jsonify({"success": True, "mensagem": "Commit criado com sucesso.", "commit": {"sha": sha, "mensagem": mensagem_commit}}), 201
+        finally:
+            shutil.rmtree(pasta_temp, ignore_errors=True)
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError) as erro:
+        logger.error("Erro no commit Git: %s", erro)
+        return jsonify({"success": False, "error": "Não foi possível concluir o commit."}), 500
+
+@app.route('/api/matrix/projetos/<project_id>/commits', methods=['GET'])
+def listar_commits_matrix(project_id):
+    try:
+        projeto_id = ObjectId(project_id)
+    except Exception:
+        return jsonify({"success": False, "error": "Identificador inválido."}), 400
+
+    repositorio = colecao_repositorios.find_one({"projeto_id": projeto_id})
+    if repositorio is None:
+        return jsonify({"success": False, "error": "Repositório não encontrado."}), 404
+
+    try:
+        resultado = subprocess.run(
+            ["git", "--git-dir", repositorio["caminho_local"], "log", "main", "-10", "--pretty=format:%H%x09%s"],
+            capture_output=True, text=True, timeout=15, check=False
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return jsonify({"success": False, "error": "Git não está disponível."}), 500
+
+    if resultado.returncode != 0 and "does not have any commits" not in resultado.stderr.lower():
+        return jsonify({"success": False, "error": "Não foi possível ler o histórico."}), 500
+
+    commits = []
+    for linha in resultado.stdout.splitlines():
+        if "\t" in linha:
+            sha, mensagem = linha.split("\t", 1)
+            commits.append({"sha": sha, "mensagem": mensagem})
+    return jsonify({"success": True, "commits": commits})
 
 @app.route('/modulo/mercado')
 def renderizar_mercado():
