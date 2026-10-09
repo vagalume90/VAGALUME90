@@ -50,7 +50,7 @@ def obter_conexao_mongo(uri: str, max_tentativas: int = 5) -> MongoClient:
 
 try:
     client = obter_conexao_mongo(MONGO_URI)
-    db = client["vagalume_db"]
+    db = client[os.getenv("MONGO_DATABASE", "vagalume_db")]
     colecao_produtos = db["produtos"]
     colecao_compras = db["compras"]
     colecao_projetos = db["projetos"]
@@ -92,6 +92,72 @@ def api_ai_matrix():
     return jsonify({
         "success": True,
         "response": f"A Matrix recebeu a tua mensagem: {prompt}"
+    })
+
+@app.route('/api/matrix/projetos', methods=['POST'])
+def criar_projeto_matrix():
+    dados = request.get_json(silent=True) or {}
+    nome = str(dados.get('nome', '')).strip()
+    descricao = str(dados.get('descricao', '')).strip()
+    visibilidade = str(dados.get('visibilidade', 'privado')).strip().lower()
+
+    if not nome:
+        return jsonify({
+            "success": False,
+            "error": "O nome do projeto é obrigatório."
+        }), 400
+
+    if len(nome) > 100:
+        return jsonify({
+            "success": False,
+            "error": "O nome do projeto é demasiado longo."
+        }), 400
+
+    if visibilidade not in {"publico", "privado"}:
+        return jsonify({
+            "success": False,
+            "error": "A visibilidade deve ser publico ou privado."
+        }), 400
+
+    projeto = {
+        "nome": sanitizar_string(nome),
+        "descricao": sanitizar_string(descricao),
+        "visibilidade": visibilidade,
+        "estado": "ativo",
+        "criado_em": datetime.utcnow()
+    }
+
+    resultado = colecao_projetos.insert_one(projeto)
+
+    return jsonify({
+        "success": True,
+        "mensagem": "Projeto criado com sucesso.",
+        "projeto_id": str(resultado.inserted_id),
+        "projeto": {
+            "nome": projeto["nome"],
+            "descricao": projeto["descricao"],
+            "visibilidade": projeto["visibilidade"],
+            "estado": projeto["estado"]
+        }
+    }), 201
+
+@app.route('/api/matrix/projetos', methods=['GET'])
+def listar_projetos_matrix():
+    projetos = []
+
+    for projeto in colecao_projetos.find().sort("_id", -1):
+        projetos.append({
+            "id": str(projeto["_id"]),
+            "nome": projeto.get("nome", ""),
+            "descricao": projeto.get("descricao", ""),
+            "visibilidade": projeto.get("visibilidade", "privado"),
+            "estado": projeto.get("estado", "ativo")
+        })
+
+    return jsonify({
+        "success": True,
+        "total": len(projetos),
+        "projetos": projetos
     })
 
 @app.route('/modulo/mercado')
