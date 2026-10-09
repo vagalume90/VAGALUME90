@@ -1,5 +1,7 @@
 import os
 import hashlib
+import subprocess
+from pathlib import Path
 import time
 import logging
 from datetime import datetime
@@ -55,6 +57,7 @@ try:
     colecao_compras = db["compras"]
     colecao_projetos = db["projetos"]
     colecao_ficheiros = db["ficheiros"]
+    colecao_repositorios = db["repositorios"]
     logger.info("✅ Coleções do MongoDB mapeadas com sucesso")
 except Exception as e:
     logger.error(f"❌ Erro ao inicializar MongoDB: {e}")
@@ -285,6 +288,84 @@ def apagar_ficheiro_matrix(project_id, file_id):
         return jsonify({"success": False, "error": "Ficheiro não encontrado."}), 404
 
     return jsonify({"success": True, "mensagem": "Ficheiro apagado com sucesso."})
+
+@app.route('/api/matrix/projetos/<project_id>/repositorio', methods=['POST'])
+def criar_repositorio_matrix(project_id):
+    try:
+        projeto = colecao_projetos.find_one({"_id": ObjectId(project_id)})
+    except Exception:
+        projeto = None
+
+    if projeto is None:
+        return jsonify({"success": False, "error": "Projeto não encontrado."}), 404
+
+    existente = colecao_repositorios.find_one({"projeto_id": projeto["_id"]})
+    if existente is not None:
+        return jsonify({
+            "success": False,
+            "error": "Este projeto já tem um repositório Git."
+        }), 409
+
+    base = Path(os.getenv("MATRIX_GIT_STORAGE", "matrix_git_repositories"))
+    caminho = base / str(projeto["_id"])
+    try:
+        caminho.parent.mkdir(parents=True, exist_ok=True)
+        resultado_git = subprocess.run(
+            ["git", "init", "--bare", "--initial-branch=main", str(caminho)],
+            capture_output=True, text=True, timeout=15, check=False
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as erro:
+        logger.error("Erro ao criar repositório Git: %s", erro)
+        return jsonify({"success": False, "error": "Git não está disponível no servidor."}), 500
+
+    if resultado_git.returncode != 0:
+        logger.error("git init falhou: %s", resultado_git.stderr)
+        return jsonify({"success": False, "error": "Não foi possível criar o repositório Git."}), 500
+
+    repositorio = {
+        "projeto_id": projeto["_id"],
+        "nome": projeto.get("nome", "projeto"),
+        "ramo_principal": "main",
+        "caminho_local": str(caminho),
+        "tipo": "git-bare-local",
+        "criado_em": datetime.utcnow()
+    }
+    resultado = colecao_repositorios.insert_one(repositorio)
+
+    return jsonify({
+        "success": True,
+        "mensagem": "Repositório Git criado com sucesso.",
+        "repositorio": {
+            "id": str(resultado.inserted_id),
+            "nome": repositorio["nome"],
+            "ramo_principal": repositorio["ramo_principal"],
+            "tipo": repositorio["tipo"]
+        }
+    }), 201
+
+@app.route('/api/matrix/projetos/<project_id>/repositorio', methods=['GET'])
+def obter_repositorio_matrix(project_id):
+    try:
+        projeto = colecao_projetos.find_one({"_id": ObjectId(project_id)})
+    except Exception:
+        projeto = None
+
+    if projeto is None:
+        return jsonify({"success": False, "error": "Projeto não encontrado."}), 404
+
+    repositorio = colecao_repositorios.find_one({"projeto_id": projeto["_id"]})
+    if repositorio is None:
+        return jsonify({"success": True, "repositorio": None})
+
+    return jsonify({
+        "success": True,
+        "repositorio": {
+            "id": str(repositorio["_id"]),
+            "nome": repositorio.get("nome", projeto.get("nome", "projeto")),
+            "ramo_principal": repositorio.get("ramo_principal", "main"),
+            "tipo": repositorio.get("tipo", "git-bare-local")
+        }
+    })
 
 @app.route('/modulo/mercado')
 def renderizar_mercado():

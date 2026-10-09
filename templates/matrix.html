@@ -80,6 +80,9 @@ nav a.active { color:var(--gold); }
     <div class="project-list" id="project-list"><p class="project-meta">A carregar projetos...</p></div>
     <article class="project-card" id="project-detail" hidden></article>
     <article class="project-card" id="file-panel" hidden>
+      <h3>Repositório do projeto</h3>
+      <button type="button" id="create-repository">CRIAR REPOSITÓRIO GIT</button>
+      <div class="feedback" id="repository-feedback"></div>
       <h3>Ficheiros do projeto</h3>
       <form id="file-form">
         <label>Nome do ficheiro
@@ -108,6 +111,7 @@ const projectFeedback = document.getElementById('project-feedback');
 const filePanel = document.getElementById('file-panel');
 const fileList = document.getElementById('file-list');
 const fileFeedback = document.getElementById('file-feedback');
+const repositoryFeedback = document.getElementById('repository-feedback');
 let selectedProjectId = null;
 let editingFileId = null;
 
@@ -165,6 +169,27 @@ async function deleteFile(fileId) {
   } catch (error) {
     fileFeedback.textContent = error.message;
     fileFeedback.style.color = '#ff7b8a';
+  }
+}
+
+async function loadRepository(projectId) {
+  try {
+    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(projectId)}/repositorio`);
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível consultar o repositório.');
+    const button = document.getElementById('create-repository');
+    if (data.repositorio) {
+      button.disabled = true;
+      button.textContent = `GIT ATIVO · ${data.repositorio.ramo_principal}`;
+      repositoryFeedback.textContent = 'Este projeto já tem um repositório Git local.';
+    } else {
+      button.disabled = false;
+      button.textContent = 'CRIAR REPOSITÓRIO GIT';
+      repositoryFeedback.textContent = 'Ainda não existe um repositório Git para este projeto.';
+    }
+  } catch (error) {
+    repositoryFeedback.textContent = `Erro: ${error.message}`;
+    repositoryFeedback.style.color = '#ff7b8a';
   }
 }
 
@@ -232,6 +257,7 @@ async function viewProject(projectId) {
     meta.textContent = `${project.visibilidade} · ${project.estado}`;
     detail.append(title, description, meta);
     fileFeedback.textContent = '';
+    await loadRepository(projectId);
     await loadFiles(projectId);
   } catch (error) {
     detail.textContent = `Erro: ${error.message}`;
@@ -274,6 +300,21 @@ document.getElementById('project-form').addEventListener('submit', async event =
     await loadProjects();
   } catch (error) {
     showFeedback(error.message, true);
+  }
+});
+
+document.getElementById('create-repository').addEventListener('click', async () => {
+  if (!selectedProjectId) return;
+  repositoryFeedback.textContent = 'A criar repositório Git...';
+  try {
+    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(selectedProjectId)}/repositorio`, {method: 'POST'});
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível criar o repositório.');
+    repositoryFeedback.textContent = 'Repositório Git criado com sucesso.';
+    await loadRepository(selectedProjectId);
+  } catch (error) {
+    repositoryFeedback.textContent = error.message;
+    repositoryFeedback.style.color = '#ff7b8a';
   }
 });
 
