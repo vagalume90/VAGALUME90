@@ -88,7 +88,8 @@ nav a.active { color:var(--gold); }
         <label>Conteúdo
           <textarea id="file-content" maxlength="100000" required placeholder="Escreve aqui o código ou texto..."></textarea>
         </label>
-        <button type="submit">GUARDAR FICHEIRO</button>
+        <button type="submit" id="file-submit">GUARDAR FICHEIRO</button>
+        <button type="button" class="secondary" id="cancel-edit" hidden>CANCELAR EDIÇÃO</button>
         <div class="feedback" id="file-feedback"></div>
       </form>
       <div class="project-list" id="file-list"></div>
@@ -108,6 +109,7 @@ const filePanel = document.getElementById('file-panel');
 const fileList = document.getElementById('file-list');
 const fileFeedback = document.getElementById('file-feedback');
 let selectedProjectId = null;
+let editingFileId = null;
 
 function showFeedback(message, isError = false) {
   projectFeedback.textContent = message;
@@ -143,6 +145,29 @@ function renderProjects(projects) {
   });
 }
 
+function beginEditFile(file) {
+  editingFileId = file.id;
+  document.getElementById('file-name').value = file.nome;
+  document.getElementById('file-content').value = file.conteudo;
+  document.getElementById('file-submit').textContent = 'ATUALIZAR FICHEIRO';
+  document.getElementById('cancel-edit').hidden = false;
+  fileFeedback.textContent = 'A editar ficheiro...';
+}
+
+async function deleteFile(fileId) {
+  if (!window.confirm('Queres mesmo apagar este ficheiro?')) return;
+  try {
+    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(selectedProjectId)}/ficheiros/${encodeURIComponent(fileId)}`, {method: 'DELETE'});
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível apagar o ficheiro.');
+    fileFeedback.textContent = 'Ficheiro apagado com sucesso.';
+    await loadFiles(selectedProjectId);
+  } catch (error) {
+    fileFeedback.textContent = error.message;
+    fileFeedback.style.color = '#ff7b8a';
+  }
+}
+
 async function loadFiles(projectId) {
   fileList.replaceChildren();
   try {
@@ -165,7 +190,17 @@ async function loadFiles(projectId) {
       content.textContent = file.conteudo;
       content.style.whiteSpace = 'pre-wrap';
       content.style.overflowX = 'auto';
-      card.append(name, content);
+      const editButton = document.createElement('button');
+      editButton.type = 'button';
+      editButton.className = 'secondary';
+      editButton.textContent = 'EDITAR';
+      editButton.addEventListener('click', () => beginEditFile(file));
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'secondary';
+      deleteButton.textContent = 'APAGAR';
+      deleteButton.addEventListener('click', () => deleteFile(file.id));
+      card.append(name, content, editButton, deleteButton);
       fileList.appendChild(card);
     });
   } catch (error) {
@@ -242,6 +277,14 @@ document.getElementById('project-form').addEventListener('submit', async event =
   }
 });
 
+document.getElementById('cancel-edit').addEventListener('click', () => {
+  editingFileId = null;
+  document.getElementById('file-form').reset();
+  document.getElementById('file-submit').textContent = 'GUARDAR FICHEIRO';
+  document.getElementById('cancel-edit').hidden = true;
+  fileFeedback.textContent = '';
+});
+
 document.getElementById('file-form').addEventListener('submit', async event => {
   event.preventDefault();
   if (!selectedProjectId) return;
@@ -251,15 +294,22 @@ document.getElementById('file-form').addEventListener('submit', async event => {
     conteudo: document.getElementById('file-content').value
   };
   try {
-    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(selectedProjectId)}/ficheiros`, {
-      method: 'POST',
+    const editing = Boolean(editingFileId);
+    const endpoint = editing
+      ? `/api/matrix/projetos/${encodeURIComponent(selectedProjectId)}/ficheiros/${encodeURIComponent(editingFileId)}`
+      : `/api/matrix/projetos/${encodeURIComponent(selectedProjectId)}/ficheiros`;
+    const response = await fetch(endpoint, {
+      method: editing ? 'PUT' : 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(payload)
     });
     const data = await response.json();
     if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível guardar o ficheiro.');
-    fileFeedback.textContent = 'Ficheiro guardado com sucesso.';
+    fileFeedback.textContent = editing ? 'Ficheiro atualizado com sucesso.' : 'Ficheiro guardado com sucesso.';
     event.target.reset();
+    editingFileId = null;
+    document.getElementById('file-submit').textContent = 'GUARDAR FICHEIRO';
+    document.getElementById('cancel-edit').hidden = true;
     await loadFiles(selectedProjectId);
   } catch (error) {
     fileFeedback.textContent = error.message;

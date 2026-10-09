@@ -244,6 +244,48 @@ def listar_ficheiros_matrix(project_id):
 
     return jsonify({"success": True, "total": len(ficheiros), "ficheiros": ficheiros})
 
+@app.route('/api/matrix/projetos/<project_id>/ficheiros/<file_id>', methods=['PUT'])
+def editar_ficheiro_matrix(project_id, file_id):
+    try:
+        projeto = colecao_projetos.find_one({"_id": ObjectId(project_id)})
+        ficheiro = colecao_ficheiros.find_one({"_id": ObjectId(file_id), "projeto_id": ObjectId(project_id)})
+    except Exception:
+        projeto = None
+        ficheiro = None
+
+    if projeto is None or ficheiro is None:
+        return jsonify({"success": False, "error": "Projeto ou ficheiro não encontrado."}), 404
+
+    dados = request.get_json(silent=True) or {}
+    nome = str(dados.get('nome', '')).strip()
+    conteudo = str(dados.get('conteudo', ''))
+    if not nome or len(nome) > 120:
+        return jsonify({"success": False, "error": "Indica um nome de ficheiro válido."}), 400
+    if len(conteudo.encode('utf-8')) > 100000:
+        return jsonify({"success": False, "error": "O ficheiro não pode ultrapassar 100 KB nesta versão."}), 400
+
+    nome_seguro = re.sub(r'[^A-Za-z0-9_.-]', '_', nome)
+    if nome_seguro in {"", ".", ".."}:
+        return jsonify({"success": False, "error": "Nome de ficheiro inválido."}), 400
+
+    colecao_ficheiros.update_one(
+        {"_id": ficheiro["_id"]},
+        {"$set": {"nome": nome_seguro[:120], "conteudo": conteudo, "atualizado_em": datetime.utcnow()}}
+    )
+    return jsonify({"success": True, "mensagem": "Ficheiro atualizado com sucesso."})
+
+@app.route('/api/matrix/projetos/<project_id>/ficheiros/<file_id>', methods=['DELETE'])
+def apagar_ficheiro_matrix(project_id, file_id):
+    try:
+        resultado = colecao_ficheiros.delete_one({"_id": ObjectId(file_id), "projeto_id": ObjectId(project_id)})
+    except Exception:
+        resultado = None
+
+    if resultado is None or resultado.deleted_count == 0:
+        return jsonify({"success": False, "error": "Ficheiro não encontrado."}), 404
+
+    return jsonify({"success": True, "mensagem": "Ficheiro apagado com sucesso."})
+
 @app.route('/modulo/mercado')
 def renderizar_mercado():
     try:
