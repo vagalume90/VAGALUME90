@@ -1,4 +1,5 @@
-﻿import os
+import os
+import hashlib
 import time
 import logging
 from datetime import datetime
@@ -52,6 +53,7 @@ try:
     db = client["vagalume_db"]
     colecao_produtos = db["produtos"]
     colecao_compras = db["compras"]
+    colecao_projetos = db["projetos"]
     logger.info("✅ Coleções do MongoDB mapeadas com sucesso")
 except Exception as e:
     logger.error(f"❌ Erro ao inicializar MongoDB: {e}")
@@ -68,13 +70,13 @@ def sanitizar_string(texto: str) -> str:
 @app.route('/')
 def index():
     return redirect('/modulo/mercado')
+
 @app.route('/mundo/matrix')
 def renderizar_matrix():
     dados_contexto = {
         "rank": "OPERADOR ALFA"
     }
     return render_template('matrix.html', **dados_contexto)
-
 
 @app.route('/api/ai/matrix', methods=['POST'])
 def api_ai_matrix():
@@ -240,4 +242,3 @@ def gerar_infoproduto():
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-
