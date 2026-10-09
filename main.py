@@ -1,4 +1,4 @@
-import os
+﻿import os
 import time
 import logging
 from datetime import datetime
@@ -68,6 +68,29 @@ def sanitizar_string(texto: str) -> str:
 @app.route('/')
 def index():
     return redirect('/modulo/mercado')
+@app.route('/mundo/matrix')
+def renderizar_matrix():
+    dados_contexto = {
+        "rank": "OPERADOR ALFA"
+    }
+    return render_template('matrix.html', **dados_contexto)
+
+
+@app.route('/api/ai/matrix', methods=['POST'])
+def api_ai_matrix():
+    dados = request.get_json(silent=True) or {}
+    prompt = str(dados.get('prompt', '')).strip()
+
+    if not prompt:
+        return jsonify({
+            "success": False,
+            "error": "Escreve uma mensagem para a Matrix."
+        }), 400
+
+    return jsonify({
+        "success": True,
+        "response": f"A Matrix recebeu a tua mensagem: {prompt}"
+    })
 
 @app.route('/modulo/mercado')
 def renderizar_mercado():
@@ -217,3 +240,4 @@ def gerar_infoproduto():
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
