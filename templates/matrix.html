@@ -3,35 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VAGALUME90 — A Matrix (Substrato)</title>
+<title>VAGALUME90 — A Matrix</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --void: #07070A; --gold: #F5C030; --plasma: #E8407A; --matrix: #4FA3FF;
-  --glass-bg: rgba(79,163,255,0.03); --glass-border: rgba(79,163,255,0.15);
-  --font-title: 'Bebas Neue', sans-serif; --font-mono: 'JetBrains Mono', monospace;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--void); color: #FFF; font-family: 'Outfit', sans-serif; min-height: 100vh; padding-bottom: 100px; }
-.matrix-grid { position: fixed; inset: 0; background: linear-gradient(rgba(79,163,255,0.01) 1px, transparent 1px), linear-gradient(90deg, rgba(79,163,255,0.01) 1px, transparent 1px); background-size: 30px 30px; pointer-events: none; z-index: 0; }
-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(79,163,255,0.1); position: relative; z-index: 1; }
-header h1 { font-family: var(--font-title); font-size: 3rem; letter-spacing: 6px; color: var(--matrix); }
-header p { font-family: var(--font-mono); font-size: 0.75rem; color: rgba(255,255,255,0.4); letter-spacing: 4px; }
-.main-container { max-width: 800px; margin: 30px auto; padding: 0 20px; position: relative; z-index: 1; }
-.welcome-box { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 25px; backdrop-filter: blur(18px); margin-bottom: 25px; }
-.welcome-title { font-family: var(--font-title); font-size: 1.8rem; color: var(--gold); }
-.status-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.65rem; background: rgba(79,163,255,0.1); border: 1px solid var(--matrix); color: var(--matrix); padding: 4px 10px; border-radius: 4px; margin-top: 5px; }
-
-.ai-console { background: rgba(7,7,10,0.75); border: 1px solid var(--glass-border); border-radius: 16px; padding: 25px; box-shadow: 0 0 30px rgba(79,163,255,0.05); }
-.ai-title { font-family: var(--font-title); font-size: 1.4rem; color: var(--matrix); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-.ai-response-box { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 15px; min-height: 120px; max-height: 250px; overflow-y: auto; font-family: var(--font-mono); font-size: 0.85rem; color: rgba(255,255,255,0.85); margin-bottom: 15px; line-height: 1.6; }
-.ai-input-group { display: flex; gap: 10px; }
-.ai-input { flex: 1; background: rgba(245,192,48,0.02); border: 1px solid var(--glass-border); border-radius: 8px; padding: 12px; font-family: var(--font-mono); color: var(--matrix); outline: none; font-size: 0.9rem; }
-.ai-btn { background: var(--matrix); border: none; color: var(--void); font-family: var(--font-title); font-size: 1.1rem; padding: 0 20px; border-radius: 8px; cursor: pointer; letter-spacing: 1px; }
-
-nav { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: rgba(7,7,10,0.92); border: 1px solid rgba(245,192,48,0.2); padding: 12px 28px; border-radius: 30px; display: flex; gap: 24px; z-index: 100; }
-nav a { color: rgba(255,255,255,0.5); text-decoration: none; font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; }
-nav a.active { color: var(--gold); }
+:root { --void:#07070A; --gold:#F5C030; --matrix:#4FA3FF; --plasma:#E8407A; --glass-bg:rgba(79,163,255,.04); --glass-border:rgba(79,163,255,.2); --font-title:'Bebas Neue',sans-serif; --font-mono:'JetBrains Mono',monospace; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--void); color:#FFF; font-family:'Outfit',sans-serif; min-height:100vh; padding-bottom:100px; }
+.matrix-grid { position:fixed; inset:0; background:linear-gradient(rgba(79,163,255,.01) 1px,transparent 1px),linear-gradient(90deg,rgba(79,163,255,.01) 1px,transparent 1px); background-size:30px 30px; pointer-events:none; z-index:0; }
+header { padding:30px 20px; text-align:center; border-bottom:1px solid rgba(79,163,255,.1); position:relative; z-index:1; }
+header h1 { font-family:var(--font-title); font-size:3rem; letter-spacing:6px; color:var(--matrix); }
+header p { font-family:var(--font-mono); font-size:.75rem; color:rgba(255,255,255,.4); letter-spacing:4px; }
+.main-container { max-width:900px; margin:30px auto; padding:0 20px; position:relative; z-index:1; }
+.welcome-box,.panel { background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:25px; backdrop-filter:blur(18px); margin-bottom:25px; }
+.welcome-title { font-family:var(--font-title); font-size:1.8rem; color:var(--gold); }
+.status-badge { display:inline-block; font-family:var(--font-mono); font-size:.65rem; background:rgba(79,163,255,.1); border:1px solid var(--matrix); color:var(--matrix); padding:4px 10px; border-radius:4px; margin-top:5px; }
+.panel-title { font-family:var(--font-title); font-size:1.4rem; color:var(--matrix); margin-bottom:15px; }
+.ai-response-box { background:rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.05); border-radius:8px; padding:15px; min-height:120px; max-height:250px; overflow-y:auto; font-family:var(--font-mono); font-size:.85rem; color:rgba(255,255,255,.85); margin-bottom:15px; line-height:1.6; white-space:pre-wrap; }
+.input-group { display:flex; gap:10px; }
+input,textarea,select { width:100%; background:rgba(245,192,48,.03); border:1px solid var(--glass-border); border-radius:8px; padding:12px; font-family:var(--font-mono); color:#fff; outline:none; font-size:.9rem; margin-top:6px; }
+textarea { min-height:90px; resize:vertical; }
+label { display:block; color:rgba(255,255,255,.65); font-size:.85rem; margin-bottom:12px; }
+button { background:var(--matrix); border:none; color:var(--void); font-family:var(--font-title); font-size:1.05rem; padding:10px 18px; border-radius:8px; cursor:pointer; letter-spacing:1px; }
+button:hover { filter:brightness(1.12); }
+button.secondary { background:transparent; color:var(--matrix); border:1px solid var(--matrix); }
+.feedback { font-family:var(--font-mono); font-size:.8rem; margin-top:12px; min-height:20px; }
+.project-list { display:grid; gap:12px; margin-top:18px; }
+.project-card { border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:15px; background:rgba(0,0,0,.25); }
+.project-card h3 { color:var(--gold); margin-bottom:6px; }
+.project-card p { color:rgba(255,255,255,.7); margin-bottom:8px; }
+.project-meta { font-family:var(--font-mono); font-size:.7rem; color:var(--matrix); }
+nav { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:rgba(7,7,10,.92); border:1px solid rgba(245,192,48,.2); padding:12px 28px; border-radius:30px; display:flex; gap:24px; z-index:100; }
+nav a { color:rgba(255,255,255,.5); text-decoration:none; font-family:var(--font-mono); font-size:.8rem; letter-spacing:2px; text-transform:uppercase; }
+nav a.active { color:var(--gold); }
+@media (max-width:600px) { header h1 { font-size:2.3rem; } .input-group { flex-direction:column; } nav { width:calc(100% - 30px); justify-content:space-around; gap:8px; padding:12px 10px; } nav a { font-size:.65rem; } }
 </style>
 </head>
 <body>
@@ -46,45 +50,134 @@ nav a.active { color: var(--gold); }
     <div class="status-badge">Operador: {{ session.get('username', 'Desconhecido') }} [{{ rank }}]</div>
   </div>
 
-  <div class="ai-console">
-    <div class="ai-title">🧠 Oráculo Gemini VG90</div>
-    <div class="ai-response-box" id="ai-response">
-      // Aguardando diretrizes do operador... Insira o seu comando abaixo para extrair inteligência artificial da rede.
+  <section class="panel">
+    <div class="panel-title">🧠 Oráculo Gemini VG90</div>
+    <div class="ai-response-box" id="ai-response">// Aguardando diretrizes do operador... Insira o seu comando abaixo.</div>
+    <div class="input-group">
+      <input type="text" id="ai-prompt" placeholder="Ex: Gere um script de vendas de 30 segundos...">
+      <button type="button" id="ai-send-btn">PROCESSAR</button>
     </div>
-    <div class="ai-input-group">
-      <input type="text" id="ai-prompt" class="ai-input" placeholder="Ex: Gere um script de vendas de 30 segundos...">
-      <button class="ai-btn" id="ai-send-btn">PROCESSAR</button>
-    </div>
-  </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-title">◆ Projetos da Matrix</div>
+    <form id="project-form">
+      <label>Nome do projeto
+        <input type="text" id="project-name" maxlength="100" required placeholder="Ex: Minha aplicação">
+      </label>
+      <label>Descrição
+        <textarea id="project-description" maxlength="200" placeholder="O que estás a construir?"></textarea>
+      </label>
+      <label>Visibilidade
+        <select id="project-visibility">
+          <option value="privado">Privado</option>
+          <option value="publico">Público</option>
+        </select>
+      </label>
+      <button type="submit">CRIAR PROJETO</button>
+      <div class="feedback" id="project-feedback"></div>
+    </form>
+    <div class="project-list" id="project-list"><p class="project-meta">A carregar projetos...</p></div>
+  </section>
 </div>
 <nav>
   <a href="/mundo/matrix" class="active">Matrix</a>
   <a href="/mundo/mercado">Mercado</a>
   <a href="/mundo/ruas">Ruas</a>
 </nav>
-
 <script>
-document.getElementById('ai-send-btn').addEventListener('click', async () => {
-  const promptInput = document.getElementById('ai-prompt');
-  const responseBox = document.getElementById('ai-response');
-  const prompt = promptInput.value.trim();
-  if (!prompt) return;
-  
-  responseBox.innerHTML = "◌ Canalizando frequências neurais... Processando dados do ecossistema...";
-  promptInput.value = "";
-  
+const aiResponse = document.getElementById('ai-response');
+const projectList = document.getElementById('project-list');
+const projectFeedback = document.getElementById('project-feedback');
+
+function showFeedback(message, isError = false) {
+  projectFeedback.textContent = message;
+  projectFeedback.style.color = isError ? '#ff7b8a' : '#7dffb2';
+}
+
+function renderProjects(projects) {
+  projectList.replaceChildren();
+  if (!projects.length) {
+    const empty = document.createElement('p');
+    empty.className = 'project-meta';
+    empty.textContent = 'Ainda não existem projetos.';
+    projectList.appendChild(empty);
+    return;
+  }
+  projects.forEach(project => {
+    const card = document.createElement('article');
+    card.className = 'project-card';
+    const title = document.createElement('h3');
+    title.textContent = project.nome;
+    const description = document.createElement('p');
+    description.textContent = project.descricao || 'Sem descrição.';
+    const meta = document.createElement('div');
+    meta.className = 'project-meta';
+    meta.textContent = `${project.visibilidade} · ${project.estado}`;
+    card.append(title, description, meta);
+    projectList.appendChild(card);
+  });
+}
+
+async function loadProjects() {
   try {
-    const res = await fetch('/api/ai/matrix', {
+    const response = await fetch('/api/matrix/projetos');
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível carregar projetos.');
+    renderProjects(data.projetos || []);
+  } catch (error) {
+    projectList.replaceChildren();
+    const message = document.createElement('p');
+    message.className = 'project-meta';
+    message.textContent = `Erro: ${error.message}`;
+    projectList.appendChild(message);
+  }
+}
+
+document.getElementById('project-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  showFeedback('A criar projeto...');
+  const payload = {
+    nome: document.getElementById('project-name').value.trim(),
+    descricao: document.getElementById('project-description').value.trim(),
+    visibilidade: document.getElementById('project-visibility').value
+  };
+  try {
+    const response = await fetch('/api/matrix/projetos', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: prompt })
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
     });
-    const data = await res.json();
-    responseBox.innerHTML = data.response;
-  } catch (err) {
-    responseBox.innerHTML = "✗ Erro na conexão quântica com a IA. Tente novamente.";
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível criar o projeto.');
+    showFeedback('Projeto criado com sucesso.');
+    event.target.reset();
+    await loadProjects();
+  } catch (error) {
+    showFeedback(error.message, true);
   }
 });
+
+document.getElementById('ai-send-btn').addEventListener('click', async () => {
+  const promptInput = document.getElementById('ai-prompt');
+  const prompt = promptInput.value.trim();
+  if (!prompt) return;
+  aiResponse.textContent = '◌ A processar...';
+  promptInput.value = '';
+  try {
+    const response = await fetch('/api/ai/matrix', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({prompt})
+    });
+    const data = await response.json();
+    aiResponse.textContent = data.response || data.error || 'Resposta vazia.';
+  } catch (_error) {
+    aiResponse.textContent = '✗ Erro na ligação com a Matrix.';
+  }
+});
+
+loadProjects();
 </script>
 </body>
 </html>
