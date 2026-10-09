@@ -54,6 +54,7 @@ try:
     colecao_produtos = db["produtos"]
     colecao_compras = db["compras"]
     colecao_projetos = db["projetos"]
+    colecao_ficheiros = db["ficheiros"]
     logger.info("✅ Coleções do MongoDB mapeadas com sucesso")
 except Exception as e:
     logger.error(f"❌ Erro ao inicializar MongoDB: {e}")
@@ -184,6 +185,64 @@ def obter_projeto_matrix(project_id):
             "criado_em": projeto.get("criado_em").isoformat() if projeto.get("criado_em") else None
         }
     })
+
+@app.route('/api/matrix/projetos/<project_id>/ficheiros', methods=['POST'])
+def criar_ficheiro_matrix(project_id):
+    try:
+        projeto = colecao_projetos.find_one({"_id": ObjectId(project_id)})
+    except Exception:
+        projeto = None
+
+    if projeto is None:
+        return jsonify({"success": False, "error": "Projeto não encontrado."}), 404
+
+    dados = request.get_json(silent=True) or {}
+    nome = str(dados.get('nome', '')).strip()
+    conteudo = str(dados.get('conteudo', ''))
+
+    if not nome or len(nome) > 120:
+        return jsonify({"success": False, "error": "Indica um nome de ficheiro válido."}), 400
+    if len(conteudo.encode('utf-8')) > 100000:
+        return jsonify({"success": False, "error": "O ficheiro não pode ultrapassar 100 KB nesta versão."}), 400
+
+    nome_seguro = re.sub(r'[^A-Za-z0-9_.-]', '_', nome)
+    if nome_seguro in {"", ".", ".."}:
+        return jsonify({"success": False, "error": "Nome de ficheiro inválido."}), 400
+
+    ficheiro = {
+        "projeto_id": projeto["_id"],
+        "nome": nome_seguro[:120],
+        "conteudo": conteudo,
+        "criado_em": datetime.utcnow()
+    }
+    resultado = colecao_ficheiros.insert_one(ficheiro)
+
+    return jsonify({
+        "success": True,
+        "mensagem": "Ficheiro guardado com sucesso.",
+        "ficheiro_id": str(resultado.inserted_id),
+        "ficheiro": {"nome": ficheiro["nome"]}
+    }), 201
+
+@app.route('/api/matrix/projetos/<project_id>/ficheiros', methods=['GET'])
+def listar_ficheiros_matrix(project_id):
+    try:
+        projeto = colecao_projetos.find_one({"_id": ObjectId(project_id)})
+    except Exception:
+        projeto = None
+
+    if projeto is None:
+        return jsonify({"success": False, "error": "Projeto não encontrado."}), 404
+
+    ficheiros = []
+    for ficheiro in colecao_ficheiros.find({"projeto_id": projeto["_id"]}).sort("_id", 1):
+        ficheiros.append({
+            "id": str(ficheiro["_id"]),
+            "nome": ficheiro.get("nome", ""),
+            "conteudo": ficheiro.get("conteudo", "")
+        })
+
+    return jsonify({"success": True, "total": len(ficheiros), "ficheiros": ficheiros})
 
 @app.route('/modulo/mercado')
 def renderizar_mercado():

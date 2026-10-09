@@ -79,6 +79,20 @@ nav a.active { color:var(--gold); }
     </form>
     <div class="project-list" id="project-list"><p class="project-meta">A carregar projetos...</p></div>
     <article class="project-card" id="project-detail" hidden></article>
+    <article class="project-card" id="file-panel" hidden>
+      <h3>Ficheiros do projeto</h3>
+      <form id="file-form">
+        <label>Nome do ficheiro
+          <input type="text" id="file-name" maxlength="120" required placeholder="Ex: README.md">
+        </label>
+        <label>Conteúdo
+          <textarea id="file-content" maxlength="100000" required placeholder="Escreve aqui o código ou texto..."></textarea>
+        </label>
+        <button type="submit">GUARDAR FICHEIRO</button>
+        <div class="feedback" id="file-feedback"></div>
+      </form>
+      <div class="project-list" id="file-list"></div>
+    </article>
   </section>
 </div>
 <nav>
@@ -90,6 +104,10 @@ nav a.active { color:var(--gold); }
 const aiResponse = document.getElementById('ai-response');
 const projectList = document.getElementById('project-list');
 const projectFeedback = document.getElementById('project-feedback');
+const filePanel = document.getElementById('file-panel');
+const fileList = document.getElementById('file-list');
+const fileFeedback = document.getElementById('file-feedback');
+let selectedProjectId = null;
 
 function showFeedback(message, isError = false) {
   projectFeedback.textContent = message;
@@ -125,9 +143,44 @@ function renderProjects(projects) {
   });
 }
 
+async function loadFiles(projectId) {
+  fileList.replaceChildren();
+  try {
+    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(projectId)}/ficheiros`);
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível carregar ficheiros.');
+    if (!data.ficheiros.length) {
+      const empty = document.createElement('p');
+      empty.className = 'project-meta';
+      empty.textContent = 'Ainda não existem ficheiros neste projeto.';
+      fileList.appendChild(empty);
+      return;
+    }
+    data.ficheiros.forEach(file => {
+      const card = document.createElement('article');
+      card.className = 'project-card';
+      const name = document.createElement('h3');
+      name.textContent = file.nome;
+      const content = document.createElement('pre');
+      content.textContent = file.conteudo;
+      content.style.whiteSpace = 'pre-wrap';
+      content.style.overflowX = 'auto';
+      card.append(name, content);
+      fileList.appendChild(card);
+    });
+  } catch (error) {
+    const message = document.createElement('p');
+    message.className = 'project-meta';
+    message.textContent = `Erro: ${error.message}`;
+    fileList.appendChild(message);
+  }
+}
+
 async function viewProject(projectId) {
   const detail = document.getElementById('project-detail');
+  selectedProjectId = projectId;
   detail.hidden = false;
+  filePanel.hidden = false;
   detail.textContent = 'A carregar detalhes...';
   try {
     const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(projectId)}`);
@@ -143,6 +196,8 @@ async function viewProject(projectId) {
     meta.className = 'project-meta';
     meta.textContent = `${project.visibilidade} · ${project.estado}`;
     detail.append(title, description, meta);
+    fileFeedback.textContent = '';
+    await loadFiles(projectId);
   } catch (error) {
     detail.textContent = `Erro: ${error.message}`;
   }
@@ -184,6 +239,31 @@ document.getElementById('project-form').addEventListener('submit', async event =
     await loadProjects();
   } catch (error) {
     showFeedback(error.message, true);
+  }
+});
+
+document.getElementById('file-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!selectedProjectId) return;
+  fileFeedback.textContent = 'A guardar ficheiro...';
+  const payload = {
+    nome: document.getElementById('file-name').value.trim(),
+    conteudo: document.getElementById('file-content').value
+  };
+  try {
+    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(selectedProjectId)}/ficheiros`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível guardar o ficheiro.');
+    fileFeedback.textContent = 'Ficheiro guardado com sucesso.';
+    event.target.reset();
+    await loadFiles(selectedProjectId);
+  } catch (error) {
+    fileFeedback.textContent = error.message;
+    fileFeedback.style.color = '#ff7b8a';
   }
 });
 
