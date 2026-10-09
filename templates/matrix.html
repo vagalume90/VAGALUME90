@@ -78,6 +78,7 @@ nav a.active { color:var(--gold); }
       <div class="feedback" id="project-feedback"></div>
     </form>
     <div class="project-list" id="project-list"><p class="project-meta">A carregar projetos...</p></div>
+    <article class="project-card" id="project-detail" hidden></article>
   </section>
 </div>
 <nav>
@@ -114,9 +115,37 @@ function renderProjects(projects) {
     const meta = document.createElement('div');
     meta.className = 'project-meta';
     meta.textContent = `${project.visibilidade} · ${project.estado}`;
-    card.append(title, description, meta);
+    const detailsButton = document.createElement('button');
+    detailsButton.type = 'button';
+    detailsButton.className = 'secondary';
+    detailsButton.textContent = 'VER DETALHES';
+    detailsButton.addEventListener('click', () => viewProject(project.id));
+    card.append(title, description, meta, detailsButton);
     projectList.appendChild(card);
   });
+}
+
+async function viewProject(projectId) {
+  const detail = document.getElementById('project-detail');
+  detail.hidden = false;
+  detail.textContent = 'A carregar detalhes...';
+  try {
+    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(projectId)}`);
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Projeto não encontrado.');
+    const project = data.projeto;
+    detail.replaceChildren();
+    const title = document.createElement('h3');
+    title.textContent = project.nome;
+    const description = document.createElement('p');
+    description.textContent = project.descricao || 'Sem descrição.';
+    const meta = document.createElement('div');
+    meta.className = 'project-meta';
+    meta.textContent = `${project.visibilidade} · ${project.estado}`;
+    detail.append(title, description, meta);
+  } catch (error) {
+    detail.textContent = `Erro: ${error.message}`;
+  }
 }
 
 async function loadProjects() {

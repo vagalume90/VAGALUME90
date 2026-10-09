@@ -160,6 +160,31 @@ def listar_projetos_matrix():
         "projetos": projetos
     })
 
+@app.route('/api/matrix/projetos/<project_id>', methods=['GET'])
+def obter_projeto_matrix(project_id):
+    try:
+        projeto = colecao_projetos.find_one({"_id": ObjectId(project_id)})
+    except Exception:
+        projeto = None
+
+    if projeto is None:
+        return jsonify({
+            "success": False,
+            "error": "Projeto não encontrado."
+        }), 404
+
+    return jsonify({
+        "success": True,
+        "projeto": {
+            "id": str(projeto["_id"]),
+            "nome": projeto.get("nome", ""),
+            "descricao": projeto.get("descricao", ""),
+            "visibilidade": projeto.get("visibilidade", "privado"),
+            "estado": projeto.get("estado", "ativo"),
+            "criado_em": projeto.get("criado_em").isoformat() if projeto.get("criado_em") else None
+        }
+    })
+
 @app.route('/modulo/mercado')
 def renderizar_mercado():
     try:
