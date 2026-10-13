@@ -669,6 +669,12 @@ def listar_commits_matrix(project_id):
     except Exception:
         return jsonify({"success": False, "error": "Identificador inválido."}), 400
 
+    try:
+        limite = min(max(int(request.args.get("limite", 20)), 1), 100)
+        offset = max(int(request.args.get("offset", 0)), 0)
+    except (TypeError, ValueError):
+        return jsonify({"success": False, "error": "Paginação inválida."}), 400
+
     projeto = colecao_projetos.find_one({"_id": projeto_id})
     erro_acesso = exigir_leitura(projeto)
     if erro_acesso:
@@ -678,22 +684,36 @@ def listar_commits_matrix(project_id):
         return jsonify({"success": False, "error": "Repositório não encontrado."}), 404
 
     try:
+        # Pedimos mais um commit para saber se existe uma página seguinte.
         resultado = subprocess.run(
-            ["git", "--git-dir", repositorio["caminho_local"], "log", "main", "-10", "--pretty=format:%H%x09%s"],
+            ["git", "--git-dir", repositorio["caminho_local"], "log", "main",
+             f"-{limite + 1}", f"--skip={offset}",
+             "--pretty=format:%H%x09%an%x09%aI%x09%s"],
             capture_output=True, text=True, timeout=15, check=False
         )
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return jsonify({"success": False, "error": "Git não está disponível."}), 500
 
     if resultado.returncode != 0 and "does not have any commits" not in resultado.stderr.lower():
+        logger.error("git log falhou: %s", resultado.stderr)
         return jsonify({"success": False, "error": "Não foi possível ler o histórico."}), 500
 
+    linhas = [linha for linha in resultado.stdout.splitlines() if linha.strip()]
+    tem_mais = len(linhas) > limite
     commits = []
-    for linha in resultado.stdout.splitlines():
-        if "\t" in linha:
-            sha, mensagem = linha.split("\t", 1)
-            commits.append({"sha": sha, "mensagem": mensagem})
-    return jsonify({"success": True, "commits": commits})
+    for linha in linhas[:limite]:
+        partes = linha.split("\t", 3)
+        if len(partes) == 4:
+            sha, autor, data, mensagem = partes
+            commits.append({"sha": sha, "autor": autor, "data": data, "mensagem": mensagem})
+
+    return jsonify({
+        "success": True,
+        "commits": commits,
+        "offset": offset,
+        "limite": limite,
+        "tem_mais": tem_mais
+    })
 
 @app.route('/modulo/mercado')
 def renderizar_mercado():

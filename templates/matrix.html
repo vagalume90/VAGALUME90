@@ -98,7 +98,7 @@ nav a.active { color:var(--gold); }
       </form>
       <div class="project-list" id="file-list"></div>
       <h3>Histórico Git</h3>
-      <div class="project-list" id="commit-list"><p class="project-meta">Ainda sem commits.</p></div>
+      <div class="project-list" id="commit-list"><p class="project-meta">Ainda sem commits.</p></div><button type="button" class="secondary" id="load-more-commits" hidden>CARREGAR MAIS COMMITS</button>
     </article>
   </section>
 </div>
@@ -119,6 +119,8 @@ const repositoryFeedback = document.getElementById('repository-feedback');
 const commitList = document.getElementById('commit-list');
 let selectedProjectId = null;
 let editingFileId = null;
+let commitOffset = 0;
+const commitPageSize = 20;
 
 async function loadSession() {
   const response = await fetch('/api/auth/me');
@@ -203,36 +205,43 @@ async function deleteFile(fileId) {
   }
 }
 
-async function loadCommits(projectId) {
-  commitList.replaceChildren();
+async function loadCommits(projectId, append = false) {
+  const moreButton = document.getElementById('load-more-commits');
+  if (!append) {
+    commitOffset = 0;
+    commitList.replaceChildren();
+  }
   try {
-    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(projectId)}/commits`);
+    const url = `/api/matrix/projetos/${encodeURIComponent(projectId)}/commits?limite=${commitPageSize}&offset=${commitOffset}`;
+    const response = await fetch(url);
     const data = await response.json();
-    if (!response.ok || !data.success) {
-      const empty = document.createElement('p');
-      empty.className = 'project-meta';
-      empty.textContent = data.error || 'Ainda sem commits.';
-      commitList.appendChild(empty);
-      return;
-    }
-    if (!data.commits.length) {
+    if (!response.ok || !data.success) throw new Error(data.error || 'Ainda sem commits.');
+    if (!append && !data.commits.length) {
       const empty = document.createElement('p');
       empty.className = 'project-meta';
       empty.textContent = 'Ainda sem commits.';
       commitList.appendChild(empty);
-      return;
     }
     data.commits.forEach(commit => {
-      const item = document.createElement('p');
-      item.className = 'project-meta';
-      item.textContent = `${commit.sha.slice(0, 8)} · ${commit.mensagem}`;
+      const item = document.createElement('article');
+      item.className = 'project-card';
+      const title = document.createElement('h3');
+      title.textContent = `${commit.sha.slice(0, 8)} · ${commit.mensagem}`;
+      const meta = document.createElement('div');
+      meta.className = 'project-meta';
+      const date = new Date(commit.data);
+      meta.textContent = `${commit.autor} · ${Number.isNaN(date.getTime()) ? commit.data : date.toLocaleString('pt-PT')}`;
+      item.append(title, meta);
       commitList.appendChild(item);
     });
+    commitOffset += data.commits.length;
+    moreButton.hidden = !data.tem_mais;
   } catch (error) {
     const item = document.createElement('p');
     item.className = 'project-meta';
     item.textContent = `Erro: ${error.message}`;
     commitList.appendChild(item);
+    moreButton.hidden = true;
   }
 }
 
@@ -392,6 +401,10 @@ loadProjects();
   } catch (error) {
     showFeedback(error.message, true);
   }
+});
+
+document.getElementById('load-more-commits').addEventListener('click', () => {
+  if (selectedProjectId) loadCommits(selectedProjectId, true);
 });
 
 document.getElementById('create-repository').addEventListener('click', async () => {
