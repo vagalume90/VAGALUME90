@@ -21,7 +21,7 @@
       <button type="submit">{{ 'CRIAR CONTA' if modo == 'registo' else 'ENTRAR' }}</button>
       <div class="feedback" id="feedback"></div>
     </form>
-    {% if modo == 'registo' %}<a class="link" href="/login">Já tenho conta</a>{% else %}<a class="link" href="/registo">Criar nova conta</a>{% endif %}
+    {% if modo == 'registo' %}<a class="link" href="/login">Já tenho conta</a>{% else %}<a class="link" href="/registo">Criar nova conta</a><a class="link" href="/esqueci-password">Esqueci-me da palavra-passe</a>{% endif %}
   </main>
 <script>
 document.getElementById('auth-form').addEventListener('submit', async (event) => {

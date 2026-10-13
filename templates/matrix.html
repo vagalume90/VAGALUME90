@@ -131,6 +131,11 @@ async function loadSession() {
     logout.textContent = 'SAIR';
     logout.style.color = 'var(--gold)';
     sessionBar.appendChild(logout);
+    const change = document.createElement('a');
+    change.href = '/alterar-password';
+    change.textContent = ' · ALTERAR PASSWORD';
+    change.style.color = 'var(--gold)';
+    sessionBar.appendChild(change);
   } else {
     sessionBar.textContent = 'Modo público · ';
     const login = document.createElement('a');

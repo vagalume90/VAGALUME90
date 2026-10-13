@@ -3,10 +3,14 @@ import hashlib
 import subprocess
 import shutil
 import tempfile
+import secrets
+import hashlib
+import smtplib
+from email.message import EmailMessage
 from pathlib import Path
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 import requests
 from flask import Flask, render_template, request, jsonify, redirect, session, url_for
@@ -62,6 +66,7 @@ try:
     colecao_ficheiros = db["ficheiros"]
     colecao_repositorios = db["repositorios"]
     colecao_utilizadores = db["utilizadores"]
+    colecao_tokens_password = db["tokens_password"]
     logger.info("✅ Coleções do MongoDB mapeadas com sucesso")
 except Exception as e:
     logger.error(f"❌ Erro ao inicializar MongoDB: {e}")
@@ -158,6 +163,107 @@ def pagina_login():
     session.clear()
     session["utilizador_id"] = str(utilizador["_id"])
     return jsonify({"success": True, "mensagem": "Sessão iniciada.", "utilizador": {"nome": utilizador.get("nome", ""), "email": utilizador.get("email", "")}})
+
+@app.route('/alterar-password', methods=['GET', 'POST'])
+@login_obrigatorio
+def alterar_password():
+    utilizador = utilizador_atual()
+    if request.method == 'GET':
+        return render_template('password.html', utilizador=utilizador)
+
+    dados = request.get_json(silent=True) or request.form
+    password_atual = str(dados.get('password_atual', ''))
+    password_nova = str(dados.get('password_nova', ''))
+    password_confirmacao = str(dados.get('password_confirmacao', ''))
+
+    if not check_password_hash(utilizador.get('password_hash', ''), password_atual):
+        return jsonify({"success": False, "error": "A palavra-passe atual está incorreta."}), 400
+    if len(password_nova) < 8:
+        return jsonify({"success": False, "error": "A nova palavra-passe deve ter pelo menos 8 caracteres."}), 400
+    if password_nova != password_confirmacao:
+        return jsonify({"success": False, "error": "As palavras-passe novas não coincidem."}), 400
+    if password_nova == password_atual:
+        return jsonify({"success": False, "error": "A nova palavra-passe deve ser diferente."}), 400
+
+    colecao_utilizadores.update_one(
+        {"_id": utilizador["_id"]},
+        {"$set": {"password_hash": generate_password_hash(password_nova), "password_atualizada_em": datetime.utcnow()}}
+    )
+    return jsonify({"success": True, "mensagem": "Palavra-passe alterada com sucesso."})
+
+def enviar_email_recuperacao(destinatario, url):
+    smtp_host = os.getenv("SMTP_HOST")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER")
+    smtp_password = os.getenv("SMTP_PASSWORD")
+    remetente = os.getenv("SMTP_FROM", smtp_user or "no-reply@vagalume90.local")
+    if not all([smtp_host, smtp_user, smtp_password]):
+        logger.warning("SMTP não configurado. Link local de recuperação: %s", url)
+        return False
+    mensagem = EmailMessage()
+    mensagem["Subject"] = "Recuperação da palavra-passe — VAGALUME90"
+    mensagem["From"] = remetente
+    mensagem["To"] = destinatario
+    mensagem.set_content(f"Abre este link nos próximos 30 minutos para redefinir a palavra-passe:\n\n{url}\n\nSe não foste tu, ignora este email.")
+    with smtplib.SMTP(smtp_host, smtp_port, timeout=20) as servidor:
+        servidor.starttls()
+        servidor.login(smtp_user, smtp_password)
+        servidor.send_message(mensagem)
+    return True
+
+@app.route('/esqueci-password', methods=['GET', 'POST'])
+def pedir_recuperacao_password():
+    if request.method == 'GET':
+        return render_template('password_recovery.html', modo='pedido')
+    dados = request.get_json(silent=True) or request.form
+    email = str(dados.get('email', '')).strip().lower()
+    utilizador = colecao_utilizadores.find_one({"email": email})
+    # Resposta igual para email existente ou inexistente, evitando descoberta de contas.
+    resposta = {"success": True, "mensagem": "Se o email existir, receberás instruções de recuperação."}
+    if utilizador is None:
+        return jsonify(resposta)
+    token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+    colecao_tokens_password.delete_many({"utilizador_id": utilizador["_id"], "usado": False})
+    colecao_tokens_password.insert_one({
+        "utilizador_id": utilizador["_id"],
+        "token_hash": token_hash,
+        "usado": False,
+        "criado_em": datetime.utcnow(),
+        "expira_em": datetime.utcnow() + timedelta(minutes=30)
+    })
+    base_url = os.getenv("APP_BASE_URL", "http://127.0.0.1:5000")
+    link = f"{base_url.rstrip('/')}/redefinir-password/{token}"
+    try:
+        enviar_email_recuperacao(email, link)
+    except Exception as erro:
+        logger.error("Falha no envio do email de recuperação: %s", erro)
+    return jsonify(resposta)
+
+@app.route('/redefinir-password/<token>', methods=['GET', 'POST'])
+def redefinir_password(token):
+    token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+    registro = colecao_tokens_password.find_one({
+        "token_hash": token_hash,
+        "usado": False,
+        "expira_em": {"$gt": datetime.utcnow()}
+    })
+    if registro is None:
+        if request.method == 'GET':
+            return "Link inválido ou expirado.", 400
+        return jsonify({"success": False, "error": "Link inválido ou expirado."}), 400
+    if request.method == 'GET':
+        return render_template('password_recovery.html', modo='redefinir', token=token)
+    dados = request.get_json(silent=True) or request.form
+    nova = str(dados.get('password_nova', ''))
+    confirmacao = str(dados.get('password_confirmacao', ''))
+    if len(nova) < 8:
+        return jsonify({"success": False, "error": "A palavra-passe deve ter pelo menos 8 caracteres."}), 400
+    if nova != confirmacao:
+        return jsonify({"success": False, "error": "As palavras-passe não coincidem."}), 400
+    colecao_utilizadores.update_one({"_id": registro["utilizador_id"]}, {"$set": {"password_hash": generate_password_hash(nova), "password_atualizada_em": datetime.utcnow()}})
+    colecao_tokens_password.update_one({"_id": registro["_id"]}, {"$set": {"usado": True, "usado_em": datetime.utcnow()}})
+    return jsonify({"success": True, "mensagem": "Palavra-passe redefinida com sucesso."})
 
 @app.route('/logout', methods=['GET', 'POST'])
 def terminar_sessao():
