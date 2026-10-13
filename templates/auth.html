@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VAGALUME90 — {{ 'Registo' if modo == 'registo' else 'Login' }}</title>
+  <style>
+    body{margin:0;min-height:100vh;display:grid;place-items:center;background:#07070a;color:#fff;font-family:Arial,sans-serif}
+    .card{width:min(420px,calc(100% - 32px));padding:28px;background:#11131a;border:1px solid #315b8c;border-radius:14px;box-sizing:border-box}
+    h1{color:#4fa3ff;margin-top:0}.sub{color:#aeb8c5}.field{margin:16px 0}label{display:block;margin-bottom:6px;color:#dce6f2}input{width:100%;box-sizing:border-box;padding:12px;border-radius:7px;border:1px solid #315b8c;background:#080b10;color:#fff}button{width:100%;padding:12px;border:0;border-radius:7px;background:#4fa3ff;color:#07070a;font-weight:700;cursor:pointer}.feedback{min-height:24px;margin-top:14px;color:#ff9aa7}.link{display:block;margin-top:18px;color:#f5c030;text-align:center;text-decoration:none}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>{{ 'Criar conta' if modo == 'registo' else 'Entrar na Matrix' }}</h1>
+    <p class="sub">{{ 'Cria o teu operador para gerir projetos.' if modo == 'registo' else 'Inicia sessão para gerir os teus projetos.' }}</p>
+    <form id="auth-form">
+      {% if modo == 'registo' %}<div class="field"><label for="nome">Nome</label><input id="nome" required minlength="2" maxlength="80"></div>{% endif %}
+      <div class="field"><label for="email">Email</label><input id="email" type="email" required autocomplete="email"></div>
+      <div class="field"><label for="password">Palavra-passe</label><input id="password" type="password" required minlength="8" autocomplete="{{ 'new-password' if modo == 'registo' else 'current-password' }}"></div>
+      <button type="submit">{{ 'CRIAR CONTA' if modo == 'registo' else 'ENTRAR' }}</button>
+      <div class="feedback" id="feedback"></div>
+    </form>
+    {% if modo == 'registo' %}<a class="link" href="/login">Já tenho conta</a>{% else %}<a class="link" href="/registo">Criar nova conta</a>{% endif %}
+  </main>
+<script>
+document.getElementById('auth-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const feedback = document.getElementById('feedback');
+  const payload = {email: document.getElementById('email').value.trim(), password: document.getElementById('password').value};
+  const nome = document.getElementById('nome'); if (nome) payload.nome = nome.value.trim();
+  try {
+    const response = await fetch(window.location.pathname, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível concluir.');
+    window.location.href = '/mundo/matrix';
+  } catch (error) { feedback.textContent = error.message; }
+});
+</script>
+</body>
+</html>

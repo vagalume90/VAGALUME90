@@ -43,6 +43,7 @@ nav a.active { color:var(--gold); }
 <header>
   <h1>A MATRIX</h1>
   <p>// SUBSTRATO CENTRAL DA INTELIGÊNCIA</p>
+  <div id="session-bar" style="margin-top:12px;font-family:var(--font-mono);font-size:.75rem"></div>
 </header>
 <div class="main-container">
   <div class="welcome-box">
@@ -108,6 +109,7 @@ nav a.active { color:var(--gold); }
 </nav>
 <script>
 const aiResponse = document.getElementById('ai-response');
+const sessionBar = document.getElementById('session-bar');
 const projectList = document.getElementById('project-list');
 const projectFeedback = document.getElementById('project-feedback');
 const filePanel = document.getElementById('file-panel');
@@ -117,6 +119,27 @@ const repositoryFeedback = document.getElementById('repository-feedback');
 const commitList = document.getElementById('commit-list');
 let selectedProjectId = null;
 let editingFileId = null;
+
+async function loadSession() {
+  const response = await fetch('/api/auth/me');
+  const data = await response.json();
+  sessionBar.replaceChildren();
+  if (data.autenticado) {
+    sessionBar.textContent = `Sessão: ${data.utilizador.nome} · `;
+    const logout = document.createElement('a');
+    logout.href = '/logout';
+    logout.textContent = 'SAIR';
+    logout.style.color = 'var(--gold)';
+    sessionBar.appendChild(logout);
+  } else {
+    sessionBar.textContent = 'Modo público · ';
+    const login = document.createElement('a');
+    login.href = '/login';
+    login.textContent = 'ENTRAR';
+    login.style.color = 'var(--gold)';
+    sessionBar.appendChild(login);
+  }
+}
 
 function showFeedback(message, isError = false) {
   projectFeedback.textContent = message;
@@ -359,7 +382,8 @@ document.getElementById('project-form').addEventListener('submit', async event =
     if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível criar o projeto.');
     showFeedback('Projeto criado com sucesso.');
     event.target.reset();
-    await loadProjects();
+    await loadSession();
+loadProjects();
   } catch (error) {
     showFeedback(error.message, true);
   }

@@ -9,12 +9,13 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 import requests
-from flask import Flask, render_template, request, jsonify, redirect, session
+from flask import Flask, render_template, request, jsonify, redirect, session, url_for
 from pymongo import MongoClient
 from pymongo.errors import ServerSelectionTimeoutError, DuplicateKeyError
 from bson import ObjectId
 import re
 from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Configuração de Logging
 logging.basicConfig(
@@ -60,6 +61,7 @@ try:
     colecao_projetos = db["projetos"]
     colecao_ficheiros = db["ficheiros"]
     colecao_repositorios = db["repositorios"]
+    colecao_utilizadores = db["utilizadores"]
     logger.info("✅ Coleções do MongoDB mapeadas com sucesso")
 except Exception as e:
     logger.error(f"❌ Erro ao inicializar MongoDB: {e}")
@@ -72,6 +74,105 @@ def sanitizar_string(texto: str) -> str:
     texto = re.sub(r'[^\w\s\-.,!?]', '', texto)
     return texto[:200]
 
+# ===================== AUTENTICAÇÃO E PERMISSÕES =====================
+def utilizador_atual():
+    utilizador_id = session.get("utilizador_id")
+    if not utilizador_id:
+        return None
+    try:
+        return colecao_utilizadores.find_one({"_id": ObjectId(utilizador_id)})
+    except Exception:
+        return None
+
+def login_obrigatorio(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if utilizador_atual() is None:
+            if request.path.startswith("/api/"):
+                return jsonify({"success": False, "error": "Inicia sessão para continuar."}), 401
+            return redirect(url_for("pagina_login"))
+        return view(*args, **kwargs)
+    return wrapped
+
+def projeto_pode_ser_lido(projeto):
+    if projeto.get("visibilidade", "privado") == "publico":
+        return True
+    utilizador = utilizador_atual()
+    return utilizador is not None and projeto.get("proprietario_id") == utilizador["_id"]
+
+def projeto_pode_ser_gerido(projeto):
+    utilizador = utilizador_atual()
+    return utilizador is not None and projeto.get("proprietario_id") == utilizador["_id"]
+
+def projeto_id_a_objectid(valor):
+    try:
+        return ObjectId(valor)
+    except Exception:
+        return None
+
+def exigir_leitura(projeto):
+    if projeto is None:
+        return jsonify({"success": False, "error": "Projeto não encontrado."}), 404
+    if not projeto_pode_ser_lido(projeto):
+        return jsonify({"success": False, "error": "Este projeto é privado."}), 403
+    return None
+
+def exigir_gestao(projeto):
+    if projeto is None:
+        return jsonify({"success": False, "error": "Projeto não encontrado."}), 404
+    if not projeto_pode_ser_gerido(projeto):
+        return jsonify({"success": False, "error": "Não tens permissão para alterar este projeto."}), 403
+    return None
+
+@app.route('/registo', methods=['GET', 'POST'])
+def pagina_registo():
+    if request.method == 'GET':
+        return render_template('auth.html', modo='registo')
+    dados = request.get_json(silent=True) or request.form
+    nome = str(dados.get('nome', '')).strip()
+    email = str(dados.get('email', '')).strip().lower()
+    password = str(dados.get('password', ''))
+    if len(nome) < 2 or len(nome) > 80:
+        return jsonify({"success": False, "error": "O nome deve ter entre 2 e 80 caracteres."}), 400
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+        return jsonify({"success": False, "error": "Indica um email válido."}), 400
+    if len(password) < 8:
+        return jsonify({"success": False, "error": "A palavra-passe deve ter pelo menos 8 caracteres."}), 400
+    if colecao_utilizadores.find_one({"email": email}):
+        return jsonify({"success": False, "error": "Este email já está registado."}), 409
+    utilizador = {"nome": sanitizar_string(nome), "email": email, "password_hash": generate_password_hash(password), "criado_em": datetime.utcnow()}
+    resultado = colecao_utilizadores.insert_one(utilizador)
+    session["utilizador_id"] = str(resultado.inserted_id)
+    return jsonify({"success": True, "mensagem": "Conta criada com sucesso."}), 201
+
+@app.route('/login', methods=['GET', 'POST'])
+def pagina_login():
+    if request.method == 'GET':
+        return render_template('auth.html', modo='login')
+    dados = request.get_json(silent=True) or request.form
+    email = str(dados.get('email', '')).strip().lower()
+    password = str(dados.get('password', ''))
+    utilizador = colecao_utilizadores.find_one({"email": email})
+    if utilizador is None or not check_password_hash(utilizador.get("password_hash", ""), password):
+        return jsonify({"success": False, "error": "Email ou palavra-passe incorretos."}), 401
+    session.clear()
+    session["utilizador_id"] = str(utilizador["_id"])
+    return jsonify({"success": True, "mensagem": "Sessão iniciada.", "utilizador": {"nome": utilizador.get("nome", ""), "email": utilizador.get("email", "")}})
+
+@app.route('/logout', methods=['GET', 'POST'])
+def terminar_sessao():
+    session.clear()
+    if request.path.startswith('/api/'):
+        return jsonify({"success": True, "mensagem": "Sessão terminada."})
+    return redirect(url_for('pagina_login'))
+
+@app.route('/api/auth/me', methods=['GET'])
+def estado_sessao():
+    utilizador = utilizador_atual()
+    if utilizador is None:
+        return jsonify({"success": True, "autenticado": False, "utilizador": None})
+    return jsonify({"success": True, "autenticado": True, "utilizador": {"id": str(utilizador["_id"]), "nome": utilizador.get("nome", ""), "email": utilizador.get("email", "")}})
+
 # ===================== ROTAS PRINCIPAIS =====================
 @app.route('/')
 def index():
@@ -79,8 +180,10 @@ def index():
 
 @app.route('/mundo/matrix')
 def renderizar_matrix():
+    utilizador = utilizador_atual()
     dados_contexto = {
-        "rank": "OPERADOR ALFA"
+        "rank": "OPERADOR ALFA",
+        "utilizador": utilizador
     }
     return render_template('matrix.html', **dados_contexto)
 
@@ -101,6 +204,7 @@ def api_ai_matrix():
     })
 
 @app.route('/api/matrix/projetos', methods=['POST'])
+@login_obrigatorio
 def criar_projeto_matrix():
     dados = request.get_json(silent=True) or {}
     nome = str(dados.get('nome', '')).strip()
@@ -125,7 +229,9 @@ def criar_projeto_matrix():
             "error": "A visibilidade deve ser publico ou privado."
         }), 400
 
+    utilizador = utilizador_atual()
     projeto = {
+        "proprietario_id": utilizador["_id"],
         "nome": sanitizar_string(nome),
         "descricao": sanitizar_string(descricao),
         "visibilidade": visibilidade,
@@ -152,6 +258,8 @@ def listar_projetos_matrix():
     projetos = []
 
     for projeto in colecao_projetos.find().sort("_id", -1):
+        if not projeto_pode_ser_lido(projeto):
+            continue
         projetos.append({
             "id": str(projeto["_id"]),
             "nome": projeto.get("nome", ""),
@@ -173,11 +281,9 @@ def obter_projeto_matrix(project_id):
     except Exception:
         projeto = None
 
-    if projeto is None:
-        return jsonify({
-            "success": False,
-            "error": "Projeto não encontrado."
-        }), 404
+    erro_acesso = exigir_leitura(projeto)
+    if erro_acesso:
+        return erro_acesso
 
     return jsonify({
         "success": True,
@@ -198,8 +304,9 @@ def criar_ficheiro_matrix(project_id):
     except Exception:
         projeto = None
 
-    if projeto is None:
-        return jsonify({"success": False, "error": "Projeto não encontrado."}), 404
+    erro_acesso = exigir_gestao(projeto)
+    if erro_acesso:
+        return erro_acesso
 
     dados = request.get_json(silent=True) or {}
     nome = str(dados.get('nome', '')).strip()
@@ -236,8 +343,9 @@ def listar_ficheiros_matrix(project_id):
     except Exception:
         projeto = None
 
-    if projeto is None:
-        return jsonify({"success": False, "error": "Projeto não encontrado."}), 404
+    erro_acesso = exigir_leitura(projeto)
+    if erro_acesso:
+        return erro_acesso
 
     ficheiros = []
     for ficheiro in colecao_ficheiros.find({"projeto_id": projeto["_id"]}).sort("_id", 1):
@@ -260,6 +368,9 @@ def editar_ficheiro_matrix(project_id, file_id):
 
     if projeto is None or ficheiro is None:
         return jsonify({"success": False, "error": "Projeto ou ficheiro não encontrado."}), 404
+    erro_acesso = exigir_gestao(projeto)
+    if erro_acesso:
+        return erro_acesso
 
     dados = request.get_json(silent=True) or {}
     nome = str(dados.get('nome', '')).strip()
@@ -282,6 +393,10 @@ def editar_ficheiro_matrix(project_id, file_id):
 @app.route('/api/matrix/projetos/<project_id>/ficheiros/<file_id>', methods=['DELETE'])
 def apagar_ficheiro_matrix(project_id, file_id):
     try:
+        projeto = colecao_projetos.find_one({"_id": ObjectId(project_id)})
+        erro_acesso = exigir_gestao(projeto)
+        if erro_acesso:
+            return erro_acesso
         resultado = colecao_ficheiros.delete_one({"_id": ObjectId(file_id), "projeto_id": ObjectId(project_id)})
     except Exception:
         resultado = None
@@ -298,8 +413,9 @@ def criar_repositorio_matrix(project_id):
     except Exception:
         projeto = None
 
-    if projeto is None:
-        return jsonify({"success": False, "error": "Projeto não encontrado."}), 404
+    erro_acesso = exigir_gestao(projeto)
+    if erro_acesso:
+        return erro_acesso
 
     existente = colecao_repositorios.find_one({"projeto_id": projeto["_id"]})
     if existente is not None:
@@ -352,8 +468,9 @@ def obter_repositorio_matrix(project_id):
     except Exception:
         projeto = None
 
-    if projeto is None:
-        return jsonify({"success": False, "error": "Projeto não encontrado."}), 404
+    erro_acesso = exigir_leitura(projeto)
+    if erro_acesso:
+        return erro_acesso
 
     repositorio = colecao_repositorios.find_one({"projeto_id": projeto["_id"]})
     if repositorio is None:
@@ -382,6 +499,9 @@ def criar_commit_ficheiro_matrix(project_id, file_id):
     repositorio = colecao_repositorios.find_one({"projeto_id": projeto_id})
     if projeto is None or ficheiro is None:
         return jsonify({"success": False, "error": "Projeto ou ficheiro não encontrado."}), 404
+    erro_acesso = exigir_gestao(projeto)
+    if erro_acesso:
+        return erro_acesso
     if repositorio is None:
         return jsonify({"success": False, "error": "Cria primeiro o repositório Git."}), 409
 
@@ -443,6 +563,10 @@ def listar_commits_matrix(project_id):
     except Exception:
         return jsonify({"success": False, "error": "Identificador inválido."}), 400
 
+    projeto = colecao_projetos.find_one({"_id": projeto_id})
+    erro_acesso = exigir_leitura(projeto)
+    if erro_acesso:
+        return erro_acesso
     repositorio = colecao_repositorios.find_one({"projeto_id": projeto_id})
     if repositorio is None:
         return jsonify({"success": False, "error": "Repositório não encontrado."}), 404
