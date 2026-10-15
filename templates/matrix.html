@@ -78,6 +78,19 @@ nav a.active { color:var(--gold); }
       <button type="submit">CRIAR PROJETO</button>
       <div class="feedback" id="project-feedback"></div>
     </form>
+    <div class="input-group" style="margin-top:18px;align-items:end;">
+      <label style="flex:2;margin:0;">Pesquisar
+        <input type="search" id="project-search" placeholder="Nome ou descrição do projeto...">
+      </label>
+      <label style="flex:1;margin:0;">Visibilidade
+        <select id="project-visibility-filter">
+          <option value="todos">Todas</option>
+          <option value="publico">Públicos</option>
+          <option value="privado">Privados</option>
+        </select>
+      </label>
+      <button type="button" class="secondary" id="clear-project-filters">LIMPAR</button>
+    </div>
     <div class="project-list" id="project-list"><p class="project-meta">A carregar projetos...</p></div><h3 style="margin-top:22px;color:var(--gold)">Projetos apagados</h3><div class="project-list" id="deleted-project-list"><p class="project-meta">A carregar...</p></div>
     <article class="project-card" id="project-detail" hidden></article>
     <article class="project-card" id="file-panel" hidden>
@@ -112,6 +125,8 @@ const aiResponse = document.getElementById('ai-response');
 const sessionBar = document.getElementById('session-bar');
 const projectList = document.getElementById('project-list');
 const projectFeedback = document.getElementById('project-feedback');
+const projectSearch = document.getElementById('project-search');
+const projectVisibilityFilter = document.getElementById('project-visibility-filter');
 const deletedProjectList = document.getElementById('deleted-project-list');
 const filePanel = document.getElementById('file-panel');
 const fileList = document.getElementById('file-list');
@@ -466,7 +481,13 @@ async function restoreProject(projectId) {
 
 async function loadProjects() {
   try {
-    const response = await fetch('/api/matrix/projetos');
+    const params = new URLSearchParams();
+    const pesquisa = projectSearch.value.trim();
+    const visibilidade = projectVisibilityFilter.value;
+    if (pesquisa) params.set('q', pesquisa);
+    if (visibilidade !== 'todos') params.set('visibilidade', visibilidade);
+    const query = params.toString();
+    const response = await fetch(`/api/matrix/projetos${query ? `?${query}` : ''}`);
     const data = await response.json();
     if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível carregar projetos.');
     renderProjects(data.projetos || []);
@@ -479,6 +500,18 @@ async function loadProjects() {
     projectList.appendChild(message);
   }
 }
+
+let pesquisaTimer;
+projectSearch.addEventListener('input', () => {
+  clearTimeout(pesquisaTimer);
+  pesquisaTimer = setTimeout(loadProjects, 250);
+});
+projectVisibilityFilter.addEventListener('change', loadProjects);
+document.getElementById('clear-project-filters').addEventListener('click', () => {
+  projectSearch.value = '';
+  projectVisibilityFilter.value = 'todos';
+  loadProjects();
+});
 
 document.getElementById('project-form').addEventListener('submit', async event => {
   event.preventDefault();

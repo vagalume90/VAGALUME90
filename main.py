@@ -361,15 +361,34 @@ def criar_projeto_matrix():
 
 @app.route('/api/matrix/projetos', methods=['GET'])
 def listar_projetos_matrix():
-    projetos = []
+    pesquisa = str(request.args.get("q", "")).strip().lower()[:100]
+    visibilidade_filtro = str(request.args.get("visibilidade", "todos")).strip().lower()
+    estado_filtro = str(request.args.get("estado", "ativo")).strip().lower()
+    if visibilidade_filtro not in {"todos", "publico", "privado"}:
+        return jsonify({"success": False, "error": "Filtro de visibilidade inválido."}), 400
+    if estado_filtro not in {"todos", "ativo"}:
+        return jsonify({"success": False, "error": "Filtro de estado inválido."}), 400
 
-    for projeto in colecao_projetos.find({"estado": {"$ne": "apagado"}}).sort("_id", -1):
+    filtro_mongo = {}
+    if estado_filtro != "todos":
+        filtro_mongo["estado"] = estado_filtro
+    else:
+        filtro_mongo["estado"] = {"$ne": "apagado"}
+    if visibilidade_filtro != "todos":
+        filtro_mongo["visibilidade"] = visibilidade_filtro
+
+    projetos = []
+    for projeto in colecao_projetos.find(filtro_mongo).sort("_id", -1):
         if not projeto_pode_ser_lido(projeto):
+            continue
+        nome = projeto.get("nome", "")
+        descricao = projeto.get("descricao", "")
+        if pesquisa and pesquisa not in f"{nome} {descricao}".lower():
             continue
         projetos.append({
             "id": str(projeto["_id"]),
-            "nome": projeto.get("nome", ""),
-            "descricao": projeto.get("descricao", ""),
+            "nome": nome,
+            "descricao": descricao,
             "visibilidade": projeto.get("visibilidade", "privado"),
             "estado": projeto.get("estado", "ativo")
         })
@@ -377,7 +396,8 @@ def listar_projetos_matrix():
     return jsonify({
         "success": True,
         "total": len(projetos),
-        "projetos": projetos
+        "projetos": projetos,
+        "filtros": {"q": pesquisa, "visibilidade": visibilidade_filtro, "estado": estado_filtro}
     })
 
 @app.route('/api/matrix/projetos/<project_id>', methods=['PUT'])
