@@ -196,6 +196,14 @@ function renderProjects(projects) {
     detailsButton.textContent = 'VER DETALHES';
     detailsButton.addEventListener('click', () => viewProject(project.id));
     card.append(title, description, meta, detailsButton);
+    if (project.visibilidade === 'publico') {
+      const shareButton = document.createElement('button');
+      shareButton.type = 'button';
+      shareButton.className = 'secondary';
+      shareButton.textContent = 'ABRIR PÁGINA PÚBLICA';
+      shareButton.addEventListener('click', () => window.open(`/mundo/matrix/projeto/${encodeURIComponent(project.id)}`, '_blank'));
+      card.appendChild(shareButton);
+    }
     projectList.appendChild(card);
   });
 }

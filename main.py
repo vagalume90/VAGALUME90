@@ -284,6 +284,20 @@ def estado_sessao():
 def index():
     return redirect('/modulo/mercado')
 
+@app.route('/mundo/matrix/projeto/<project_id>')
+def pagina_publica_projeto_matrix(project_id):
+    try:
+        projeto = colecao_projetos.find_one({"_id": ObjectId(project_id)})
+    except Exception:
+        projeto = None
+    if projeto is None or projeto.get("estado") == "apagado":
+        return "Projeto não encontrado.", 404
+    if projeto.get("visibilidade", "privado") != "publico":
+        utilizador = utilizador_atual()
+        if utilizador is None or projeto.get("proprietario_id") != utilizador["_id"]:
+            return "Este projeto é privado.", 403
+    return render_template("project_public.html", project_id=str(projeto["_id"]), projeto=projeto)
+
 @app.route('/mundo/matrix')
 def renderizar_matrix():
     utilizador = utilizador_atual()
