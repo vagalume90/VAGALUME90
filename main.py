@@ -363,7 +363,7 @@ def criar_projeto_matrix():
 def listar_projetos_matrix():
     projetos = []
 
-    for projeto in colecao_projetos.find().sort("_id", -1):
+    for projeto in colecao_projetos.find({"estado": {"$ne": "apagado"}}).sort("_id", -1):
         if not projeto_pode_ser_lido(projeto):
             continue
         projetos.append({
@@ -379,6 +379,48 @@ def listar_projetos_matrix():
         "total": len(projetos),
         "projetos": projetos
     })
+
+@app.route('/api/matrix/projetos/<project_id>', methods=['PUT'])
+@login_obrigatorio
+def editar_projeto_matrix(project_id):
+    try:
+        projeto = colecao_projetos.find_one({"_id": ObjectId(project_id)})
+    except Exception:
+        projeto = None
+    erro_acesso = exigir_gestao(projeto)
+    if erro_acesso:
+        return erro_acesso
+
+    dados = request.get_json(silent=True) or {}
+    nome = str(dados.get("nome", projeto.get("nome", ""))).strip()
+    descricao = str(dados.get("descricao", projeto.get("descricao", ""))).strip()
+    visibilidade = str(dados.get("visibilidade", projeto.get("visibilidade", "privado"))).strip().lower()
+    if not nome or len(nome) > 100:
+        return jsonify({"success": False, "error": "O nome do projeto deve ter entre 1 e 100 caracteres."}), 400
+    if visibilidade not in {"publico", "privado"}:
+        return jsonify({"success": False, "error": "A visibilidade deve ser publico ou privado."}), 400
+
+    atualizacao = {"nome": sanitizar_string(nome), "descricao": sanitizar_string(descricao), "visibilidade": visibilidade, "atualizado_em": datetime.utcnow()}
+    colecao_projetos.update_one({"_id": projeto["_id"]}, {"$set": atualizacao})
+    return jsonify({"success": True, "mensagem": "Projeto atualizado com sucesso.", "projeto": {"id": str(projeto["_id"]), **atualizacao}})
+
+@app.route('/api/matrix/projetos/<project_id>', methods=['DELETE'])
+@login_obrigatorio
+def apagar_projeto_matrix(project_id):
+    try:
+        projeto = colecao_projetos.find_one({"_id": ObjectId(project_id)})
+    except Exception:
+        projeto = None
+    erro_acesso = exigir_gestao(projeto)
+    if erro_acesso:
+        return erro_acesso
+
+    # Apagamento lógico: mantém dados e Git recuperáveis nesta fase do MVP.
+    colecao_projetos.update_one(
+        {"_id": projeto["_id"]},
+        {"$set": {"estado": "apagado", "apagado_em": datetime.utcnow()}}
+    )
+    return jsonify({"success": True, "mensagem": "Projeto apagado. Os dados foram preservados para recuperação."})
 
 @app.route('/api/matrix/projetos/<project_id>', methods=['GET'])
 def obter_projeto_matrix(project_id):

@@ -117,6 +117,8 @@ const fileList = document.getElementById('file-list');
 const fileFeedback = document.getElementById('file-feedback');
 const repositoryFeedback = document.getElementById('repository-feedback');
 const commitList = document.getElementById('commit-list');
+const detailFeedback = document.createElement('div');
+detailFeedback.className = 'feedback';
 let selectedProjectId = null;
 let editingFileId = null;
 let commitOffset = 0;
@@ -334,6 +336,43 @@ async function loadFiles(projectId) {
   }
 }
 
+async function editProject(project) {
+  const nome = window.prompt('Novo nome do projeto:', project.nome);
+  if (nome === null) return;
+  const descricao = window.prompt('Nova descrição:', project.descricao || '');
+  if (descricao === null) return;
+  try {
+    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(project.id)}`, {
+      method: 'PUT', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({nome, descricao, visibilidade: project.visibilidade})
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível editar o projeto.');
+    detailFeedback.textContent = data.mensagem;
+    await loadProjects();
+    await viewProject(project.id);
+  } catch (error) {
+    detailFeedback.textContent = error.message;
+    detailFeedback.style.color = '#ff7b8a';
+  }
+}
+
+async function deleteProject(projectId) {
+  if (!window.confirm('Apagar este projeto? Esta ação remove os dados da Matrix e não pode ser desfeita.')) return;
+  try {
+    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(projectId)}`, {method: 'DELETE'});
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível apagar o projeto.');
+    selectedProjectId = null;
+    filePanel.hidden = true;
+    document.getElementById('project-detail').hidden = true;
+    await loadProjects();
+  } catch (error) {
+    detailFeedback.textContent = error.message;
+    detailFeedback.style.color = '#ff7b8a';
+  }
+}
+
 async function viewProject(projectId) {
   const detail = document.getElementById('project-detail');
   selectedProjectId = projectId;
@@ -353,7 +392,17 @@ async function viewProject(projectId) {
     const meta = document.createElement('div');
     meta.className = 'project-meta';
     meta.textContent = `${project.visibilidade} · ${project.estado}`;
-    detail.append(title, description, meta);
+    const editButton = document.createElement('button');
+    editButton.type = 'button';
+    editButton.className = 'secondary';
+    editButton.textContent = 'EDITAR PROJETO';
+    editButton.addEventListener('click', () => editProject(project));
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button';
+    deleteButton.className = 'secondary';
+    deleteButton.textContent = 'APAGAR PROJETO';
+    deleteButton.addEventListener('click', () => deleteProject(project.id));
+    detail.append(title, description, meta, editButton, deleteButton, detailFeedback);
     fileFeedback.textContent = '';
     await loadRepository(projectId);
     await loadFiles(projectId);
