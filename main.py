@@ -422,6 +422,38 @@ def apagar_projeto_matrix(project_id):
     )
     return jsonify({"success": True, "mensagem": "Projeto apagado. Os dados foram preservados para recuperação."})
 
+@app.route('/api/matrix/projetos/apagados', methods=['GET'])
+@login_obrigatorio
+def listar_projetos_apagados_matrix():
+    utilizador = utilizador_atual()
+    projetos = []
+    for projeto in colecao_projetos.find({"proprietario_id": utilizador["_id"], "estado": "apagado"}).sort("apagado_em", -1):
+        projetos.append({
+            "id": str(projeto["_id"]),
+            "nome": projeto.get("nome", ""),
+            "descricao": projeto.get("descricao", ""),
+            "visibilidade": projeto.get("visibilidade", "privado"),
+            "estado": projeto.get("estado", "apagado"),
+            "apagado_em": projeto.get("apagado_em").isoformat() if projeto.get("apagado_em") else None
+        })
+    return jsonify({"success": True, "total": len(projetos), "projetos": projetos})
+
+@app.route('/api/matrix/projetos/<project_id>/restaurar', methods=['POST'])
+@login_obrigatorio
+def restaurar_projeto_matrix(project_id):
+    try:
+        projeto = colecao_projetos.find_one({"_id": ObjectId(project_id), "estado": "apagado"})
+    except Exception:
+        projeto = None
+    erro_acesso = exigir_gestao(projeto)
+    if erro_acesso:
+        return erro_acesso
+    colecao_projetos.update_one(
+        {"_id": projeto["_id"]},
+        {"$set": {"estado": "ativo", "restaurado_em": datetime.utcnow()}, "$unset": {"apagado_em": ""}}
+    )
+    return jsonify({"success": True, "mensagem": "Projeto restaurado com sucesso."})
+
 @app.route('/api/matrix/projetos/<project_id>', methods=['GET'])
 def obter_projeto_matrix(project_id):
     try:

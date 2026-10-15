@@ -78,7 +78,7 @@ nav a.active { color:var(--gold); }
       <button type="submit">CRIAR PROJETO</button>
       <div class="feedback" id="project-feedback"></div>
     </form>
-    <div class="project-list" id="project-list"><p class="project-meta">A carregar projetos...</p></div>
+    <div class="project-list" id="project-list"><p class="project-meta">A carregar projetos...</p></div><h3 style="margin-top:22px;color:var(--gold)">Projetos apagados</h3><div class="project-list" id="deleted-project-list"><p class="project-meta">A carregar...</p></div>
     <article class="project-card" id="project-detail" hidden></article>
     <article class="project-card" id="file-panel" hidden>
       <h3>Repositório do projeto</h3>
@@ -112,6 +112,7 @@ const aiResponse = document.getElementById('ai-response');
 const sessionBar = document.getElementById('session-bar');
 const projectList = document.getElementById('project-list');
 const projectFeedback = document.getElementById('project-feedback');
+const deletedProjectList = document.getElementById('deleted-project-list');
 const filePanel = document.getElementById('file-panel');
 const fileList = document.getElementById('file-list');
 const fileFeedback = document.getElementById('file-feedback');
@@ -412,12 +413,64 @@ async function viewProject(projectId) {
   }
 }
 
+async function loadDeletedProjects() {
+  deletedProjectList.replaceChildren();
+  try {
+    const response = await fetch('/api/matrix/projetos/apagados');
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível carregar projetos apagados.');
+    if (!data.projetos.length) {
+      const empty = document.createElement('p');
+      empty.className = 'project-meta';
+      empty.textContent = 'Não tens projetos apagados.';
+      deletedProjectList.appendChild(empty);
+      return;
+    }
+    data.projetos.forEach(project => {
+      const card = document.createElement('article');
+      card.className = 'project-card';
+      const title = document.createElement('h3');
+      title.textContent = project.nome;
+      const meta = document.createElement('div');
+      meta.className = 'project-meta';
+      meta.textContent = `${project.visibilidade} · apagado`;
+      const restore = document.createElement('button');
+      restore.type = 'button';
+      restore.className = 'secondary';
+      restore.textContent = 'RESTAURAR PROJETO';
+      restore.addEventListener('click', () => restoreProject(project.id));
+      card.append(title, meta, restore);
+      deletedProjectList.appendChild(card);
+    });
+  } catch (error) {
+    const message = document.createElement('p');
+    message.className = 'project-meta';
+    message.textContent = `Erro: ${error.message}`;
+    deletedProjectList.appendChild(message);
+  }
+}
+
+async function restoreProject(projectId) {
+  if (!window.confirm('Restaurar este projeto?')) return;
+  try {
+    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(projectId)}/restaurar`, {method: 'POST'});
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível restaurar o projeto.');
+    showFeedback(data.mensagem);
+    await loadProjects();
+    await loadDeletedProjects();
+  } catch (error) {
+    showFeedback(error.message, true);
+  }
+}
+
 async function loadProjects() {
   try {
     const response = await fetch('/api/matrix/projetos');
     const data = await response.json();
     if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível carregar projetos.');
     renderProjects(data.projetos || []);
+    await loadDeletedProjects();
   } catch (error) {
     projectList.replaceChildren();
     const message = document.createElement('p');
