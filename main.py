@@ -323,6 +323,25 @@ def api_ai_matrix():
         "response": f"A Matrix recebeu a tua mensagem: {prompt}"
     })
 
+def criar_ficheiros_iniciais(projeto):
+    existentes = {f.get("nome") for f in colecao_ficheiros.find({"projeto_id": projeto["_id"]}, {"nome": 1})}
+    iniciais = {
+        "README.md": f"# {projeto.get('nome', 'Projeto Matrix')}\n\n{projeto.get('descricao') or 'Projeto criado na Matrix da VAGALUME90.'}\n",
+        ".gitignore": "# Ficheiros locais\n.env\n.venv/\n__pycache__/\n"
+    }
+    criados = []
+    for nome, conteudo in iniciais.items():
+        if nome in existentes:
+            continue
+        colecao_ficheiros.insert_one({
+            "projeto_id": projeto["_id"],
+            "nome": nome,
+            "conteudo": conteudo,
+            "criado_em": datetime.utcnow()
+        })
+        criados.append(nome)
+    return criados
+
 @app.route('/api/matrix/projetos', methods=['POST'])
 @login_obrigatorio
 def criar_projeto_matrix():
@@ -360,6 +379,8 @@ def criar_projeto_matrix():
     }
 
     resultado = colecao_projetos.insert_one(projeto)
+    projeto["_id"] = resultado.inserted_id
+    ficheiros_iniciais = criar_ficheiros_iniciais(projeto)
 
     return jsonify({
         "success": True,
@@ -487,6 +508,19 @@ def restaurar_projeto_matrix(project_id):
         {"$set": {"estado": "ativo", "restaurado_em": datetime.utcnow()}, "$unset": {"apagado_em": ""}}
     )
     return jsonify({"success": True, "mensagem": "Projeto restaurado com sucesso."})
+
+@app.route('/api/matrix/projetos/<project_id>/inicializar', methods=['POST'])
+@login_obrigatorio
+def inicializar_ficheiros_matrix(project_id):
+    try:
+        projeto = colecao_projetos.find_one({"_id": ObjectId(project_id), "estado": {"$ne": "apagado"}})
+    except Exception:
+        projeto = None
+    erro_acesso = exigir_gestao(projeto)
+    if erro_acesso:
+        return erro_acesso
+    criados = criar_ficheiros_iniciais(projeto)
+    return jsonify({"success": True, "mensagem": "Ficheiros iniciais preparados.", "criados": criados})
 
 @app.route('/api/matrix/projetos/<project_id>', methods=['GET'])
 def obter_projeto_matrix(project_id):

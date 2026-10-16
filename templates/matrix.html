@@ -98,6 +98,8 @@ nav a.active { color:var(--gold); }
       <button type="button" id="create-repository">CRIAR REPOSITÓRIO GIT</button>
       <div class="feedback" id="repository-feedback"></div>
       <h3>Ficheiros do projeto</h3>
+      <button type="button" class="secondary" id="initialize-files">CRIAR FICHEIROS INICIAIS</button>
+      <div class="feedback" id="initial-files-feedback"></div>
       <form id="file-form">
         <label>Nome do ficheiro
           <input type="text" id="file-name" maxlength="120" required placeholder="Ex: README.md">
@@ -132,6 +134,7 @@ const filePanel = document.getElementById('file-panel');
 const fileList = document.getElementById('file-list');
 const fileFeedback = document.getElementById('file-feedback');
 const repositoryFeedback = document.getElementById('repository-feedback');
+const initialFilesFeedback = document.getElementById('initial-files-feedback');
 const commitList = document.getElementById('commit-list');
 const detailFeedback = document.createElement('div');
 detailFeedback.className = 'feedback';
@@ -548,6 +551,21 @@ loadProjects();
 
 document.getElementById('load-more-commits').addEventListener('click', () => {
   if (selectedProjectId) loadCommits(selectedProjectId, true);
+});
+
+document.getElementById('initialize-files').addEventListener('click', async () => {
+  if (!selectedProjectId) return;
+  initialFilesFeedback.textContent = 'A preparar README.md e .gitignore...';
+  try {
+    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(selectedProjectId)}/inicializar`, {method: 'POST'});
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível preparar os ficheiros iniciais.');
+    initialFilesFeedback.textContent = data.criados.length ? `Criados: ${data.criados.join(', ')}` : 'Os ficheiros iniciais já existem.';
+    await loadFiles(selectedProjectId);
+  } catch (error) {
+    initialFilesFeedback.textContent = error.message;
+    initialFilesFeedback.style.color = '#ff7b8a';
+  }
 });
 
 document.getElementById('create-repository').addEventListener('click', async () => {
