@@ -758,9 +758,12 @@ def criar_commit_ficheiro_matrix(project_id, file_id):
         return jsonify({"success": False, "error": "O repositório Git local não existe."}), 500
 
     mensagem = request.get_json(silent=True) or {}
-    mensagem_commit = str(mensagem.get("mensagem", "Atualiza ficheiro" )).strip()[:160]
-    if not mensagem_commit:
-        mensagem_commit = "Atualiza ficheiro"
+    mensagem_commit = str(mensagem.get("mensagem", "")).strip()[:160]
+    if len(mensagem_commit) < 3:
+        return jsonify({"success": False, "error": "A mensagem do commit deve ter pelo menos 3 caracteres."}), 400
+    utilizador = utilizador_atual()
+    autor_nome = sanitizar_string(utilizador.get("nome", "Utilizador Matrix")) if utilizador else "Utilizador Matrix"
+    autor_email = utilizador.get("email", "matrix@vagalume90.local") if utilizador else "matrix@vagalume90.local"
 
     try:
         pasta_temp = tempfile.mkdtemp(prefix="matrix-commit-")
@@ -779,8 +782,8 @@ def criar_commit_ficheiro_matrix(project_id, file_id):
             arquivo.write_text(ficheiro.get("conteudo", ""), encoding="utf-8")
 
             comandos = [
-                ["git", "-C", str(trabalho), "config", "user.name", "Matrix MVP"],
-                ["git", "-C", str(trabalho), "config", "user.email", "matrix@vagalume90.local"],
+                ["git", "-C", str(trabalho), "config", "user.name", autor_nome],
+                ["git", "-C", str(trabalho), "config", "user.email", autor_email],
                 ["git", "-C", str(trabalho), "add", "--", ficheiro["nome"]],
                 ["git", "-C", str(trabalho), "commit", "-m", mensagem_commit],
                 ["git", "-C", str(trabalho), "push", "origin", "HEAD:main"]
@@ -797,7 +800,7 @@ def criar_commit_ficheiro_matrix(project_id, file_id):
                 ["git", "-C", str(trabalho), "rev-parse", "HEAD"],
                 capture_output=True, text=True, timeout=15, check=False
             ).stdout.strip()
-            return jsonify({"success": True, "mensagem": "Commit criado com sucesso.", "commit": {"sha": sha, "mensagem": mensagem_commit}}), 201
+            return jsonify({"success": True, "mensagem": "Commit criado com sucesso.", "commit": {"sha": sha, "mensagem": mensagem_commit, "autor": autor_nome}}), 201
         finally:
             shutil.rmtree(pasta_temp, ignore_errors=True)
     except (FileNotFoundError, subprocess.TimeoutExpired, OSError) as erro:

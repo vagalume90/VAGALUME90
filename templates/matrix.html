@@ -107,7 +107,10 @@ nav a.active { color:var(--gold); }
         <label>Conteúdo
           <textarea id="file-content" maxlength="100000" required placeholder="Escreve aqui o código ou texto..."></textarea>
         </label>
-        <button type="submit" id="file-submit">GUARDAR FICHEIRO</button>
+        <label>Mensagem do commit
+        <input type="text" id="commit-message" maxlength="160" placeholder="Ex: Adiciona validação do formulário">
+      </label>
+      <button type="submit" id="file-submit">GUARDAR FICHEIRO</button>
         <button type="button" class="secondary" id="cancel-edit" hidden>CANCELAR EDIÇÃO</button>
         <div class="feedback" id="file-feedback"></div>
       </form>
@@ -136,6 +139,7 @@ const fileFeedback = document.getElementById('file-feedback');
 const repositoryFeedback = document.getElementById('repository-feedback');
 const initialFilesFeedback = document.getElementById('initial-files-feedback');
 const commitList = document.getElementById('commit-list');
+const commitMessage = document.getElementById('commit-message');
 const detailFeedback = document.createElement('div');
 detailFeedback.className = 'feedback';
 let selectedProjectId = null;
@@ -276,8 +280,13 @@ async function loadCommits(projectId, append = false) {
 
 async function commitFile(fileId) {
   if (!selectedProjectId) return;
-  const message = window.prompt('Mensagem do commit:', 'Atualiza ficheiro');
-  if (message === null) return;
+  const message = commitMessage.value.trim();
+  if (message.length < 3) {
+    fileFeedback.textContent = 'Escreve uma mensagem de commit com pelo menos 3 caracteres.';
+    fileFeedback.style.color = '#ff7b8a';
+    commitMessage.focus();
+    return;
+  }
   try {
     const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(selectedProjectId)}/ficheiros/${encodeURIComponent(fileId)}/commit`, {
       method: 'POST',
@@ -286,7 +295,8 @@ async function commitFile(fileId) {
     });
     const data = await response.json();
     if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível criar o commit.');
-    fileFeedback.textContent = `Commit criado: ${data.commit.sha.slice(0, 8)}`;
+    fileFeedback.textContent = `Commit criado: ${data.commit.sha.slice(0, 8)} · ${data.commit.autor || 'Utilizador Matrix'}`;
+    commitMessage.value = '';
     await loadCommits(selectedProjectId);
   } catch (error) {
     fileFeedback.textContent = error.message;
@@ -586,6 +596,7 @@ document.getElementById('create-repository').addEventListener('click', async () 
 document.getElementById('cancel-edit').addEventListener('click', () => {
   editingFileId = null;
   document.getElementById('file-form').reset();
+  commitMessage.value = '';
   document.getElementById('file-submit').textContent = 'GUARDAR FICHEIRO';
   document.getElementById('cancel-edit').hidden = true;
   fileFeedback.textContent = '';
