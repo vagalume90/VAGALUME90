@@ -116,7 +116,7 @@ nav a.active { color:var(--gold); }
       </form>
       <div class="project-list" id="file-list"></div>
       <h3>Histórico Git</h3>
-      <div class="project-list" id="commit-list"><p class="project-meta">Ainda sem commits.</p></div><button type="button" class="secondary" id="load-more-commits" hidden>CARREGAR MAIS COMMITS</button>
+      <div class="project-list" id="commit-list"><p class="project-meta">Ainda sem commits.</p></div><button type="button" class="secondary" id="load-more-commits" hidden>CARREGAR MAIS COMMITS</button><article class="project-card" id="commit-detail" hidden></article>
     </article>
   </section>
 </div>
@@ -139,6 +139,7 @@ const fileFeedback = document.getElementById('file-feedback');
 const repositoryFeedback = document.getElementById('repository-feedback');
 const initialFilesFeedback = document.getElementById('initial-files-feedback');
 const commitList = document.getElementById('commit-list');
+const commitDetail = document.getElementById('commit-detail');
 const commitMessage = document.getElementById('commit-message');
 const detailFeedback = document.createElement('div');
 detailFeedback.className = 'feedback';
@@ -264,7 +265,12 @@ async function loadCommits(projectId, append = false) {
       meta.className = 'project-meta';
       const date = new Date(commit.data);
       meta.textContent = `${commit.autor} · ${Number.isNaN(date.getTime()) ? commit.data : date.toLocaleString('pt-PT')}`;
-      item.append(title, meta);
+      const details = document.createElement('button');
+      details.type = 'button';
+      details.className = 'secondary';
+      details.textContent = 'VER DETALHES';
+      details.addEventListener('click', () => loadCommitDetails(commit.sha));
+      item.append(title, meta, details);
       commitList.appendChild(item);
     });
     commitOffset += data.commits.length;
@@ -275,6 +281,33 @@ async function loadCommits(projectId, append = false) {
     item.textContent = `Erro: ${error.message}`;
     commitList.appendChild(item);
     moreButton.hidden = true;
+  }
+}
+
+async function loadCommitDetails(sha) {
+  commitDetail.hidden = false;
+  commitDetail.textContent = 'A carregar detalhes do commit...';
+  try {
+    const response = await fetch(`/api/matrix/projetos/${encodeURIComponent(selectedProjectId)}/commits/${encodeURIComponent(sha)}`);
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível carregar o commit.');
+    const commit = data.commit;
+    commitDetail.replaceChildren();
+    const title = document.createElement('h3');
+    title.textContent = `${commit.sha.slice(0, 8)} · ${commit.mensagem}`;
+    const meta = document.createElement('div');
+    meta.className = 'project-meta';
+    meta.textContent = `${commit.autor} <${commit.email}> · ${new Date(commit.data).toLocaleString('pt-PT')}`;
+    const files = document.createElement('p');
+    files.textContent = `Ficheiros alterados: ${commit.ficheiros.length ? commit.ficheiros.map(file => `${file.status} ${file.nome}`).join(', ') : 'nenhum'}`;
+    const diff = document.createElement('pre');
+    diff.textContent = commit.diff || 'Sem diferença textual disponível.';
+    diff.style.whiteSpace = 'pre-wrap';
+    diff.style.overflowX = 'auto';
+    commitDetail.append(title, meta, files, diff);
+    commitDetail.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  } catch (error) {
+    commitDetail.textContent = `Erro: ${error.message}`;
   }
 }
 
@@ -622,8 +655,10 @@ document.getElementById('file-form').addEventListener('submit', async event => {
     });
     const data = await response.json();
     if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível guardar o ficheiro.');
+    const mensagemCommitGuardada = commitMessage.value;
     fileFeedback.textContent = editing ? 'Ficheiro atualizado com sucesso.' : 'Ficheiro guardado com sucesso.';
     event.target.reset();
+    commitMessage.value = mensagemCommitGuardada;
     editingFileId = null;
     document.getElementById('file-submit').textContent = 'GUARDAR FICHEIRO';
     document.getElementById('cancel-edit').hidden = true;

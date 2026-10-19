@@ -807,6 +807,46 @@ def criar_commit_ficheiro_matrix(project_id, file_id):
         logger.error("Erro no commit Git: %s", erro)
         return jsonify({"success": False, "error": "Não foi possível concluir o commit."}), 500
 
+@app.route('/api/matrix/projetos/<project_id>/commits/<sha>', methods=['GET'])
+def obter_commit_matrix(project_id, sha):
+    if not re.fullmatch(r"[0-9a-fA-F]{7,40}", sha):
+        return jsonify({"success": False, "error": "Identificador de commit inválido."}), 400
+    try:
+        projeto_id = ObjectId(project_id)
+    except Exception:
+        return jsonify({"success": False, "error": "Identificador inválido."}), 400
+    projeto = colecao_projetos.find_one({"_id": projeto_id})
+    erro_acesso = exigir_leitura(projeto)
+    if erro_acesso:
+        return erro_acesso
+    repositorio = colecao_repositorios.find_one({"projeto_id": projeto_id})
+    if repositorio is None:
+        return jsonify({"success": False, "error": "Repositório não encontrado."}), 404
+    git_dir = repositorio["caminho_local"]
+    try:
+        valido = subprocess.run(["git", "--git-dir", git_dir, "merge-base", "--is-ancestor", sha, "main"], capture_output=True, text=True, timeout=15, check=False)
+        if valido.returncode != 0:
+            return jsonify({"success": False, "error": "Commit não encontrado neste repositório."}), 404
+        metadata = subprocess.run(["git", "--git-dir", git_dir, "show", "-s", "--format=%H%x09%an%x09%ae%x09%aI%x09%s", sha], capture_output=True, text=True, timeout=15, check=False)
+        if metadata.returncode != 0:
+            return jsonify({"success": False, "error": "Não foi possível ler o commit."}), 404
+        partes = metadata.stdout.strip().split("\t", 4)
+        if len(partes) != 5:
+            return jsonify({"success": False, "error": "Formato de commit inválido."}), 500
+        commit_sha, autor, email, data, mensagem = partes
+        changed = subprocess.run(["git", "--git-dir", git_dir, "show", "--format=", "--name-status", sha], capture_output=True, text=True, timeout=15, check=False)
+        ficheiros = []
+        for linha in changed.stdout.splitlines():
+            linha = linha.strip()
+            if not linha or "\t" not in linha:
+                continue
+            status, nome = linha.split("\t", 1)
+            ficheiros.append({"status": status, "nome": nome})
+        diff = subprocess.run(["git", "--git-dir", git_dir, "show", "--format=", "--no-ext-diff", "--unified=3", sha], capture_output=True, text=True, timeout=20, check=False).stdout[:50000]
+        return jsonify({"success": True, "commit": {"sha": commit_sha, "autor": autor, "email": email, "data": data, "mensagem": mensagem, "ficheiros": ficheiros, "diff": diff}})
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return jsonify({"success": False, "error": "Git não está disponível."}), 500
+
 @app.route('/api/matrix/projetos/<project_id>/commits', methods=['GET'])
 def listar_commits_matrix(project_id):
     try:
