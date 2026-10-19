@@ -42,6 +42,38 @@ const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;
 
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || '';
+const VG90_SERVICE_SECRET = process.env.VG90_SERVICE_SECRET || '';
+
+function verificarServicoVG90(req, res, next) {
+  if (!VG90_SERVICE_SECRET) {
+    return res.status(503).json({
+      success: false,
+      error: 'Autenticação interna não configurada.'
+    });
+  }
+
+  const recebida = Buffer.from(
+    req.get('X-VG90-Service-Key') || '',
+    'utf8'
+  );
+
+  const esperada = Buffer.from(
+    VG90_SERVICE_SECRET,
+    'utf8'
+  );
+
+  if (
+    recebida.length !== esperada.length ||
+    !require('crypto').timingSafeEqual(recebida, esperada)
+  ) {
+    return res.status(401).json({
+      success: false,
+      error: 'Serviço não autorizado.'
+    });
+  }
+
+  next();
+}
 
 if (!MONGO_URI) {
     console.error('🛑 MONGO_URI não configurada.');
@@ -246,7 +278,7 @@ app.get('/health', async (req, res) => {
 
         project: 'Vagalume90 Core',
 
-        version: '3.1.0',
+        version: '3.2.0',
 
         core: 'online',
 
@@ -596,8 +628,7 @@ app.post('/api/auth/login', async (req, res) => {
 // ==========================================================================
 // 10. CONSULTAR IDENTIDADE PELO UID
 // ==========================================================================
-
-app.get('/api/identity/:uid', async (req, res) => {
+app.get('/api/identity/:uid', verificarServicoVG90, async (req, res) => {
 
     try {
 
