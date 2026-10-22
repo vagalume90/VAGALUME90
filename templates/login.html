@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vagalume90 - Login do Ecossistema</title>
+
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -12,9 +13,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
         }
+
         .login-container {
             background-color: #111827;
             padding: 2.5rem;
@@ -23,22 +25,28 @@
             width: 100%;
             max-width: 400px;
             border: 1px solid #1f2937;
+            box-sizing: border-box;
         }
+
         h2 {
             text-align: center;
             margin-bottom: 1.5rem;
-            color: #3b82f6; /* Azul Vagalume */
+            color: #3b82f6;
         }
+
         .form-group {
             margin-bottom: 1.25rem;
         }
+
         label {
             display: block;
             margin-bottom: 0.5rem;
             font-size: 0.9rem;
             color: #9ca3af;
         }
-        input[type="text"], input[type="password"] {
+
+        input[type="email"],
+        input[type="password"] {
             width: 100%;
             padding: 0.75rem;
             border-radius: 6px;
@@ -48,10 +56,12 @@
             box-sizing: border-box;
             font-size: 1rem;
         }
+
         input:focus {
             outline: none;
             border-color: #3b82f6;
         }
+
         .btn-submit {
             width: 100%;
             padding: 0.75rem;
@@ -64,9 +74,16 @@
             cursor: pointer;
             transition: background 0.2s;
         }
+
         .btn-submit:hover {
             background-color: #2563eb;
         }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
         .error-msg {
             color: #ef4444;
             background-color: rgba(239, 68, 68, 0.1);
@@ -77,31 +94,140 @@
             text-align: center;
             border: 1px solid rgba(239, 68, 68, 0.2);
         }
+
+        .success-msg {
+            color: #34d399;
+            background-color: rgba(52, 211, 153, 0.1);
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            text-align: center;
+            border: 1px solid rgba(52, 211, 153, 0.2);
+        }
     </style>
 </head>
+
 <body>
 
 <div class="login-container">
+
     <h2>Vagalume90 Portal</h2>
-    
+
     {% if erro %}
         <div class="error-msg">{{ erro }}</div>
     {% endif %}
 
-    <form action="/login" method="POST">
+    <div id="mensagem" role="status" aria-live="polite"></div>
+
+    <form id="login-form">
+
         <div class="form-group">
-            <label for="username">Nome de Utilizador ou Email</label>
-            <input type="text" id="username" name="username" required placeholder="Ex: aventuriro_90">
+            <label for="email">Email</label>
+
+            <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                autocomplete="username"
+                placeholder="O teu email"
+            >
         </div>
-        
+
         <div class="form-group">
             <label for="password">Senha</label>
-            <input type="password" id="password" name="password" required placeholder="Sua senha segura">
+
+            <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                autocomplete="current-password"
+                placeholder="A tua senha"
+            >
         </div>
-        
-        <button type="submit" class="btn-submit">Entrar no Ecossistema</button>
+
+        <button type="submit" id="btn-entrar" class="btn-submit">
+            Entrar no Ecossistema
+        </button>
+
     </form>
+
 </div>
+
+<script>
+    const CORE_URL = "https://vagalume90api.onrender.com";
+
+    const formulario = document.getElementById("login-form");
+    const mensagem = document.getElementById("mensagem");
+    const botao = document.getElementById("btn-entrar");
+
+    formulario.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        mensagem.className = "";
+        mensagem.textContent = "";
+
+        botao.disabled = true;
+        botao.textContent = "A verificar identidade...";
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        try {
+            const resposta = await fetch(
+                `${CORE_URL}/api/auth/login`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                }
+            );
+
+            const dados = await resposta.json();
+
+            if (!resposta.ok) {
+                throw new Error(
+                    dados.message ||
+                    dados.mensagem ||
+                    dados.detail ||
+                    "Email ou senha incorretos."
+                );
+            }
+
+            mensagem.className = "success-msg";
+
+            mensagem.textContent =
+                "Credenciais verificadas com sucesso. " +
+                "Identidade VG90: " +
+                (dados.identity?.uid || dados.uid || "confirmada") +
+                ". A integração da sessão ainda precisa de ser concluída.";
+
+        } catch (erro) {
+            mensagem.className = "error-msg";
+
+            if (erro instanceof TypeError) {
+                mensagem.textContent =
+                    "Não foi possível contactar o Core VG90. " +
+                    "Verifica a ligação e a configuração de CORS.";
+            } else {
+                mensagem.textContent = erro.message;
+            }
+
+        } finally {
+            botao.disabled = false;
+            botao.textContent = "Entrar no Ecossistema";
+        }
+    });
+</script>
 
 </body>
 </html>
