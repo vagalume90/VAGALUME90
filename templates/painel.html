@@ -1,0 +1,198 @@
+
+<!doctype html>
+<html lang="pt-AO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VAGALUME90 — Painel</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #07070a;
+  --gold: #f5c030;
+  --blue: #4fa3ff;
+  --muted: #aaa4a0;
+  --line: rgba(245,192,48,.2);
+  --card: rgba(20,18,14,.86);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 0%,rgba(245,192,48,.08),transparent 35%),var(--bg);
+  color: #f8f4e8;
+  font-family: Arial, Helvetica, sans-serif;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px clamp(16px,4vw,48px);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+h1 { margin: 0; color: var(--gold); letter-spacing: .14em; font-size: clamp(22px,3vw,32px); }
+.sub { color: var(--muted); font-size: 12px; letter-spacing: .15em; margin-top: 6px; }
+.status { font-size: 12px; color: #74f0a4; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 32px clamp(16px,4vw,28px) 60px; }
+.welcome { margin-bottom: 24px; }
+.welcome h2 { font-size: clamp(25px,4vw,38px); margin: 0 0 8px; }
+.welcome p { color: var(--muted); margin: 0; line-height: 1.6; }
+.grid,.modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+  gap: 15px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 12px 35px rgba(0,0,0,.2);
+}
+.card h3 { color: var(--gold); margin: 0 0 16px; font-size: 14px; letter-spacing: .12em; }
+.label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 5px; }
+.value { overflow-wrap: anywhere; font-size: 15px; margin-bottom: 16px; }
+.value:last-child { margin-bottom: 0; }
+.modules { margin-top: 18px; }
+.module { border: 1px solid rgba(79,163,255,.24); background: rgba(79,163,255,.035); border-radius: 14px; padding: 20px; }
+.module h3 { margin: 0 0 9px; color: var(--blue); }
+.module p { color: var(--muted); line-height: 1.55; font-size: 13px; margin: 0; }
+.tag { display: inline-block; margin-top: 13px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 5px; color: var(--gold); font-size: 10px; letter-spacing: .08em; }
+.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn { border: 1px solid var(--gold); background: var(--gold); color: #111; padding: 11px 15px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.btn.secondary { background: transparent; color: var(--gold); }
+#message { margin: 0 0 18px; padding: 12px; border-radius: 8px; font-size: 13px; display: none; }
+#message.error { display: block; border: 1px solid #e8407a; color: #ffb4cf; background: rgba(232,64,122,.08); }
+footer { margin-top: 26px; color: #78716a; font-size: 11px; letter-spacing: .08em; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>VAGALUME90</h1>
+    <div class="sub">PAINEL DO ECOSSISTEMA · IDENTIDADE CENTRAL</div>
+  </div>
+  <div class="actions">
+    <span id="core-status" class="status">A verificar Core…</span>
+    <button id="logout" class="btn secondary" type="button">Terminar sessão</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="welcome">
+    <h2>Bem-vindo, <span id="nome">operador</span>.</h2>
+    <p>A tua sessão foi validada pelo Core VG90. Aqui estão os dados da identidade associada à tua conta.</p>
+  </section>
+
+  <p id="message" role="alert"></p>
+
+  <section class="grid">
+    <article class="card">
+      <h3>IDENTIDADE VG90</h3>
+      <div class="label">UID central</div><div class="value" id="uid">A carregar…</div>
+      <div class="label">Nome</div><div class="value" id="nome-card">—</div>
+      <div class="label">Estado do sistema</div><div class="value" id="estado">—</div>
+    </article>
+    <article class="card">
+      <h3>DADOS DA CONTA</h3>
+      <div class="label">Email</div><div class="value" id="email">—</div>
+      <div class="label">Telefone</div><div class="value" id="telefone">—</div>
+      <div class="label">ID de afiliado</div><div class="value" id="afiliado">—</div>
+    </article>
+    <article class="card">
+      <h3>PROGRESSO</h3>
+      <div class="label">Carteira</div><div class="value" id="carteira">0 Kz</div>
+      <div class="label">Nível</div><div class="value" id="nivel">1</div>
+      <div class="label">XP</div><div class="value" id="xp">0</div>
+    </article>
+  </section>
+
+  <section class="modules" aria-label="Módulos do ecossistema">
+    <article class="module">
+      <h3>01 · Mercado</h3>
+      <p>O registo de aquisições está disponível no Core. A integração do catálogo será validada antes de disponibilizar compras.</p>
+      <span class="tag">INTEGRAÇÃO EM PROGRESSO</span>
+    </article>
+    <article class="module">
+      <h3>02 · IA VG90</h3>
+      <p>A rota de IA existe no Core. O funcionamento do motor será validado na próxima etapa.</p>
+      <span class="tag">A VALIDAR</span>
+    </article>
+    <article class="module">
+      <h3>03 · Arena</h3>
+      <p>A rota de desafios existe. As regras e os resultados serão testados antes do uso normal.</p>
+      <span class="tag">A VALIDAR</span>
+    </article>
+  </section>
+
+  <footer>VAGALUME90 · UBUNTU: SOU PORQUE SOMOS</footer>
+</main>
+
+<script>
+const msg = document.getElementById('message');
+
+function falhar(texto) {
+  msg.textContent = texto;
+  msg.className = 'error';
+}
+
+async function iniciarPainel() {
+  try {
+    const resposta = await fetch('/api/auth/me', {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Accept': 'application/json' }
+    });
+
+    const dados = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok || dados.success !== true || !dados.identity) {
+      window.location.replace('/');
+      return;
+    }
+
+    const u = dados.identity;
+
+    document.getElementById('nome').textContent = u.nome || 'operador';
+    document.getElementById('nome-card').textContent = u.nome || '—';
+    document.getElementById('uid').textContent = u.uid || '—';
+    document.getElementById('estado').textContent = u.status_sistema || '—';
+    document.getElementById('email').textContent = u.email || '—';
+    document.getElementById('telefone').textContent = u.telefone || '—';
+    document.getElementById('afiliado').textContent = u.afiliado_id || '—';
+    document.getElementById('carteira').textContent =
+      `${Number(u.carteira_kwanzas || 0).toLocaleString('pt-PT')} Kz`;
+    document.getElementById('nivel').textContent =
+      (u.combate && u.combate.nivel) || 1;
+    document.getElementById('xp').textContent =
+      (u.combate && u.combate.xp) || 0;
+
+    document.getElementById('core-status').textContent = '● SESSÃO VALIDADA';
+  } catch (erro) {
+    falhar('Não foi possível validar a sessão. Atualiza a página ou entra novamente.');
+  }
+}
+
+document.getElementById('logout').addEventListener('click', async () => {
+  const botao = document.getElementById('logout');
+  botao.disabled = true;
+  botao.textContent = 'A terminar…';
+
+  try {
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Accept': 'application/json' }
+    });
+  } catch (erro) {}
+
+  window.location.replace('/');
+});
+
+iniciarPainel();
+</script>
+</body>
+</html>
