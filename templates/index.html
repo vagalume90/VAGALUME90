@@ -1,1010 +1,272 @@
 
-<!DOCTYPE html>
+A carregar mensagens mais antigas…
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!doctype html>
 <html lang="pt-AO">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VAGALUME90 — Portal do Ecossistema</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VAGALUME90 — Painel</title>
 <style>
 :root {
-  --void: #07070A;
-  --gold: #F5C030;
-  --plasma: #E8407A;
-  --matrix: #4FA3FF;
-  --glass-bg: rgba(245,192,48,0.04);
-  --glass-border: rgba(245,192,48,0.18);
-  --glass-border-active: rgba(245,192,48,0.55);
-  --text-dim: rgba(245,192,48,0.45);
-  --text-bright: #F5C030;
-  --font-title: 'Bebas Neue', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-body: 'Outfit', sans-serif;
+  color-scheme: dark;
+  --bg: #07070a;
+  --gold: #f5c030;
+  --blue: #4fa3ff;
+  --muted: #aaa4a0;
+  --line: rgba(245,192,48,.2);
+  --card: rgba(20,18,14,.86);
 }
-
-*, *::before, *::after {
-  box-sizing: border-box;
+* { box-sizing: border-box; }
+body {
   margin: 0;
-  padding: 0;
-}
-
-html, body {
-  width: 100%;
-  height: 100%;
-  background: var(--void);
-  color: var(--gold);
-  font-family: var(--font-body);
-  overflow-x: hidden;
-  overflow-y: auto;
-  min-height: 100%;
-  user-select: none;
-}
-
-#neural-canvas {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-#app {
-  position: relative;
-  z-index: 1;
-  width: 100%;
   min-height: 100vh;
+  background: radial-gradient(circle at 50% 0%,rgba(245,192,48,.08),transparent 35%),var(--bg);
+  color: #f8f4e8;
+  font-family: Arial, Helvetica, sans-serif;
+}
+header {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px clamp(16px,4vw,48px);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+h1 { margin: 0; color: var(--gold); letter-spacing: .14em; font-size: clamp(22px,3vw,32px); }
+.sub { color: var(--muted); font-size: 12px; letter-spacing: .15em; margin-top: 6px; }
+.status { font-size: 12px; color: #74f0a4; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 32px clamp(16px,4vw,28px) 60px; }
+.welcome { margin-bottom: 24px; }
+.welcome h2 { font-size: clamp(25px,4vw,38px); margin: 0 0 8px; }
+.welcome p { color: var(--muted); margin: 0; line-height: 1.6; }
+.grid,.modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+  gap: 15px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 12px 35px rgba(0,0,0,.2);
+}
+.card h3 { color: var(--gold); margin: 0 0 16px; font-size: 14px; letter-spacing: .12em; }
+.label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 5px; }
+.value { overflow-wrap: anywhere; font-size: 15px; margin-bottom: 16px; }
+.value:last-child { margin-bottom: 0; }
+.modules { margin-top: 18px; }
+.module { border: 1px solid rgba(79,163,255,.24); background: rgba(79,163,255,.035); border-radius: 14px; padding: 20px; }
+.module h3 { margin: 0 0 9px; color: var(--blue); }
+.module p { color: var(--muted); line-height: 1.55; font-size: 13px; margin: 0; }
+.tag { display: inline-block; margin-top: 13px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 5px; color: var(--gold); font-size: 10px; letter-spacing: .08em; }
+.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn { border: 1px solid var(--gold); background: var(--gold); color: #111; padding: 11px 15px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.btn.secondary { background: transparent; color: var(--gold); }
+#message { margin: 0 0 18px; padding: 12px; border-radius: 8px; font-size: 13px; display: none; }
+#message.error { display: block; border: 1px solid #e8407a; color: #ffb4cf; background: rgba(232,64,122,.08); }
+footer { margin-top: 26px; color: #78716a; font-size: 11px; letter-spacing: .08em; }
+
+.academy-feature {
+  margin: 0 0 22px;
+  padding: clamp(22px,4vw,34px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 24px;
-  padding: 70px 16px 56px;
+  border: 1px solid rgba(245,192,48,.55);
+  border-radius: 18px;
+  background: linear-gradient(120deg,rgba(245,192,48,.11),rgba(79,163,255,.05) 58%,rgba(20,18,14,.9));
+  box-shadow: 0 18px 48px rgba(0,0,0,.25);
 }
+.academy-copy { max-width: 650px; }
+.academy-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .16em; color: var(--gold); }
+.academy-feature h2 { margin: 10px 0; color: #fff1bd; font-size: clamp(26px,4vw,38px); }
+.academy-feature p { color: var(--muted); line-height: 1.6; margin: 0 0 12px; }
+.academy-course { font-size: 13px; color: #f8f4e8; margin: 12px 0 18px; }
+.academy-course strong { color: var(--gold); }
+.academy-button { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+.academy-button span { font-size: 17px; }
+.academy-symbol { display: grid; place-items: center; flex-shrink: 0; width: 92px; height: 92px; border-radius: 24px; background: rgba(245,192,48,.08); border: 1px solid rgba(245,192,48,.3); color: var(--gold); font-size: 56px; }
+@media(max-width:520px) { .academy-symbol { display:none; } }
 
-.sigil {
-  position: fixed;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  line-height: 1.7;
-  color: var(--text-dim);
-  letter-spacing: 0.05em;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.sigil span {
-  color: var(--gold);
-  font-weight: 700;
-}
-
-.sigil.tl { top: 18px; left: 20px; }
-.sigil.tr { top: 18px; right: 20px; text-align: right; }
-.sigil.bl { bottom: 44px; left: 20px; }
-.sigil.br { bottom: 44px; right: 20px; text-align: right; }
-
-#header {
-  text-align: center;
-  position: relative;
-}
-
-#header h1 {
-  font-family: var(--font-title);
-  font-size: clamp(38px, 8vw, 72px);
-  letter-spacing: 0.12em;
-  line-height: 1;
-  background: linear-gradient(135deg, #F5C030 0%, #FFE599 40%, #E8407A 80%, #F5C030 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: shimmer 4s linear infinite;
-}
-
-#header p {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-dim);
-  letter-spacing: 0.3em;
-  margin-top: 4px;
-  text-transform: uppercase;
-}
-
-@keyframes shimmer {
-  to { background-position: 200% center; }
-}
-
-#eye-container {
-  position: relative;
-  width: 130px;
-  height: 130px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1.5px solid transparent;
-}
-
-.ring-1 {
-  width: 130px;
-  height: 130px;
-  border-top-color: var(--gold);
-  border-right-color: rgba(245,192,48,0.2);
-  border-bottom-color: var(--gold);
-  border-left-color: rgba(245,192,48,0.2);
-  animation: spin1 3.5s linear infinite;
-}
-
-.ring-2 {
-  width: 105px;
-  height: 105px;
-  border-top-color: var(--plasma);
-  border-right-color: rgba(232,64,122,0.2);
-  border-bottom-color: var(--plasma);
-  border-left-color: rgba(232,64,122,0.2);
-  animation: spin2 2.8s linear infinite reverse;
-}
-
-.ring-3 {
-  width: 82px;
-  height: 82px;
-  border-top-color: var(--matrix);
-  border-right-color: rgba(79,163,255,0.15);
-  border-bottom-color: var(--matrix);
-  border-left-color: rgba(79,163,255,0.15);
-  animation: spin1 2s linear infinite;
-}
-
-.ring-4 {
-  width: 62px;
-  height: 62px;
-  border-top-color: rgba(245,192,48,0.6);
-  border-right-color: transparent;
-  border-bottom-color: rgba(245,192,48,0.6);
-  border-left-color: transparent;
-  animation: spin2 1.4s linear infinite reverse;
-}
-
-@keyframes spin1 {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes spin2 {
-  to { transform: rotate(-360deg); }
-}
-
-#eye-core {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 38% 35%, #FFE28A, #F5C030 40%, #C8860A 75%, #4A2D00);
-  box-shadow:
-    0 0 20px rgba(245,192,48,0.9),
-    0 0 50px rgba(245,192,48,0.4),
-    0 0 90px rgba(245,192,48,0.15),
-    inset 0 0 10px rgba(0,0,0,0.4);
-  animation: breathe 3s ease-in-out infinite;
-  position: relative;
-  z-index: 2;
-}
-
-#eye-core::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%,-50%);
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #1a0a00, #07070A);
-  box-shadow: 0 0 6px rgba(232,64,122,0.8);
-}
-
-@keyframes breathe {
-  0%,100% {
-    transform: scale(1);
-    box-shadow: 0 0 20px rgba(245,192,48,.9), 0 0 50px rgba(245,192,48,.4), 0 0 90px rgba(245,192,48,.15);
-  }
-  50% {
-    transform: scale(1.12);
-    box-shadow: 0 0 32px rgba(245,192,48,1), 0 0 80px rgba(245,192,48,.6), 0 0 130px rgba(245,192,48,.25);
-  }
-}
-
-#consoles-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 420px;
-}
-
-.console {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  padding: 28px 28px 24px;
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.console::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 60px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--gold), transparent);
-}
-
-.console::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 2px;
-  height: 60px;
-  background: linear-gradient(180deg, var(--gold), transparent);
-}
-
-.console.hidden {
-  display: none;
-}
-
-.console-title {
-  font-family: var(--font-title);
-  font-size: 22px;
-  letter-spacing: 0.15em;
-  color: var(--gold);
-  margin-bottom: 4px;
-}
-
-.console-sub {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 0.2em;
-  margin-bottom: 22px;
-  text-transform: uppercase;
-}
-
-.field {
-  margin-bottom: 14px;
-  position: relative;
-}
-
-.field label {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-
-.field input {
-  width: 100%;
-  background: rgba(245,192,48,0.04);
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
-  padding: 11px 14px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--gold);
-  outline: none;
-  transition: border-color 0.3s, box-shadow 0.3s;
-  -webkit-text-fill-color: var(--gold);
-}
-
-.field input::placeholder {
-  color: rgba(245,192,48,0.25);
-}
-
-.field input:focus {
-  border-color: var(--glass-border-active);
-  box-shadow: 0 0 0 3px rgba(245,192,48,0.07), inset 0 0 14px rgba(245,192,48,0.04);
-}
-
-.field input:-webkit-autofill,
-.field input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #0d0d12 inset;
-  -webkit-text-fill-color: var(--gold) !important;
-  caret-color: var(--gold);
-}
-
-.btn-primary {
-  width: 100%;
-  margin-top: 6px;
-  padding: 13px;
-  font-family: var(--font-title);
-  font-size: 18px;
-  letter-spacing: 0.15em;
-  color: var(--void);
-  background: linear-gradient(135deg, #F5C030, #E8A800);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.15s, box-shadow 0.3s;
-  box-shadow: 0 0 20px rgba(245,192,48,0.3);
-}
-
-.btn-primary::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 34px rgba(245,192,48,0.5);
-}
-
-.btn-primary:hover::before { opacity: 1; }
-.btn-primary:active { transform: translateY(0); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.btn-switch {
-  width: 100%;
-  margin-top: 16px;
-  padding: 10px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  color: var(--text-dim);
-  background: transparent;
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: color 0.3s, border-color 0.3s;
-}
-
-.btn-switch:hover {
-  color: var(--gold);
-  border-color: var(--glass-border-active);
-}
-
-.btn-switch span { color: var(--plasma); }
-
-.msg {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  padding: 8px 12px;
-  border-radius: 6px;
-  margin-top: 12px;
-  display: none;
-}
-
-.msg.error {
-  color: var(--plasma);
-  background: rgba(232,64,122,0.08);
-  border: 1px solid rgba(232,64,122,0.25);
-  display: block;
-}
-
-.msg.success {
-  color: #72ffa0;
-  background: rgba(114,255,160,0.06);
-  border: 1px solid rgba(114,255,160,0.25);
-  display: block;
-}
-
-.msg.loading {
-  color: var(--matrix);
-  background: rgba(79,163,255,0.06);
-  border: 1px solid rgba(79,163,255,0.2);
-  display: block;
-}
-
-#typewriter-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 32px;
-  background: rgba(7,7,10,0.92);
-  border-top: 1px solid var(--glass-border);
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  z-index: 20;
-}
-
-#typewriter-bar span {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 0.08em;
-}
-
-#tw-prefix {
-  color: var(--matrix);
-  margin-right: 8px;
-  flex-shrink: 0;
-}
-
-#tw-text {
-  flex: 1;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-#tw-cursor {
-  display: inline-block;
-  width: 7px;
-  height: 12px;
-  background: var(--gold);
-  animation: blink 1s step-end infinite;
-  vertical-align: middle;
-  margin-left: 2px;
-  flex-shrink: 0;
-}
-
-@keyframes blink {
-  0%,100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-@media (max-width: 480px) {
-  #app {
-    min-height: 100vh;
-    height: auto;
-    padding: 86px 14px 54px;
-    gap: 18px;
-  }
-
-  .console { padding: 22px 18px 18px; }
-  .sigil.tr, .sigil.br { display: none; }
-  .sigil { font-size: 9px; }
-  #eye-container { transform: scale(.88); margin: -6px 0; }
-}
-
-@media (max-height: 760px) {
-  #app {
-    min-height: 100vh;
-    height: auto;
-    padding-top: 74px;
-    padding-bottom: 48px;
-    gap: 16px;
-  }
-
-  #eye-container { transform: scale(.82); margin: -8px 0; }
-}
 </style>
 </head>
 <body>
-
-<canvas id="neural-canvas"></canvas>
-
-<div class="sigil tl">
-  VAGALUME90 CORE<br>
-  PORTAL: <span>VG90</span><br>
-  SETOR: <span>ALFA-PRIME</span><br>
-  PROTOCOLO: <span>IDENTIDADE CENTRAL</span>
-</div>
-
-<div class="sigil tr">
-  ZONA: <span>ANGOLA</span><br>
-  REDE: <span>VG90 CORE</span><br>
-  API: <span id="api-status">A VERIFICAR</span><br>
-  LATÊNCIA: <span id="latency">—</span> ms
-</div>
-
-<div class="sigil bl">
-  IDENTIDADE<br>
-  <span>ACESSO CENTRAL</span><br>
-  Ubuntu: Sou porque somos
-</div>
-
-<div class="sigil br">
-  MÓDULOS VG90<br>
-  <span>EM EVOLUÇÃO</span><br>
-  Mercado · Academia · IA
-</div>
-
-<div id="app">
-  <div id="header">
+<header>
+  <div>
     <h1>VAGALUME90</h1>
-    <p>Ecossistema Digital · Identidade Central</p>
+    <div class="sub">PAINEL DO ECOSSISTEMA · IDENTIDADE CENTRAL</div>
   </div>
-
-  <div id="eye-container">
-    <div class="ring ring-1"></div>
-    <div class="ring ring-2"></div>
-    <div class="ring ring-3"></div>
-    <div class="ring ring-4"></div>
-    <div id="eye-core"></div>
+  <div class="actions">
+    <span id="core-status" class="status">A verificar Core…</span>
+    <button id="logout" class="btn secondary" type="button">Terminar sessão</button>
   </div>
+</header>
 
-  <div id="consoles-wrapper">
-    <div class="console" id="console-login">
-      <div class="console-title">Autenticação Neural</div>
-      <div class="console-sub">// ACESSO AO NÚCLEO VG90</div>
+<main class="wrap">
+  <section class="welcome">
+    <h2>Bem-vindo, <span id="nome">operador</span>.</h2>
+    <p>A tua sessão foi validada pelo Core VG90. Aqui estão os dados da identidade associada à tua conta.</p>
+  </section>
 
-      <div class="field">
-        <label>E-mail da conta VG90</label>
-        <input type="email" id="l-username" name="email" placeholder="seu@email.com" autocomplete="username" required>
-      </div>
+  <p id="message" role="alert"></p>
 
-      <div class="field">
-        <label>Sequência de Acesso</label>
-        <input type="password" id="l-password" name="password" placeholder="••••••••" autocomplete="current-password">
-      </div>
+  <section class="grid">
+    <article class="card">
+      <h3>IDENTIDADE VG90</h3>
+      <div class="label">UID central</div><div class="value" id="uid">A carregar…</div>
+      <div class="label">Nome</div><div class="value" id="nome-card">—</div>
+      <div class="label">Estado do sistema</div><div class="value" id="estado">—</div>
+    </article>
+    <article class="card">
+      <h3>DADOS DA CONTA</h3>
+      <div class="label">Email</div><div class="value" id="email">—</div>
+      <div class="label">Telefone</div><div class="value" id="telefone">—</div>
+      <div class="label">ID de afiliado</div><div class="value" id="afiliado">—</div>
+    </article>
+    <article class="card">
+      <h3>PROGRESSO</h3>
+      <div class="label">Carteira</div><div class="value" id="carteira">0 Kz</div>
+      <div class="label">Nível</div><div class="value" id="nivel">1</div>
+      <div class="label">XP</div><div class="value" id="xp">0</div>
+    </article>
+  </section>
 
-      <button type="button" class="btn-primary" id="btn-login">SINCRONIZAR</button>
-      <div class="msg" id="login-msg"></div>
-
-      <button type="button" class="btn-switch" id="go-register">
-        SEM IDENTIDADE? → <span>MANIFESTAR EXISTÊNCIA</span>
-      </button>
+  <section class="academy-feature" aria-labelledby="academy-title">
+    <div class="academy-copy">
+      <span class="academy-eyebrow">FOCO ATUAL · CURSOS BREVES</span>
+      <h2 id="academy-title">VG90 Academy</h2>
+      <p>Entra na área de formação, acompanha as aulas e aprende com o professor Persy.</p>
+      <div class="academy-course"><strong>Primeiro curso:</strong> Introdução à Programação</div>
+      <a class="btn academy-button" href="https://vg90-academy.onrender.com/" target="_blank" rel="noopener noreferrer">
+        ABRIR ACADEMY <span aria-hidden="true">↗</span>
+      </a>
     </div>
+    <div class="academy-symbol" aria-hidden="true">⌘</div>
+  </section>
 
-    <div class="console hidden" id="console-register">
-      <div class="console-title">Manifestação Quântica</div>
-      <div class="console-sub">// CRIAR IDENTIDADE NO NEXO</div>
+  <section class="modules" aria-label="Módulos do ecossistema">
+    <article class="module">
+      <h3>01 · Mercado</h3>
+      <p>O registo de aquisições está disponível no Core. A integração do catálogo será validada antes de disponibilizar compras.</p>
+      <span class="tag">INTEGRAÇÃO EM PROGRESSO</span>
+    </article>
+    <article class="module">
+      <h3>02 · IA VG90</h3>
+      <p>A rota de IA existe no Core. O funcionamento do motor será validado na próxima etapa.</p>
+      <span class="tag">A VALIDAR</span>
+    </article>
+    <article class="module">
+      <h3>03 · Arena</h3>
+      <p>A rota de desafios existe. As regras e os resultados serão testados antes do uso normal.</p>
+      <span class="tag">A VALIDAR</span>
+    </article>
+  </section>
 
-      <div class="field">
-        <label>Nome completo</label>
-        <input type="text" id="r-username" name="nome" placeholder="O teu nome" autocomplete="name" maxlength="80" required>
-      </div>
-
-      <div class="field">
-        <label>Telefone</label>
-        <input type="tel" id="r-phone" name="telefone" placeholder="+244 9XX XXX XXX" autocomplete="tel" required>
-      </div>
-
-      <div class="field">
-        <label>E-mail</label>
-        <input type="email" id="r-email" name="email" placeholder="email@dominio.com" autocomplete="email" required>
-      </div>
-
-      <div class="field">
-        <label>Palavra-passe (mínimo 8 caracteres)</label>
-        <input type="password" id="r-password" name="password" placeholder="Pelo menos 8 caracteres" autocomplete="new-password" minlength="8" required>
-      </div>
-
-      <button type="button" class="btn-primary" id="btn-register">MANIFESTAR</button>
-      <div class="msg" id="register-msg"></div>
-
-      <button type="button" class="btn-switch" id="go-login">
-        JÁ EXISTE? → <span>AUTENTICAR CONSCIÊNCIA</span>
-      </button>
-    </div>
-  </div>
-</div>
-
-<div id="typewriter-bar">
-  <span id="tw-prefix">VG90://</span>
-  <span id="tw-text"></span>
-  <span id="tw-cursor"></span>
-</div>
+  <footer>VAGALUME90 · UBUNTU: SOU PORQUE SOMOS</footer>
+</main>
 
 <script>
-/* Animação de partículas */
-(function() {
-  const canvas = document.getElementById('neural-canvas');
-  const ctx = canvas.getContext('2d');
-  let W, H;
-  const mouse = { x: -999, y: -999 };
-  const N = 80;
-  const MAX_DIST = 130;
-  const particles = [];
+const msg = document.getElementById('message');
 
-  function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
+function falhar(texto) {
+  msg.textContent = texto;
+  msg.className = 'error';
+}
 
-  function makeParticle() {
-    return {
-      x: Math.random() * W,
-      y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.35,
-      vy: (Math.random() - 0.5) * 0.35,
-      r: Math.random() * 1.8 + 0.5,
-      alpha: Math.random() * 0.5 + 0.3,
-      hue: Math.random() < 0.6 ? 'gold' : (Math.random() < 0.5 ? 'plasma' : 'matrix')
-    };
-  }
+async function iniciarPainel() {
+  try {
+    const resposta = await fetch('/api/auth/me', {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Accept': 'application/json' }
+    });
 
-  function colorOf(p) {
-    if (p.hue === 'gold') return `rgba(245,192,48,${p.alpha})`;
-    if (p.hue === 'plasma') return `rgba(232,64,122,${p.alpha * 0.7})`;
-    return `rgba(79,163,255,${p.alpha * 0.7})`;
-  }
+    const dados = await resposta.json().catch(() => ({}));
 
-  resize();
-  for (let i = 0; i < N; i++) particles.push(makeParticle());
-
-  window.addEventListener('resize', resize);
-  window.addEventListener('mousemove', e => {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-  });
-
-  window.addEventListener('touchmove', e => {
-    if (!e.touches.length) return;
-    mouse.x = e.touches[0].clientX;
-    mouse.y = e.touches[0].clientY;
-  }, { passive: true });
-
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-
-    for (let i = 0; i < N; i++) {
-      const a = particles[i];
-      const dxMouse = mouse.x - a.x;
-      const dyMouse = mouse.y - a.y;
-      const distanceMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
-
-      if (distanceMouse < 100) {
-        a.vx += dxMouse * 0.0002;
-        a.vy += dyMouse * 0.0002;
-      }
-
-      for (let j = i + 1; j < N; j++) {
-        const b = particles[j];
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
-        const d = Math.sqrt(dx * dx + dy * dy);
-
-        if (d < MAX_DIST) {
-          const opacity = (1 - d / MAX_DIST) * 0.18;
-          ctx.beginPath();
-          ctx.strokeStyle = `rgba(245,192,48,${opacity})`;
-          ctx.lineWidth = 0.5;
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.stroke();
-        }
-      }
-    }
-
-    for (const p of particles) {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = colorOf(p);
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r * 2.5, 0, Math.PI * 2);
-      const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.5);
-      gradient.addColorStop(0, colorOf(p));
-      gradient.addColorStop(1, 'transparent');
-      ctx.fillStyle = gradient;
-      ctx.fill();
-
-      p.x += p.vx;
-      p.y += p.vy;
-
-      const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-      if (speed > 0.8) {
-        p.vx *= 0.98;
-        p.vy *= 0.98;
-      }
-
-      if (p.x < 0) p.x = W;
-      if (p.x > W) p.x = 0;
-      if (p.y < 0) p.y = H;
-      if (p.y > H) p.y = 0;
-    }
-
-    requestAnimationFrame(draw);
-  }
-
-  draw();
-})();
-
-/* Verificação real da API */
-(function() {
-  const API_BASE = 'https://vagalume90api.onrender.com';
-  const statusEl = document.getElementById('api-status');
-  const latencyEl = document.getElementById('latency');
-
-  async function checkApi() {
-    const startedAt = performance.now();
-
-    try {
-      const response = await fetch(`${API_BASE}/health`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-        cache: 'no-store'
-      });
-
-      const data = await response.json().catch(() => ({}));
-      latencyEl.textContent = Math.round(performance.now() - startedAt);
-
-      if (response.ok) {
-        statusEl.textContent = 'ONLINE';
-        statusEl.style.color = '#72ffa0';
-      } else {
-        statusEl.textContent = 'INDISPONÍVEL';
-        statusEl.style.color = '#E8407A';
-      }
-    } catch (_) {
-      statusEl.textContent = 'SEM LIGAÇÃO';
-      statusEl.style.color = '#E8407A';
-      latencyEl.textContent = '—';
-    }
-  }
-
-  checkApi();
-  setInterval(checkApi, 30000);
-})();
-
-/* Mensagens animadas */
-(function() {
-  const lines = [
-    'VAGALUME90 — tecnologia construída para resolver problemas reais.',
-    'A verificar a ligação ao Core central do ecossistema VG90...',
-    'A tua identidade central será usada pelos módulos compatíveis.',
-    'Mercado, Academia e IA: módulos em evolução progressiva.',
-    'Protege a tua palavra-passe e nunca a partilhes com ninguém.',
-    'Ubuntu: Sou porque somos. Bem-vindo ao VAGALUME90.',
-    'Cria a tua conta com nome, telefone, e-mail e palavra-passe.',
-    'A autenticação é processada pelo serviço central VG90.'
-  ];
-
-  const el = document.getElementById('tw-text');
-  let lineIndex = 0;
-  let charIndex = 0;
-  let deleting = false;
-  let wait = 0;
-
-  function tick() {
-    if (wait > 0) {
-      wait--;
-      setTimeout(tick, 50);
+    if (!resposta.ok || dados.success !== true || !dados.identity) {
+      window.location.replace('/');
       return;
     }
 
-    const line = lines[lineIndex];
+    const u = dados.identity;
 
-    if (!deleting) {
-      el.textContent = line.slice(0, charIndex + 1);
-      charIndex++;
+    document.getElementById('nome').textContent = u.nome || 'operador';
+    document.getElementById('nome-card').textContent = u.nome || '—';
+    document.getElementById('uid').textContent = u.uid || '—';
+    document.getElementById('estado').textContent = u.status_sistema || '—';
+    document.getElementById('email').textContent = u.email || '—';
+    document.getElementById('telefone').textContent = u.telefone || '—';
+    document.getElementById('afiliado').textContent = u.afiliado_id || '—';
+    document.getElementById('carteira').textContent =
+      `${Number(u.carteira_kwanzas || 0).toLocaleString('pt-PT')} Kz`;
+    document.getElementById('nivel').textContent =
+      (u.combate && u.combate.nivel) || 1;
+    document.getElementById('xp').textContent =
+      (u.combate && u.combate.xp) || 0;
 
-      if (charIndex >= line.length) {
-        deleting = true;
-        wait = 60;
-        setTimeout(tick, 50);
-        return;
-      }
-
-      setTimeout(tick, 38);
-    } else {
-      el.textContent = line.slice(0, charIndex - 1);
-      charIndex--;
-
-      if (charIndex <= 0) {
-        deleting = false;
-        lineIndex = (lineIndex + 1) % lines.length;
-        wait = 15;
-        setTimeout(tick, 50);
-        return;
-      }
-
-      setTimeout(tick, 18);
-    }
+    document.getElementById('core-status').textContent = '● SESSÃO VALIDADA';
+  } catch (erro) {
+    falhar('Não foi possível validar a sessão. Atualiza a página ou entra novamente.');
   }
-
-  tick();
-})();
-
-/* Alternar login e registo */
-const cLogin = document.getElementById('console-login');
-const cRegister = document.getElementById('console-register');
-
-document.getElementById('go-register').addEventListener('click', () => {
-  cLogin.classList.add('hidden');
-  cRegister.classList.remove('hidden');
-  clearMsg('login-msg');
-});
-
-document.getElementById('go-login').addEventListener('click', () => {
-  cRegister.classList.add('hidden');
-  cLogin.classList.remove('hidden');
-  clearMsg('register-msg');
-});
-
-function showMsg(id, text, type) {
-  const el = document.getElementById(id);
-  el.textContent = text;
-  el.className = 'msg ' + type;
 }
 
-function clearMsg(id) {
-  const el = document.getElementById(id);
-  el.textContent = '';
-  el.className = 'msg';
-}
-
-/* Integração com o VAGALUME90 Core */
-const VG90_API = 'https://vagalume90api.onrender.com';
-
-async function readApiResponse(response) {
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok || data.success === false) {
-    throw new Error(
-      data.error ||
-      data.message ||
-      `O servidor respondeu com o código ${response.status}.`
-    );
-  }
-
-  return data;
-}
-
-function setButtonLoading(button, loading, normalText) {
-  button.disabled = loading;
-  button.textContent = loading ? 'A PROCESSAR...' : normalText;
-}
-
-function messageFromError(error) {
-  if (error instanceof TypeError) {
-    return 'Não foi possível contactar o Core. Verifica a ligação e a configuração CORS do portal.';
-  }
-
-  return error.message || 'Ocorreu um erro inesperado. Tenta novamente.';
-}
-
-/* Login */
-document.getElementById('btn-login').addEventListener('click', async () => {
-  const email = document.getElementById('l-username').value.trim();
-  const password = document.getElementById('l-password').value;
-  const btn = document.getElementById('btn-login');
-
-  if (!email || !password) {
-    showMsg('login-msg', 'Preenche o e-mail e a palavra-passe.', 'error');
-    return;
-  }
-
-  setButtonLoading(btn, true, 'SINCRONIZAR');
-  showMsg('login-msg', 'A autenticar a conta no Core VG90...', 'loading');
+document.getElementById('logout').addEventListener('click', async () => {
+  const botao = document.getElementById('logout');
+  botao.disabled = true;
+  botao.textContent = 'A terminar…';
 
   try {
-    const loginResponse = await fetch(`${VG90_API}/api/auth/login`, {
+    await fetch('/api/auth/logout', {
       method: 'POST',
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ email, password })
+      headers: { 'Accept': 'application/json' }
     });
+  } catch (erro) {}
 
-    const loginData = await readApiResponse(loginResponse);
-
-    const sessionResponse = await fetch(`${VG90_API}/api/auth/me`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: { 'Accept': 'application/json' },
-      cache: 'no-store'
-    });
-
-    const sessionData = await sessionResponse.json().catch(() => ({}));
-
-    if (
-      !sessionResponse.ok ||
-      sessionData.authenticated === false ||
-      sessionData.success === false
-    ) {
-      throw new Error(
-        sessionData.error ||
-        sessionData.message ||
-        'O login foi recebido, mas a sessão não foi confirmada. Verifica CORS e cookies no Core.'
-      );
-    }
-
-    const user = sessionData.user || loginData.user || {};
-    const displayName = user.nome || user.name || user.username || email;
-
-    showMsg(
-      'login-msg',
-      `Sessão confirmada. Bem-vindo, ${displayName}. A autenticação VG90 está ativa.`,
-      'success'
-    );
-
-    btn.textContent = 'SESSÃO ATIVA';
-    window.location.assign('/painel');
-  } catch (error) {
-    showMsg('login-msg', `Falha no acesso: ${messageFromError(error)}`, 'error');
-    setButtonLoading(btn, false, 'SINCRONIZAR');
-  }
+  window.location.replace('/');
 });
 
-/* Registo */
-document.getElementById('btn-register').addEventListener('click', async () => {
-  const nome = document.getElementById('r-username').value.trim();
-  const telefone = document.getElementById('r-phone').value.trim();
-  const email = document.getElementById('r-email').value.trim();
-  const password = document.getElementById('r-password').value;
-  const btn = document.getElementById('btn-register');
-
-  if (!nome || !telefone || !email || !password) {
-    showMsg('register-msg', 'Preenche todos os campos para criar a conta.', 'error');
-    return;
-  }
-
-  if (password.length < 8) {
-    showMsg('register-msg', 'A palavra-passe deve ter pelo menos 8 caracteres.', 'error');
-    return;
-  }
-
-  setButtonLoading(btn, true, 'MANIFESTAR');
-  showMsg('register-msg', 'A criar a identidade no Core VG90...', 'loading');
-
-  try {
-    const response = await fetch(`${VG90_API}/api/auth/register`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ nome, telefone, email, password })
-    });
-
-    const data = await readApiResponse(response);
-
-    showMsg(
-      'register-msg',
-      data.message || 'Conta criada com sucesso. Agora entra com o teu e-mail e palavra-passe.',
-      'success'
-    );
-
-    setTimeout(() => {
-      cRegister.classList.add('hidden');
-      cLogin.classList.remove('hidden');
-      document.getElementById('l-username').value = email;
-      document.getElementById('l-password').value = '';
-      clearMsg('login-msg');
-      document.getElementById('l-password').focus();
-    }, 1400);
-  } catch (error) {
-    showMsg(
-      'register-msg',
-      `Não foi possível criar a conta: ${messageFromError(error)}`,
-      'error'
-    );
-  } finally {
-    setButtonLoading(btn, false, 'MANIFESTAR');
-  }
-});
-
-/* Enter envia os dados */
-['l-username', 'l-password'].forEach(id => {
-  document.getElementById(id).addEventListener('keydown', event => {
-    if (event.key === 'Enter') {
-      document.getElementById('btn-login').click();
-    }
-  });
-});
-
-['r-username', 'r-phone', 'r-email', 'r-password'].forEach(id => {
-  document.getElementById(id).addEventListener('keydown', event => {
-    if (event.key === 'Enter') {
-      document.getElementById('btn-register').click();
-    }
-  });
-});
+iniciarPainel();
 </script>
 </body>
 </html>
+
+
