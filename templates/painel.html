@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="pt-AO">
 <head>
@@ -66,6 +65,30 @@ h1 { margin: 0; color: var(--gold); letter-spacing: .14em; font-size: clamp(22px
 #message { margin: 0 0 18px; padding: 12px; border-radius: 8px; font-size: 13px; display: none; }
 #message.error { display: block; border: 1px solid #e8407a; color: #ffb4cf; background: rgba(232,64,122,.08); }
 footer { margin-top: 26px; color: #78716a; font-size: 11px; letter-spacing: .08em; }
+
+.academy-feature {
+  margin: 0 0 22px;
+  padding: clamp(22px,4vw,34px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border: 1px solid rgba(245,192,48,.55);
+  border-radius: 18px;
+  background: linear-gradient(120deg,rgba(245,192,48,.11),rgba(79,163,255,.05) 58%,rgba(20,18,14,.9));
+  box-shadow: 0 18px 48px rgba(0,0,0,.25);
+}
+.academy-copy { max-width: 650px; }
+.academy-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .16em; color: var(--gold); }
+.academy-feature h2 { margin: 10px 0; color: #fff1bd; font-size: clamp(26px,4vw,38px); }
+.academy-feature p { color: var(--muted); line-height: 1.6; margin: 0 0 12px; }
+.academy-course { font-size: 13px; color: #f8f4e8; margin: 12px 0 18px; }
+.academy-course strong { color: var(--gold); }
+.academy-button { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+.academy-button span { font-size: 17px; }
+.academy-symbol { display: grid; place-items: center; flex-shrink: 0; width: 92px; height: 92px; border-radius: 24px; background: rgba(245,192,48,.08); border: 1px solid rgba(245,192,48,.3); color: var(--gold); font-size: 56px; }
+@media(max-width:520px) { .academy-symbol { display:none; } }
+
 </style>
 </head>
 <body>
@@ -107,6 +130,19 @@ footer { margin-top: 26px; color: #78716a; font-size: 11px; letter-spacing: .08e
       <div class="label">Nível</div><div class="value" id="nivel">1</div>
       <div class="label">XP</div><div class="value" id="xp">0</div>
     </article>
+  </section>
+
+  <section class="academy-feature" aria-labelledby="academy-title">
+    <div class="academy-copy">
+      <span class="academy-eyebrow">FOCO ATUAL · CURSOS BREVES</span>
+      <h2 id="academy-title">VG90 Academy</h2>
+      <p>Entra na área de formação, acompanha as aulas e aprende com o professor Persy.</p>
+      <div class="academy-course"><strong>Primeiro curso:</strong> Introdução à Programação</div>
+      <a class="btn academy-button" href="https://vg90-academy.onrender.com/" target="_blank" rel="noopener noreferrer">
+        ABRIR ACADEMY <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+    <div class="academy-symbol" aria-hidden="true">⌘</div>
   </section>
 
   <section class="modules" aria-label="Módulos do ecossistema">
@@ -196,3 +232,5 @@ iniciarPainel();
 </script>
 </body>
 </html>
+
+
