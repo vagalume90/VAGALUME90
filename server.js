@@ -1,3 +1,49 @@
+
+A carregar mensagens mais antigas…
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * ⚡ VAGALUME90 CORE ENGINE — ALL-IN-ONE SYSTEM
  * 🪐 CORE CENTRAL DO ECOSSISTEMA VG90
@@ -33,6 +79,7 @@ const crypto = require('crypto');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const argon2 = require('argon2');
+const path = require('path');
 
 const app = express();
 
@@ -869,7 +916,21 @@ app.get(
     '/',
     (req, res) => {
 
-        res.json({
+        // Mostra o portal visual de login e registo.
+        return res.sendFile(
+            path.join(__dirname, 'templates', 'index.html')
+        );
+
+    }
+);
+
+
+// Estado do Core separado da página visual.
+app.get(
+    '/api/status',
+    (req, res) => {
+
+        return res.json({
 
             system:
                 'VAGALUME90 CORE',
@@ -1296,7 +1357,6 @@ app.post(
                         });
 
                     }
-
 
                     try {
 
@@ -2417,3 +2477,5 @@ mongoose
         process.exit(1);
 
     });
+
+
