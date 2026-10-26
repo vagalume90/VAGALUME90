@@ -923,6 +923,7 @@ document.getElementById('btn-login').addEventListener('click', async () => {
     );
 
     btn.textContent = 'SESSÃO ATIVA';
+    window.location.assign('/painel');
   } catch (error) {
     showMsg('login-msg', `Falha no acesso: ${messageFromError(error)}`, 'error');
     setButtonLoading(btn, false, 'SINCRONIZAR');
