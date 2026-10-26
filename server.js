@@ -915,7 +915,12 @@ app.get(
 // ==========================================================================
 // 14. REGISTO
 // ==========================================================================
-
+// PAINEL AUTENTICADO VAGALUME90
+app.get('/painel', exigirLogin, (req, res) => {
+    res.sendFile(
+        path.join(__dirname, 'templates', 'painel.html')
+    );
+});
 app.post(
     '/api/auth/register',
     async (req, res) => {
