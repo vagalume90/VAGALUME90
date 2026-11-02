@@ -30,7 +30,7 @@ const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || '';
 const DB_NAME = 'teste';
 const USER_COLLECTION = 'Usuários';
 
-se (!MONGO_URI) {
+if (!MONGO_URI) {
   console.error('MONGO_URI não configurado no Render.');
   process.exit(1);
 }
