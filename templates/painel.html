@@ -1,236 +1,524 @@
-<!doctype html>
-<html lang="pt-AO">
+<!DOCTYPE html>
+<html lang="pt">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VAGALUME90 — Painel</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>VAGALUME90 | Central de Comando</title>
+
 <style>
 :root {
-  color-scheme: dark;
-  --bg: #07070a;
-  --gold: #f5c030;
-  --blue: #4fa3ff;
-  --muted: #aaa4a0;
-  --line: rgba(245,192,48,.2);
-  --card: rgba(20,18,14,.86);
+    --bg: #080811;
+    --card: #121222;
+    --orange: #ff9d00;
+    --purple: #7000ff;
+    --pink: #ff1493;
+    --text: #f5f5ff;
+    --muted: #9999b5;
+    --border: rgba(255,255,255,.09);
 }
-* { box-sizing: border-box; }
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
-  margin: 0;
-  min-height: 100vh;
-  background: radial-gradient(circle at 50% 0%,rgba(245,192,48,.08),transparent 35%),var(--bg);
-  color: #f8f4e8;
-  font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
 }
+
 header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 22px clamp(16px,4vw,48px);
-  border-bottom: 1px solid var(--line);
-  flex-wrap: wrap;
-}
-h1 { margin: 0; color: var(--gold); letter-spacing: .14em; font-size: clamp(22px,3vw,32px); }
-.sub { color: var(--muted); font-size: 12px; letter-spacing: .15em; margin-top: 6px; }
-.status { font-size: 12px; color: #74f0a4; }
-.wrap { max-width: 1100px; margin: 0 auto; padding: 32px clamp(16px,4vw,28px) 60px; }
-.welcome { margin-bottom: 24px; }
-.welcome h2 { font-size: clamp(25px,4vw,38px); margin: 0 0 8px; }
-.welcome p { color: var(--muted); margin: 0; line-height: 1.6; }
-.grid,.modules {
-  display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
-  gap: 15px;
-}
-.card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 20px;
-  box-shadow: 0 12px 35px rgba(0,0,0,.2);
-}
-.card h3 { color: var(--gold); margin: 0 0 16px; font-size: 14px; letter-spacing: .12em; }
-.label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 5px; }
-.value { overflow-wrap: anywhere; font-size: 15px; margin-bottom: 16px; }
-.value:last-child { margin-bottom: 0; }
-.modules { margin-top: 18px; }
-.module { border: 1px solid rgba(79,163,255,.24); background: rgba(79,163,255,.035); border-radius: 14px; padding: 20px; }
-.module h3 { margin: 0 0 9px; color: var(--blue); }
-.module p { color: var(--muted); line-height: 1.55; font-size: 13px; margin: 0; }
-.tag { display: inline-block; margin-top: 13px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 5px; color: var(--gold); font-size: 10px; letter-spacing: .08em; }
-.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.btn { border: 1px solid var(--gold); background: var(--gold); color: #111; padding: 11px 15px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-.btn.secondary { background: transparent; color: var(--gold); }
-#message { margin: 0 0 18px; padding: 12px; border-radius: 8px; font-size: 13px; display: none; }
-#message.error { display: block; border: 1px solid #e8407a; color: #ffb4cf; background: rgba(232,64,122,.08); }
-footer { margin-top: 26px; color: #78716a; font-size: 11px; letter-spacing: .08em; }
-
-.academy-feature {
-  margin: 0 0 22px;
-  padding: clamp(22px,4vw,34px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  border: 1px solid rgba(245,192,48,.55);
-  border-radius: 18px;
-  background: linear-gradient(120deg,rgba(245,192,48,.11),rgba(79,163,255,.05) 58%,rgba(20,18,14,.9));
-  box-shadow: 0 18px 48px rgba(0,0,0,.25);
-}
-.academy-copy { max-width: 650px; }
-.academy-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .16em; color: var(--gold); }
-.academy-feature h2 { margin: 10px 0; color: #fff1bd; font-size: clamp(26px,4vw,38px); }
-.academy-feature p { color: var(--muted); line-height: 1.6; margin: 0 0 12px; }
-.academy-course { font-size: 13px; color: #f8f4e8; margin: 12px 0 18px; }
-.academy-course strong { color: var(--gold); }
-.academy-button { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
-.academy-button span { font-size: 17px; }
-.academy-symbol { display: grid; place-items: center; flex-shrink: 0; width: 92px; height: 92px; border-radius: 24px; background: rgba(245,192,48,.08); border: 1px solid rgba(245,192,48,.3); color: var(--gold); font-size: 56px; }
-@media(max-width:520px) { .academy-symbol { display:none; } }
-
-</style>
-</head>
-<body>
-<header>
-  <div>
-    <h1>VAGALUME90</h1>
-    <div class="sub">PAINEL DO ECOSSISTEMA · IDENTIDADE CENTRAL</div>
-  </div>
-  <div class="actions">
-    <span id="core-status" class="status">A verificar Core…</span>
-    <button id="logout" class="btn secondary" type="button">Terminar sessão</button>
-  </div>
-</header>
-
-<main class="wrap">
-  <section class="welcome">
-    <h2>Bem-vindo, <span id="nome">operador</span>.</h2>
-    <p>A tua sessão foi validada pelo Core VG90. Aqui estão os dados da identidade associada à tua conta.</p>
-  </section>
-
-  <p id="message" role="alert"></p>
-
-  <section class="grid">
-    <article class="card">
-      <h3>IDENTIDADE VG90</h3>
-      <div class="label">UID central</div><div class="value" id="uid">A carregar…</div>
-      <div class="label">Nome</div><div class="value" id="nome-card">—</div>
-      <div class="label">Estado do sistema</div><div class="value" id="estado">—</div>
-    </article>
-    <article class="card">
-      <h3>DADOS DA CONTA</h3>
-      <div class="label">Email</div><div class="value" id="email">—</div>
-      <div class="label">Telefone</div><div class="value" id="telefone">—</div>
-      <div class="label">ID de afiliado</div><div class="value" id="afiliado">—</div>
-    </article>
-    <article class="card">
-      <h3>PROGRESSO</h3>
-      <div class="label">Carteira</div><div class="value" id="carteira">0 Kz</div>
-      <div class="label">Nível</div><div class="value" id="nivel">1</div>
-      <div class="label">XP</div><div class="value" id="xp">0</div>
-    </article>
-  </section>
-
-  <section class="academy-feature" aria-labelledby="academy-title">
-    <div class="academy-copy">
-      <span class="academy-eyebrow">FOCO ATUAL · CURSOS BREVES</span>
-      <h2 id="academy-title">VG90 Academy</h2>
-      <p>Entra na área de formação, acompanha as aulas e aprende com o professor Persy.</p>
-      <div class="academy-course"><strong>Primeiro curso:</strong> Introdução à Programação</div>
-      <a class="btn academy-button" href="https://vg90-academy.onrender.com/" target="_blank" rel="noopener noreferrer">
-        ABRIR ACADEMY <span aria-hidden="true">↗</span>
-      </a>
-    </div>
-    <div class="academy-symbol" aria-hidden="true">⌘</div>
-  </section>
-
-  <section class="modules" aria-label="Módulos do ecossistema">
-    <article class="module">
-      <h3>01 · Mercado</h3>
-      <p>O registo de aquisições está disponível no Core. A integração do catálogo será validada antes de disponibilizar compras.</p>
-      <span class="tag">INTEGRAÇÃO EM PROGRESSO</span>
-    </article>
-    <article class="module">
-      <h3>02 · IA VG90</h3>
-      <p>A rota de IA existe no Core. O funcionamento do motor será validado na próxima etapa.</p>
-      <span class="tag">A VALIDAR</span>
-    </article>
-    <article class="module">
-      <h3>03 · Arena</h3>
-      <p>A rota de desafios existe. As regras e os resultados serão testados antes do uso normal.</p>
-      <span class="tag">A VALIDAR</span>
-    </article>
-  </section>
-
-  <footer>VAGALUME90 · UBUNTU: SOU PORQUE SOMOS</footer>
-</main>
-
-<script>
-const msg = document.getElementById('message');
-
-function falhar(texto) {
-  msg.textContent = texto;
-  msg.className = 'error';
+    padding: 18px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: #0d0d19;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
-async function iniciarPainel() {
-  try {
-    const resposta = await fetch('/api/auth/me', {
-      method: 'GET',
-      credentials: 'include',
-      cache: 'no-store',
-      headers: { 'Accept': 'application/json' }
-    });
+.logo {
+    color: var(--orange);
+    font-weight: 900;
+    font-size: 20px;
+    letter-spacing: 2px;
+}
 
-    const dados = await resposta.json().catch(() => ({}));
+.logo span {
+    color: white;
+}
 
-    if (!resposta.ok || dados.success !== true || !dados.identity) {
-      window.location.replace('/');
-      return;
+.status {
+    font-size: 11px;
+    color: #39ff9b;
+    margin-top: 5px;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 16px;
+    font-weight: bold;
+}
+
+.logout {
+    background: #28121e;
+    color: #ff6c9d;
+    border: 1px solid #64223f;
+}
+
+main {
+    width: 92%;
+    max-width: 1200px;
+    margin: 35px auto;
+}
+
+.welcome {
+    background: linear-gradient(120deg, #201044, #111126 65%, #26152c);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 30px;
+    margin-bottom: 25px;
+}
+
+.welcome small {
+    color: var(--orange);
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+.welcome h1 {
+    margin: 15px 0 8px;
+    font-size: clamp(25px, 5vw, 38px);
+}
+
+.welcome p {
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.identity {
+    display: inline-block;
+    margin-top: 18px;
+    background: #ffffff12;
+    padding: 9px 14px;
+    border-radius: 8px;
+    color: var(--orange);
+    font-size: 13px;
+}
+
+.section-title {
+    margin: 35px 0 17px;
+    font-size: 19px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 20px;
+    border-radius: 13px;
+}
+
+.stat small {
+    color: var(--muted);
+}
+
+.stat h2 {
+    margin-top: 12px;
+    color: var(--orange);
+    font-size: 23px;
+}
+
+.portals {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.portal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    transition: .2s;
+}
+
+.portal:hover {
+    transform: translateY(-4px);
+    border-color: var(--purple);
+}
+
+.portal .icon {
+    font-size: 30px;
+}
+
+.portal h3 {
+    margin: 13px 0 8px;
+}
+
+.portal p {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.portal a {
+    display: inline-block;
+    margin-top: 17px;
+    color: var(--orange);
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.persy {
+    margin-top: 30px;
+    padding: 25px;
+    border-radius: 15px;
+    background: linear-gradient(110deg, #271044, #111126);
+    border: 1px solid #7000ff55;
+}
+
+.persy h2 {
+    color: #d1a6ff;
+    margin-bottom: 10px;
+}
+
+.persy p {
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.persy a {
+    display: inline-block;
+    margin-top: 15px;
+    color: var(--orange);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+footer {
+    text-align: center;
+    padding: 30px;
+    color: #666680;
+    font-size: 12px;
+}
+
+.loading {
+    text-align: center;
+    padding: 50px;
+    color: var(--orange);
+}
+
+@media(max-width: 750px) {
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
     }
 
-    const u = dados.identity;
-
-    document.getElementById('nome').textContent = u.nome || 'operador';
-    document.getElementById('nome-card').textContent = u.nome || '—';
-    document.getElementById('uid').textContent = u.uid || '—';
-    document.getElementById('estado').textContent = u.status_sistema || '—';
-    document.getElementById('email').textContent = u.email || '—';
-    document.getElementById('telefone').textContent = u.telefone || '—';
-    document.getElementById('afiliado').textContent = u.afiliado_id || '—';
-    document.getElementById('carteira').textContent =
-      `${Number(u.carteira_kwanzas || 0).toLocaleString('pt-PT')} Kz`;
-    document.getElementById('nivel').textContent =
-      (u.combate && u.combate.nivel) || 1;
-    document.getElementById('xp').textContent =
-      (u.combate && u.combate.xp) || 0;
-
-    document.getElementById('core-status').textContent = '● SESSÃO VALIDADA';
-  } catch (erro) {
-    falhar('Não foi possível validar a sessão. Atualiza a página ou entra novamente.');
-  }
+    .portals {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
-document.getElementById('logout').addEventListener('click', async () => {
-  const botao = document.getElementById('logout');
-  botao.disabled = true;
-  botao.textContent = 'A terminar…';
+@media(max-width: 450px) {
+    .portals {
+        grid-template-columns: 1fr;
+    }
 
-  try {
-    await fetch('/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Accept': 'application/json' }
+    .welcome {
+        padding: 22px;
+    }
+
+    header {
+        padding: 15px 4%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div>
+        <div class="logo">☥ VAGALUME<span>90</span></div>
+        <div class="status">● CENTRAL DE COMANDO ONLINE</div>
+    </div>
+
+    <button class="logout" onclick="terminarSessao()">
+        Sair
+    </button>
+</header>
+
+<main id="conteudo">
+
+    <div class="loading">
+        A estabelecer ligação com a identidade VG90...
+    </div>
+
+</main>
+
+<footer>
+    VAGALUME90 © 2026
+    <br><br>
+    Ubuntu: Sou porque somos.
+</footer>
+
+<script>
+
+const API = '';
+
+async function carregarPainel() {
+
+    try {
+
+        const resposta = await fetch(
+            API + '/api/auth/me',
+            {
+                method: 'GET',
+                credentials: 'include'
+            }
+        );
+
+        if (!resposta.ok) {
+
+            window.location.replace('/');
+
+            return;
+        }
+
+        const dados = await resposta.json();
+
+        if (!dados.success || !dados.identity) {
+
+            window.location.replace('/');
+
+            return;
+        }
+
+        const user = dados.identity;
+
+        const nome = user.nome || 'Utilizador VG90';
+        const uid = user.uid || 'Não disponível';
+        const nivel = user.combate?.nivel ?? 1;
+        const xp = user.combate?.xp ?? 0;
+        const carteira = user.carteira_kwanzas ?? 0;
+        const status = user.status_sistema || 'ATIVO';
+
+        document.getElementById('conteudo').innerHTML = `
+
+            <section class="welcome">
+
+                <small>IDENTIDADE VG90 RECONHECIDA</small>
+
+                <h1>Olá, ${escapar(nome)} 👋</h1>
+
+                <p>
+                    Bem-vindo à Central de Comando.
+                    O teu futuro tecnológico começa aqui.
+                </p>
+
+                <div class="identity">
+                    IDENTIDADE: ${escapar(uid)}
+                </div>
+
+            </section>
+
+            <h2 class="section-title">
+                📊 O teu estado no ecossistema
+            </h2>
+
+            <section class="stats">
+
+                <div class="stat">
+                    <small>Identidade</small>
+                    <h2>ATIVA</h2>
+                </div>
+
+                <div class="stat">
+                    <small>Nível</small>
+                    <h2>${nivel}</h2>
+                </div>
+
+                <div class="stat">
+                    <small>Experiência XP</small>
+                    <h2>${xp}</h2>
+                </div>
+
+                <div class="stat">
+                    <small>Carteira (Kz)</small>
+                    <h2>${Number(carteira).toLocaleString('pt-PT')}</h2>
+                </div>
+
+            </section>
+
+            <h2 class="section-title">
+                🌍 Portais do Vagalume90
+            </h2>
+
+            <section class="portals">
+
+                <article class="portal">
+                    <div class="icon">🛒</div>
+                    <h3>Mercado</h3>
+                    <p>Compra, venda e oportunidades digitais.</p>
+                    <a href="/modulo/mercado">ACEDER →</a>
+                </article>
+
+                <article class="portal">
+                    <div class="icon">🎓</div>
+                    <h3>Academy</h3>
+                    <p>Aprendizagem, cursos e livros.</p>
+                    <a href="https://vg90-academy.onrender.com/">
+                        ACEDER →
+                    </a>
+                </article>
+
+                <article class="portal">
+                    <div class="icon">🤝</div>
+                    <h3>Afiliados</h3>
+                    <p>Partilha oportunidades e ganha comissões.</p>
+                    <a href="#">EM PREPARAÇÃO</a>
+                </article>
+
+                <article class="portal">
+                    <div class="icon">🤖</div>
+                    <h3>IA PRO</h3>
+                    <p>Inteligência artificial e ferramentas digitais.</p>
+                    <a href="#">EM PREPARAÇÃO</a>
+                </article>
+
+                <article class="portal">
+                    <div class="icon">🎬</div>
+                    <h3>Estúdio Criativo</h3>
+                    <p>Criação de áudio, vídeo e conteúdos.</p>
+                    <a href="#">EM PREPARAÇÃO</a>
+                </article>
+
+                <article class="portal">
+                    <div class="icon">🌐</div>
+                    <h3>Internet Rápida</h3>
+                    <p>Soluções digitais leves e económicas.</p>
+                    <a href="#">EM PREPARAÇÃO</a>
+                </article>
+
+            </section>
+
+            <section class="persy">
+
+                <h2>☥ PERSY — Inteligência Central</h2>
+
+                <p>
+                    O teu assistente inteligente do ecossistema VG90.
+                    Consulta, aprende e recebe orientação para
+                    desenvolver os teus projetos.
+                </p>
+
+                <a href="https://persy-ai.onrender.com/">
+                    CONVERSAR COM PERSY →
+                </a>
+
+            </section>
+
+            <h2 class="section-title">
+                👤 A tua identidade
+            </h2>
+
+            <section class="stat">
+
+                <p><small>Nome:</small> ${escapar(nome)}</p>
+                <br>
+
+                <p><small>UID:</small> ${escapar(uid)}</p>
+                <br>
+
+                <p><small>Email:</small> ${escapar(user.email || 'Não disponível')}</p>
+                <br>
+
+                <p><small>Telefone:</small> ${escapar(user.telefone || 'Não disponível')}</p>
+                <br>
+
+                <p><small>Estado:</small> ${escapar(status)}</p>
+
+            </section>
+
+        `;
+
+    } catch (erro) {
+
+        document.getElementById('conteudo').innerHTML = `
+            <div class="loading">
+                Não foi possível carregar o painel.
+                <br><br>
+                Verifica a ligação ao Core e tenta novamente.
+                <br><br>
+                <button onclick="carregarPainel()">
+                    TENTAR NOVAMENTE
+                </button>
+            </div>
+        `;
+
+        console.error(erro);
+
+    }
+
+}
+
+
+function escapar(valor) {
+
+    return String(valor).replace(/[&<>"']/g, function(c) {
+
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+
+        }[c];
+
     });
-  } catch (erro) {}
 
-  window.location.replace('/');
-});
+}
 
-iniciarPainel();
+
+async function terminarSessao() {
+
+    try {
+
+        await fetch('/api/auth/logout', {
+
+            method: 'POST',
+
+            credentials: 'include'
+
+        });
+
+    } finally {
+
+        window.location.replace('/');
+
+    }
+
+}
+
+
+carregarPainel();
+
 </script>
+
 </body>
 </html>
-
-
