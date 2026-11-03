@@ -2312,7 +2312,183 @@ app.get(
     }
 );
 
+// ==========================================================================
+// 23. PERSY COMMAND CENTER — CENTRO DE COMANDO VG90
+// ==========================================================================
 
+app.get(
+    '/api/persy/command-center',
+    exigirLogin,
+    async (req, res) => {
+
+        try {
+
+            // Confirmar identidade do operador
+            const operador = await User.findById(
+                req.session.userId
+            ).select('uid nome email').lean();
+
+            if (!operador) {
+                return res.status(401).json({
+                    success: false,
+                    error: 'Operador não encontrado.'
+                });
+            }
+
+            // Estado da base de dados
+            const mongoOnline =
+                mongoose.connection.readyState === 1;
+
+            if (!mongoOnline) {
+                return res.status(503).json({
+                    success: false,
+                    error: 'MongoDB não está disponível.'
+                });
+            }
+
+            // Estatísticas reais do ecossistema
+            const [
+                totalUtilizadores,
+                totalFreelancers,
+                totalTransacoes,
+                transacoesPendentes,
+                utilizadoresRecentes,
+                transacoesRecentes
+            ] = await Promise.all([
+
+                User.countDocuments(),
+
+                Freelancer.countDocuments(),
+
+                Transacao.countDocuments(),
+
+                Transacao.countDocuments({
+                    status: 'AGUARDANDO PROVA'
+                }),
+
+                User.find()
+                    .sort({ criado_em: -1 })
+                    .limit(5)
+                    .select('uid nome status_sistema criado_em')
+                    .lean(),
+
+                Transacao.find()
+                    .sort({ timestamp: -1 })
+                    .limit(5)
+                    .select(
+                        'transacao_id produto_id comprador_id status timestamp'
+                    )
+                    .lean()
+
+            ]);
+
+            // Fornecedores de inteligência configurados
+            const fornecedores =
+                persyProviders().map(provider => provider.name);
+
+            // Relatório operacional
+            const relatorio = {
+
+                success: true,
+
+                centro: 'PERSY COMMAND CENTER',
+
+                architecture: 'PERSY_IS_CORE',
+
+                generated_at: new Date(),
+
+                operador: {
+                    uid: operador.uid,
+                    nome: operador.nome
+                },
+
+                sistema: {
+
+                    core: 'ONLINE',
+
+                    database: 'CONNECTED',
+
+                    persy: fornecedores.length > 0
+                        ? 'AI_CONFIGURED'
+                        : 'AI_NOT_CONFIGURED',
+
+                    memory: 'MONGODB'
+
+                },
+
+                modulos: {
+
+                    identity: 'ACTIVE',
+
+                    arena: 'ACTIVE',
+
+                    market: 'ACTIVE',
+
+                    persy: 'ACTIVE'
+
+                },
+
+                estatisticas: {
+
+                    utilizadores: totalUtilizadores,
+
+                    freelancers: totalFreelancers,
+
+                    transacoes: totalTransacoes,
+
+                    transacoes_pendentes:
+                        transacoesPendentes
+
+                },
+
+                atividade: {
+
+                    novos_utilizadores:
+                        utilizadoresRecentes,
+
+                    transacoes_recentes:
+                        transacoesRecentes
+
+                },
+
+                inteligencia: {
+
+                    fornecedores_configurados:
+                        fornecedores,
+
+                    ready_for_chat:
+                        fornecedores.length > 0
+
+                }
+
+            };
+
+            console.log(
+                `🧠 Persy Command Center consultado por ${operador.uid}`
+            );
+
+            return res.status(200).json(relatorio);
+
+        } catch (error) {
+
+            console.error(
+                'Erro no Persy Command Center:',
+                error
+            );
+
+            return res.status(500).json({
+
+                success: false,
+
+                error:
+                    'O Persy não conseguiu consultar o estado do ecossistema.'
+
+            });
+
+        }
+
+    }
+);
 // ========================================================================== 
 // 23. PERSY — CHAT, MEMÓRIA E ESTADO (DENTRO DO CORE)
 // ========================================================================== 
