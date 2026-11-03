@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080811">
+<title>Minha Área | VAGALUME90</title>
+
+<style>
+:root {
+    --bg: #080811;
+    --card: #11111f;
+    --card2: #171729;
+    --orange: #ff9d00;
+    --purple: #7000ff;
+    --pink: #ff1493;
+    --text: #f5f5fa;
+    --muted: #9999ad;
+    --border: rgba(255,255,255,.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* MENU LATERAL */
+
+.sidebar {
+    width: 245px;
+    background: #0d0d19;
+    border-right: 1px solid var(--border);
+    padding: 25px 17px;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.logo {
+    font-size: 23px;
+    font-weight: 900;
+    color: var(--orange);
+    margin-bottom: 7px;
+}
+
+.logo span {
+    color: white;
+}
+
+.subtitle {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    margin-bottom: 35px;
+}
+
+.menu-title {
+    font-size: 10px;
+    color: #66667a;
+    letter-spacing: 2px;
+    margin: 25px 10px 12px;
+}
+
+.menu a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: #aaaabd;
+    padding: 13px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    font-size: 14px;
+    transition: .3s;
+}
+
+.menu a:hover,
+.menu a.active {
+    background: linear-gradient(100deg, rgba(255,157,0,.16), rgba(112,0,255,.15));
+    color: white;
+    border-left: 3px solid var(--orange);
+}
+
+.sidebar-bottom {
+    margin-top: 45px;
+    padding: 15px;
+    background: var(--card);
+    border-radius: 12px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+/* CONTEÚDO */
+
+.main {
+    margin-left: 245px;
+    width: calc(100% - 245px);
+    padding: 28px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 35px;
+}
+
+.breadcrumb {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.breadcrumb strong {
+    color: var(--orange);
+}
+
+.top-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--orange), var(--purple));
+    display: grid;
+    place-items: center;
+    font-weight: bold;
+}
+
+.profile-info small {
+    display: block;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+/* BOAS-VINDAS */
+
+.welcome {
+    background:
+      radial-gradient(circle at 90% 20%, rgba(112,0,255,.28), transparent 35%),
+      linear-gradient(120deg, #171321, #10101d);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 25px;
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome small {
+    color: var(--orange);
+    letter-spacing: 3px;
+    font-size: 11px;
+}
+
+.welcome h1 {
+    font-size: clamp(25px, 4vw, 38px);
+    margin: 15px 0 10px;
+}
+
+.welcome p {
+    color: var(--muted);
+    max-width: 600px;
+    line-height: 1.7;
+}
+
+.identity {
+    display: inline-block;
+    margin-top: 20px;
+    background: rgba(255,157,0,.12);
+    color: var(--orange);
+    border: 1px solid rgba(255,157,0,.3);
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+/* CARTÕES */
+
+.section-title {
+    margin: 32px 0 17px;
+    font-size: 19px;
+}
+
+.section-title span {
+    color: var(--orange);
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 21px;
+}
+
+.card-icon {
+    font-size: 24px;
+    margin-bottom: 17px;
+}
+
+.card small {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.card h2 {
+    font-size: 25px;
+    margin-top: 9px;
+}
+
+.card .description {
+    font-size: 11px;
+    color: #77778b;
+    margin-top: 8px;
+}
+
+/* EVOLUÇÃO */
+
+.progress-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 24px;
+    border-radius: 15px;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.progress-header span {
+    color: var(--orange);
+}
+
+.progress-bar {
+    height: 9px;
+    background: #29293b;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    width: 35%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), var(--pink), var(--purple));
+    border-radius: 20px;
+}
+
+.progress-note {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 12px;
+}
+
+/* DUAS COLUNAS */
+
+.columns {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 18px;
+}
+
+.list-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.list-item:last-child {
+    border-bottom: none;
+}
+
+.list-icon {
+    width: 43px;
+    height: 43px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: var(--card2);
+    font-size: 20px;
+}
+
+.list-text {
+    flex: 1;
+}
+
+.list-text strong {
+    font-size: 13px;
+}
+
+.list-text small {
+    display: block;
+    color: var(--muted);
+    margin-top: 5px;
+    font-size: 11px;
+}
+
+.badge {
+    font-size: 10px;
+    color: var(--orange);
+    background: rgba(255,157,0,.1);
+    padding: 6px 9px;
+    border-radius: 20px;
+}
+
+/* PERSY */
+
+.persy {
+    margin-top: 20px;
+    background: linear-gradient(110deg, #20112e, #111126);
+    border: 1px solid rgba(112,0,255,.3);
+    border-radius: 17px;
+    padding: 23px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.persy h3 {
+    margin-bottom: 9px;
+}
+
+.persy p {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.button {
+    border: none;
+    background: linear-gradient(100deg, var(--orange), var(--pink));
+    color: #080811;
+    padding: 12px 19px;
+    border-radius: 9px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+    font-size: 12px;
+}
+
+.button:hover {
+    opacity: .85;
+}
+
+/* RODAPÉ */
+
+footer {
+    text-align: center;
+    padding: 35px 10px 15px;
+    color: #66667a;
+    font-size: 11px;
+}
+
+/* RESPONSIVO */
+
+@media(max-width: 1000px) {
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media(max-width: 700px) {
+    .sidebar {
+        width: 65px;
+        padding: 20px 8px;
+    }
+
+    .logo {
+        font-size: 12px;
+        text-align: center;
+    }
+
+    .logo span,
+    .subtitle,
+    .menu-title,
+    .menu a span,
+    .sidebar-bottom {
+        display: none;
+    }
+
+    .menu a {
+        justify-content: center;
+        font-size: 19px;
+        padding: 13px 5px;
+    }
+
+    .main {
+        margin-left: 65px;
+        width: calc(100% - 65px);
+        padding: 17px 12px;
+    }
+
+    .welcome {
+        padding: 23px 18px;
+    }
+
+    .stats {
+        gap: 9px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    .card h2 {
+        font-size: 20px;
+    }
+
+    .topbar {
+        align-items: flex-start;
+    }
+
+    .profile-info {
+        display: none;
+    }
+
+    .persy {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- MENU LATERAL -->
+    <aside class="sidebar">
+
+        <div class="logo">👁 VG90<span>.</span></div>
+        <div class="subtitle">ECOSSISTEMA DIGITAL</div>
+
+        <div class="menu-title">ESPAÇO PESSOAL</div>
+
+        <nav class="menu">
+            <a href="#inicio" class="active">
+                <span>🏠</span><span>Minha área</span>
+            </a>
+
+            <a href="#perfil">
+                <span>👤</span><span>Meu perfil</span>
+            </a>
+
+            <a href="#evolucao">
+                <span>⚡</span><span>Minha evolução</span>
+            </a>
+
+            <a href="#carteira">
+                <span>💰</span><span>Minha carteira</span>
+            </a>
+
+            <a href="#formacao">
+                <span>🎓</span><span>Minha formação</span>
+            </a>
+
+            <a href="#atividades">
+                <span>📊</span><span>Atividades</span>
+            </a>
+
+            <a href="#configuracoes">
+                <span>⚙️</span><span>Configurações</span>
+            </a>
+        </nav>
+
+        <div class="menu-title">ECOSSISTEMA</div>
+
+        <nav class="menu">
+            <a href="/painel">
+                <span>🌐</span><span>Central VG90</span>
+            </a>
+
+            <a href="#persy">
+                <span>🤖</span><span>Persy IA</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <strong style="color:var(--orange)">☥ Ubuntu</strong><br>
+            Sou porque somos.<br>
+            <span>VAGALUME90 © 2026</span>
+        </div>
+
+    </aside>
+
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main" id="inicio">
+
+        <header class="topbar">
+
+            <div class="breadcrumb">
+                VG90 / <strong>Minha Área Pessoal</strong>
+            </div>
+
+            <div class="top-profile">
+                <div class="avatar" id="avatar">V</div>
+
+                <div class="profile-info">
+                    <strong id="nomeTopo">Visitante VG90</strong>
+                    <small>Identidade VG90</small>
+                </div>
+            </div>
+
+        </header>
+
+
+        <!-- BOAS-VINDAS -->
+        <section class="welcome" id="perfil">
+
+            <small>IDENTIDADE • EVOLUÇÃO • OPORTUNIDADE</small>
+
+            <h1>Bem-vindo à tua área pessoal.</h1>
+
+            <p>
+                Este é o teu espaço dentro do ecossistema Vagalume90.
+                Acompanha a tua evolução, gere a tua atividade e descobre
+                novas oportunidades para crescer.
+            </p>
+
+            <div class="identity">
+                ☥ IDENTIDADE: <strong id="uid">VGLM-DEMO90</strong>
+            </div>
+
+        </section>
+
+
+        <!-- ESTATÍSTICAS -->
+        <h3 class="section-title">O teu <span>painel de controlo</span></h3>
+
+        <section class="stats">
+
+            <div class="card">
+                <div class="card-icon">⚡</div>
+                <small>Experiência acumulada</small>
+                <h2>150 XP</h2>
+                <div class="description">Pontos de evolução</div>
+            </div>
+
+            <div class="card" id="evolucao">
+                <div class="card-icon">🏆</div>
+                <small>Nível atual</small>
+                <h2>Nível 02</h2>
+                <div class="description">Operador em evolução</div>
+            </div>
+
+            <div class="card" id="carteira">
+                <div class="card-icon">💰</div>
+                <small>Minha carteira</small>
+                <h2>0 Kz</h2>
+                <div class="description">Saldo demonstrativo</div>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">🌍</div>
+                <small>Estado da identidade</small>
+                <h2 style="color:#00d68f;font-size:20px">ACTIVA</h2>
+                <div class="description">Estado demonstrativo</div>
+            </div>
+
+        </section>
+
+
+        <!-- PROGRESSO -->
+        <h3 class="section-title">A tua <span>evolução</span></h3>
+
+        <section class="progress-card">
+
+            <div class="progress-header">
+                <strong>Progresso para o próximo nível</strong>
+                <span>35%</span>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+
+            <div class="progress-note">
+                Continua a aprender, participar e resolver problemas.
+                Cada contribuição conta.
+            </div>
+
+        </section>
+
+
+        <!-- FORMAÇÃO E ACTIVIDADES -->
+        <h3 class="section-title">O teu <span>espaço de desenvolvimento</span></h3>
+
+        <section class="columns">
+
+            <div class="card" id="formacao">
+
+                <h3>🎓 Minha formação</h3>
+
+                <div class="list-item">
+                    <div class="list-icon">💻</div>
+
+                    <div class="list-text">
+                        <strong>Introdução à Programação</strong>
+                        <small>VG90 Academy</small>
+                    </div>
+
+                    <span class="badge">Inscrito</span>
+                </div>
+
+                <div class="list-item">
+                    <div class="list-icon">🧠</div>
+
+                    <div class="list-text">
+                        <strong>Inteligência Artificial</strong>
+                        <small>Formação futura</small>
+                    </div>
+
+                    <span class="badge">Brevemente</span>
+                </div>
+
+                <div class="list-item">
+                    <div class="list-icon">🚀</div>
+
+                    <div class="list-text">
+                        <strong>Empreendedorismo Digital</strong>
+                        <small>Formação futura</small>
+                    </div>
+
+                    <span class="badge">Brevemente</span>
+                </div>
+
+            </div>
+
+
+            <div class="card" id="atividades">
+
+                <h3>📊 Minhas atividades</h3>
+
+                <div class="list-item">
+                    <div class="list-icon">👤</div>
+
+                    <div class="list-text">
+                        <strong>Identidade VG90</strong>
+                        <small>Conta demonstrativa</small>
+                    </div>
+                </div>
+
+                <div class="list-item">
+                    <div class="list-icon">🎓</div>
+
+                    <div class="list-text">
+                        <strong>Academy</strong>
+                        <small>Área de formação</small>
+                    </div>
+                </div>
+
+                <div class="list-item">
+                    <div class="list-icon">🤖</div>
+
+                    <div class="list-text">
+                        <strong>Persy IA</strong>
+                        <small>Assistente do ecossistema</small>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- PERSY -->
+        <section class="persy" id="persy">
+
+            <div>
+                <h3>🤖 Persy — Inteligência VG90</h3>
+
+                <p>
+                    O teu assistente dentro do ecossistema.
+                    Aprende, esclarece dúvidas e recebe orientação
+                    para desenvolver as tuas capacidades.
+                </p>
+            </div>
+
+            <a class="button" href="https://persy-ai.onrender.com/" target="_blank">
+                ACEDER AO PERSY →
+            </a>
+
+        </section>
+
+
+        <!-- CONFIGURAÇÕES -->
+        <h3 class="section-title" id="configuracoes">
+            Gestão da <span>minha conta</span>
+        </h3>
+
+        <section class="card">
+
+            <div class="list-item">
+                <div class="list-icon">🔐</div>
+
+                <div class="list-text">
+                    <strong>Segurança da identidade</strong>
+                    <small>Gestão de acesso e proteção da conta</small>
+                </div>
+
+                <span class="badge">Em preparação</span>
+            </div>
+
+            <div class="list-item">
+                <div class="list-icon">⚙️</div>
+
+                <div class="list-text">
+                    <strong>Preferências pessoais</strong>
+                    <small>Configurações da tua experiência</small>
+                </div>
+
+                <span class="badge">Em preparação</span>
+            </div>
+
+            <div class="list-item">
+                <div class="list-icon">📩</div>
+
+                <div class="list-text">
+                    <strong>Notificações</strong>
+                    <small>Comunicações do ecossistema VG90</small>
+                </div>
+
+                <span class="badge">Em preparação</span>
+            </div>
+
+        </section>
+
+
+        <footer>
+            👁 VAGALUME90 — O TEU FUTURO TECNOLÓGICO<br>
+            ☥ Ubuntu: Sou porque somos.
+        </footer>
+
+    </main>
+
+</div>
+
+</body>
+</html>
