@@ -803,202 +803,7 @@ const Transacao =
     mongoose.model(
         'Transacao',
         TransacaoSchema
-    );
-
-
-// ==========================================================================
-// 12. HEALTH CHECK
-// ==========================================================================
-
-app.get(
-    '/health',
-    (req, res) => {
-
-        const mongoEstado =
-            mongoose.connection.readyState === 1;
-
-
-        res.json({
-
-            status:
-                'ok',
-
-            project:
-                'Vagalume90 Core',
-
-            version:
-                '3.3.0',
-
-            core:
-                'online',
-
-            database:
-                mongoEstado
-                    ? 'connected'
-                    : 'disconnected',
-
-            identity:
-                'enabled',
-
-            modules: {
-
-                identity:
-                    true,
-
-                ai:
-                    true,
-
-                arena:
-                    true,
-
-                market:
-                    true
-
-            }
-
-        });
-
-    }
-);
-
-
-// ==========================================================================
-// 13. STATUS DO CORE
-// ==========================================================================
-
-app.get(
-    '/',
-    (req, res) => {
-
-        // Mostra o portal visual de login e registo.
-        return res.sendFile(
-            path.join(__dirname, 'templates', 'index.html')
-        );
-
-    }
-);
-
-
-// Estado do Core separado da página visual.
-app.get(
-    '/api/status',
-    (req, res) => {
-
-        return res.json({
-
-            system:
-                'VAGALUME90 CORE',
-
-            status:
-                'ONLINE',
-
-            version:
-                '3.3.0',
-
-            identity:
-                true,
-
-            database:
-                mongoose.connection.readyState === 1
-                    ? 'CONNECTED'
-                    : 'DISCONNECTED',
-
-            message:
-                'O Core central do ecossistema VG90 está operacional.'
-
-        });
-
-    }
-);
-
-
-// ==========================================================================
-// 14. REGISTO
-// ==========================================================================
-
-app.post(
-    '/api/auth/register',
-    async (req, res) => {
-
-        try {
-
-            const {
-
-                nome,
-
-                telefone,
-
-                email,
-
-                password
-
-            } = req.body || {};
-
-
-            if (
-                typeof nome !== 'string' ||
-                typeof telefone !== 'string' ||
-                typeof email !== 'string' ||
-                typeof password !== 'string' ||
-                !nome.trim() ||
-                !telefone.trim() ||
-                !email.trim() ||
-                !password
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    error:
-                        'Nome, telefone, email e senha são obrigatórios.'
-
-                });
-
-            }
-
-
-            // Senha mais forte:
-            // mínimo 8 caracteres.
-
-            if (
-                password.length < 8
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    error:
-                        'A senha deve ter pelo menos 8 caracteres.'
-
-                });
-
-            }
-
-
-            const emailNormalizado =
-                email
-                    .trim()
-                    .toLowerCase();
-
-
-            const existente =
-                await User.findOne({
-
-                    email:
-                        emailNormalizado
-
-                });
-
-
-            if (existente) {
-
-                return res.status(409).json({
-
-                    success:
+    );                    success:
                         false,
 
                     error:
@@ -1638,15 +1443,9 @@ app.get(
 
             });
 
-        }
-
-    }
-);
-
-
-// ==========================================================================
+        }// =========================================================================
 // 19. MOTOR MULTIMODAL
-// ==========================================================================
+// =========================================================================
 
 async function gerarTextoCopy(
     promptBase
@@ -1838,9 +1637,9 @@ app.post(
 );
 
 
-// ==========================================================================
+// =========================================================================
 // 20. ZONA DE GUERRA / ARENA
-// ==========================================================================
+// =========================================================================
 
 const desafiosArena = {
 
@@ -1897,8 +1696,8 @@ app.post(
 
             }
 
-
-            const desafio =
+    }
+);            const desafio =
                 desafiosArena[
                     desafio_id
                 ];
@@ -2049,9 +1848,9 @@ app.post(
 );
 
 
-// ==========================================================================
+// =========================================================================
 // 21. MERCADO — REGISTAR AQUISIÇÃO
-// ==========================================================================
+// =========================================================================
 
 app.post(
     '/api/mercado/comprar',
@@ -2254,9 +2053,9 @@ app.post(
 );
 
 
-// ==========================================================================
+// =========================================================================
 // 22. INFORMAÇÃO PÚBLICA DA IDENTIDADE
-// ==========================================================================
+// =========================================================================
 
 app.get(
     '/api/identity/:uid/public',
@@ -2319,12 +2118,9 @@ app.get(
         }
 
     }
-);
-
-
-// ==========================================================================
+);// =========================================================================
 // 23. ERROS
-// ==========================================================================
+// =========================================================================
 
 app.use(
     (err, req, res, next) => {
@@ -2387,9 +2183,9 @@ app.use(
 );
 
 
-// ==========================================================================
+// =========================================================================
 // 24. CONEXÃO MONGODB + ARRANQUE
-// ==========================================================================
+// =========================================================================
 
 mongoose
     .connect(
